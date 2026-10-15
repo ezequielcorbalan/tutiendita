@@ -6,6 +6,7 @@ import {
   connectGithub,
   createProduct,
   deletePasskey,
+  deleteProduct,
   deleteSampleProducts,
   finishPasskeyRegistration,
   finishSignIn,
@@ -27,6 +28,7 @@ import {
   startPasskeyRegistration,
   startSignIn,
   type UpdatesDeps,
+  updateProduct,
   updateStatus,
   validateClaimCode,
   validateSession,
@@ -99,6 +101,9 @@ export function build(env: Env) {
     listAllProducts: listAllProducts({ repo }),
     getProduct: getProduct({ repo }),
     createProduct: createProduct(productDeps),
+    updateProduct: updateProduct(productDeps),
+    deleteProduct: deleteProduct(productDeps),
+    findProductById: (id: string) => repo.findById(id),
     listCategories: () => categories.list(),
     samples: {
       load: (industry: Parameters<ReturnType<typeof loadSampleProducts>>[0], origin: string) =>

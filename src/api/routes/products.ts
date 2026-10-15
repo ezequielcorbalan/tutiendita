@@ -37,7 +37,44 @@ const creationSchema = z.object({
     .optional()
     .transform((v) => v === "true"),
   image: z.instanceof(File, { message: "Must be a file" }).optional(),
+  // Empty means "no category".
+  category_id: z
+    .string()
+    .max(64)
+    .optional()
+    .transform((v) => (v ? v : null)),
 });
+
+/** Multipart fields of PUT /api/products/:id: the whole product (the panel sends the full form). */
+const updateSchema = creationSchema.omit({ publish: true }).extend({
+  description: z.string().max(MAX_DESCRIPTION_LENGTH, `At most ${MAX_DESCRIPTION_LENGTH} characters`),
+  // Stored in D1 in Spanish: published, paused, draft.
+  status: z.enum(["publicado", "pausado", "borrador"], { message: "Unknown status" }),
+});
+
+const bodyCap = bodyLimit({
+  maxSize: MAX_BODY_SIZE,
+  onError: (c) =>
+    c.json<ErrorBody>(
+      {
+        error: {
+          code: "BODY_TOO_LARGE",
+          // The panel has no text for this code and shows this message as is: it stays in Spanish.
+          message: "El cuerpo de la solicitud supera el máximo",
+          details: { max: MAX_BODY_SIZE },
+        },
+      },
+      413,
+    ),
+});
+
+/** Reads and checks the uploaded photo, if any. */
+async function readImage(file: File | undefined) {
+  if (file === undefined) return { ok: true as const, image: undefined };
+  const image = { bytes: new Uint8Array(await file.arrayBuffer()), mimeType: file.type };
+  const problem = verifyImage(file.name, image.mimeType);
+  return problem === null ? { ok: true as const, image } : { ok: false as const, problem };
+}
 
 export const productRoutes = new Hono<ApiEnv>()
   .get("/", async (c) => {
@@ -53,40 +90,51 @@ export const productRoutes = new Hono<ApiEnv>()
     "/",
     // Only the owner, with a full session. The app already required the origin.
     requireSession("completa"),
-    bodyLimit({
-      maxSize: MAX_BODY_SIZE,
-      onError: (c) =>
-        c.json<ErrorBody>(
-          {
-            error: {
-              code: "BODY_TOO_LARGE",
-              // The panel has no text for this code and shows this message as is: it stays in Spanish.
-              message: "El cuerpo de la solicitud supera el máximo",
-              details: { max: MAX_BODY_SIZE },
-            },
-          },
-          413,
-        ),
-    }),
+    bodyCap,
     validate("form", creationSchema, "Invalid product data"),
     async (c) => {
       const data = c.req.valid("form");
       const price = money(data.price_amount, data.price_currency);
       if (!price.ok) return respondDomainError(c, price.error);
-      let image: { bytes: Uint8Array; mimeType: string } | undefined;
-      if (data.image !== undefined) {
-        image = { bytes: new Uint8Array(await data.image.arrayBuffer()), mimeType: data.image.type };
-        const problem = verifyImage(data.image.name, image.mimeType);
-        if (problem !== null) return respondDomainError(c, problem);
-      }
+      const read = await readImage(data.image);
+      if (!read.ok) return respondDomainError(c, read.problem);
       const r = await build(c.env).createProduct({
         name: data.name,
         price: price.value,
         publish: data.publish,
+        categoryId: data.category_id,
         ...(data.description !== undefined ? { description: data.description } : {}),
-        ...(image !== undefined ? { image } : {}),
+        ...(read.image !== undefined ? { image: read.image } : {}),
       });
       if (!r.ok) return respondDomainError(c, r.error);
       return c.json(toProductJson(r.value), 201);
     },
-  );
+  )
+  .put(
+    "/:id",
+    requireSession("completa"),
+    bodyCap,
+    validate("form", updateSchema, "Invalid product data"),
+    async (c) => {
+      const data = c.req.valid("form");
+      const price = money(data.price_amount, data.price_currency);
+      if (!price.ok) return respondDomainError(c, price.error);
+      const read = await readImage(data.image);
+      if (!read.ok) return respondDomainError(c, read.problem);
+      const r = await build(c.env).updateProduct(c.req.param("id"), {
+        name: data.name,
+        description: data.description,
+        price: price.value,
+        categoryId: data.category_id,
+        status: data.status,
+        ...(read.image !== undefined ? { image: read.image } : {}),
+      });
+      if (!r.ok) return respondDomainError(c, r.error);
+      return c.json(toProductJson(r.value));
+    },
+  )
+  .delete("/:id", requireSession("completa"), async (c) => {
+    const r = await build(c.env).deleteProduct(c.req.param("id"));
+    if (!r.ok) return respondDomainError(c, r.error);
+    return c.json(r.value);
+  });

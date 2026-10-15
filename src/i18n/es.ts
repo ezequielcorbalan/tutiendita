@@ -162,6 +162,20 @@ export const es = {
       string
     >,
   },
+  editProduct: {
+    title: "Editar producto",
+    edit: "Editar",
+    editNamed: (name: string) => `Editar ${name}`,
+    viewInStore: "Verlo en la tienda",
+    replacePhoto: "Cambiar la foto (opcional)",
+    status: "Estado",
+    save: "Guardar cambios",
+    delete: "Borrar producto",
+    confirmDelete: "¿Borrar este producto? No se puede deshacer.",
+    updated: "Listo, guardamos los cambios.",
+    deleted: "Listo, el producto se borró.",
+    notFound: "Producto no encontrado",
+  },
   newProduct: {
     action: "Cargar producto",
     title: "Nuevo producto",
@@ -174,6 +188,10 @@ export const es = {
     photo: "Foto",
     photoHelp:
       "JPG, PNG o WebP de hasta 5 MB. Para publicar hace falta una foto; sin foto queda como borrador.",
+    category: "Categoría",
+    noCategory: "Sin categoría",
+    categoryHelp:
+      "Todavía no tenés categorías. Si cargás los productos de ejemplo de un rubro, se crean con sus categorías.",
     publishNow: "Publicarlo ahora",
     save: "Guardar producto",
     back: "Volver a productos",

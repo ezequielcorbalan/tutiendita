@@ -154,6 +154,20 @@ export const pt: Texts = {
     status: "Status",
     statuses: { publicado: "Publicado", borrador: "Rascunho", pausado: "Pausado" },
   },
+  editProduct: {
+    title: "Editar produto",
+    edit: "Editar",
+    editNamed: (name: string) => `Editar ${name}`,
+    viewInStore: "Ver na loja",
+    replacePhoto: "Trocar a foto (opcional)",
+    status: "Status",
+    save: "Salvar alterações",
+    delete: "Excluir produto",
+    confirmDelete: "Excluir este produto? Não dá para desfazer.",
+    updated: "Pronto, as alterações foram salvas.",
+    deleted: "Pronto, o produto foi excluído.",
+    notFound: "Produto não encontrado",
+  },
   newProduct: {
     action: "Cadastrar produto",
     title: "Novo produto",
@@ -165,6 +179,10 @@ export const pt: Texts = {
     photo: "Foto",
     photoHelp:
       "JPG, PNG ou WebP de até 5 MB. Para publicar precisa de uma foto; sem foto fica como rascunho.",
+    category: "Categoria",
+    noCategory: "Sem categoria",
+    categoryHelp:
+      "Você ainda não tem categorias. Ao carregar os produtos de exemplo de um ramo, elas são criadas.",
     publishNow: "Publicar agora",
     save: "Salvar produto",
     back: "Voltar para produtos",

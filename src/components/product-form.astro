@@ -1,0 +1,120 @@
+---
+/**
+ * Product form shared by "New product" (POST) and "Edit product" (PUT, with status, current photo and delete).
+ */
+import type { Category, Product } from "../packages/core/index";
+import { texts } from "../i18n";
+
+interface Props {
+  currency: string;
+  categories: Category[];
+  /** Present when editing. */
+  product?: Product;
+}
+const { currency, categories, product } = Astro.props;
+const all = texts(Astro.locals.language);
+const t = all.newProduct;
+const e = all.editProduct;
+// Plain decimal ("4500.50") is what the price field parses back with toMinorUnits.
+const priceValue = product
+  ? product.price.amount % 100 === 0
+    ? String(product.price.amount / 100)
+    : (product.price.amount / 100).toFixed(2)
+  : "";
+const firstImage = product?.images[0];
+---
+
+<form data-product-form data-currency={currency} data-product-id={product?.id} data-confirm={e.confirmDelete}>
+  <label for="name">{t.name}</label>
+  <input id="name" name="name" required maxlength="120" placeholder={t.namePlaceholder} value={product?.name ?? ""} />
+  <label for="description">{t.description}</label>
+  <textarea id="description" name="description" rows="4" maxlength="5000" aria-describedby="description-help"
+    >{product?.description ?? ""}</textarea
+  >
+  <p id="description-help"><small>{t.descriptionHelp}</small></p>
+  <label for="price">{t.price(currency)}</label>
+  <input id="price" name="price" required inputmode="decimal" placeholder="2500" value={priceValue} />
+  <label for="category">{t.category}</label>
+  <select id="category" name="category" aria-describedby="category-help">
+    <option value="">{t.noCategory}</option>
+    {categories.map((c) => <option value={c.id} selected={c.id === product?.categoryId}>{c.name}</option>)}
+  </select>
+  {categories.length === 0 && <p id="category-help"><small>{t.categoryHelp}</small></p>}
+  {
+    firstImage && (
+      <p>
+        <img src={`/img/${firstImage.key}`} alt={product?.name ?? ""} width="160" height="160" loading="lazy" />
+      </p>
+    )
+  }
+  <label for="image">{product ? e.replacePhoto : t.photo}</label>
+  <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="image-help" />
+  <p id="image-help"><small>{t.photoHelp}</small></p>
+  {
+    product ? (
+      <>
+        <label for="status">{e.status}</label>
+        <select id="status" name="status">
+          {(["publicado", "pausado", "borrador"] as const).map((s) => (
+            <option value={s} selected={s === product.status}>
+              {all.panelProducts.statuses[s]}
+            </option>
+          ))}
+        </select>
+      </>
+    ) : (
+      <label>
+        <input type="checkbox" name="publish" checked /> {t.publishNow}
+      </label>
+    )
+  }
+  <button type="submit">{product ? e.save : t.save}</button>
+  <p class="error" data-error role="alert"></p>
+  {
+    product && (
+      <button type="button" class="secondary danger" data-delete>
+        {e.delete}
+      </button>
+    )
+  }
+</form>
+
+<script>
+  import { element, request, showError, toMinorUnits } from "../scripts/panel";
+
+  const form = element<HTMLFormElement>("[data-product-form]");
+  const error = form.querySelector("[data-error]");
+  const id = form.dataset.productId;
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const data = new FormData(form);
+    const body = new FormData();
+    body.set("name", String(data.get("name") ?? ""));
+    body.set("description", String(data.get("description") ?? "").trim());
+    body.set("price_amount", toMinorUnits(String(data.get("price") ?? "")));
+    body.set("price_currency", form.dataset.currency ?? "ARS");
+    body.set("category_id", String(data.get("category") ?? ""));
+    if (id) body.set("status", String(data.get("status") ?? "borrador"));
+    else body.set("publish", data.get("publish") ? "true" : "false");
+    const image = data.get("image");
+    if (image instanceof File && image.size > 0) body.set("image", image);
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (submit) submit.disabled = true;
+    try {
+      await request(id ? "PUT" : "POST", id ? `/api/products/${id}` : "/api/products", body);
+      location.assign(`/panel/productos?${id ? "updated" : "created"}=1`);
+    } catch (e) {
+      if (submit) submit.disabled = false;
+      showError(error, e);
+    }
+  });
+  form.querySelector("[data-delete]")?.addEventListener("click", async () => {
+    if (!id || !confirm(form.dataset.confirm ?? "")) return;
+    try {
+      await request("DELETE", `/api/products/${id}`);
+      location.assign("/panel/productos?deleted=1");
+    } catch (e) {
+      showError(error, e);
+    }
+  });
+</script>

@@ -35,6 +35,7 @@ export * from "./use-cases/get-product";
 export * from "./use-cases/get-store-status";
 export * from "./use-cases/list-all-products";
 export * from "./use-cases/list-published-products";
+export * from "./use-cases/manage-product";
 export * from "./use-cases/onboarding";
 export * from "./use-cases/sample-products";
 export * from "./use-cases/updates";

@@ -39,7 +39,7 @@ const MAX_SLUG_ATTEMPTS = 50;
 const MAX_SAVE_ATTEMPTS = 3;
 
 /** Allowed MIME type, maximum size, and the bytes carry the declared MIME type's signature. */
-function validateImage(img: { bytes: Uint8Array; mimeType: string }): Result<true, DomainError> {
+export function validateImage(img: { bytes: Uint8Array; mimeType: string }): Result<true, DomainError> {
   if (!(ALLOWED_MIMES as readonly string[]).includes(img.mimeType)) {
     return err(
       domainError("INVALID_IMAGE", "Image format not allowed", {
