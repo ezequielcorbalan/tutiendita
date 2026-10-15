@@ -27,7 +27,9 @@ export type ErrorCode =
   | "GITHUB_NOT_CONNECTED"
   | "GITHUB_NOT_RESPONDING"
   | "GITHUB_MULTIPLE_REPOSITORIES"
-  | "ALREADY_UP_TO_DATE";
+  | "ALREADY_UP_TO_DATE"
+  | "INVALID_CART"
+  | "PRODUCT_UNAVAILABLE";
 
 export type DomainError = {
   readonly code: ErrorCode;

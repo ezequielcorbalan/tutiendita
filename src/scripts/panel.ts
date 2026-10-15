@@ -107,7 +107,7 @@ export async function signInWithPasskey(autocomplete = false): Promise<boolean> 
 }
 
 /** appendChild of nodes and texts (the Workers types hide the DOM append in this project). */
-function add(parent: Node, ...children: (Node | string)[]): void {
+export function add(parent: Node, ...children: (Node | string)[]): void {
   for (const h of children) parent.appendChild(typeof h === "string" ? document.createTextNode(h) : h);
 }
 

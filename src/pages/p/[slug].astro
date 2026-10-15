@@ -19,6 +19,23 @@ if (!data.found) Astro.response.status = 404;
         <img src={img.url} alt={data.product.name} width="480" height="480" />
       ))}
       <p class="price">{data.product.priceText}</p>
+      <p>
+        <button
+          type="button"
+          data-add-to-cart
+          data-product-id={data.product.id}
+          data-slug={data.product.slug}
+          data-name={data.product.name}
+          data-amount={data.product.price.amount}
+          data-currency={data.product.price.currency}
+          data-image={data.product.images[0]?.url ?? ""}
+        >
+          {t.cart.add}
+        </button>
+      </p>
+      <p data-added hidden role="status">
+        {t.cart.added} <a href="/carrito">{t.cart.viewCart}</a>
+      </p>
       {data.product.description && <p>{data.product.description}</p>}
     </Store>
   ) : (
@@ -28,3 +45,21 @@ if (!data.found) Astro.response.status = 404;
     </Store>
   )
 }
+
+<script>
+  import { addToCart } from "../../scripts/cart";
+
+  const button = document.querySelector<HTMLButtonElement>("[data-add-to-cart]");
+  button?.addEventListener("click", () => {
+    const d = button.dataset;
+    addToCart({
+      productId: d.productId ?? "",
+      slug: d.slug ?? "",
+      name: d.name ?? "",
+      amount: Number(d.amount),
+      currency: d.currency ?? "ARS",
+      image: d.image || null,
+    });
+    document.querySelector<HTMLElement>("[data-added]")?.removeAttribute("hidden");
+  });
+</script>
