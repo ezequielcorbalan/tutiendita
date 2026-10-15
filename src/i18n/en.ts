@@ -140,10 +140,10 @@ export const en: Textos = {
     tituloPagina: "WhatsApp",
     titulo: "Which WhatsApp number should customers message?",
     intro: "Orders from your store will reach you on WhatsApp at this number.",
+    etiquetaPais: "Country",
     etiqueta: "WhatsApp number",
-    placeholder: "+1 555 123 4567",
-    ayuda:
-      "Start with + and your country code (for example +1 555 123 4567). Argentine numbers can also be typed the usual way, like 11 2233-4455.",
+    placeholder: "555 123 4567",
+    ayuda: "Pick your country and type the number with its area code, the way you usually dial it.",
   },
   pasoTransferencia: {
     tituloPagina: "Bank transfer",

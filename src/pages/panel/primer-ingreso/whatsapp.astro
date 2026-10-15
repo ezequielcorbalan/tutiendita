@@ -3,17 +3,26 @@ import { env } from "cloudflare:workers";
 import { armar } from "../../../container";
 import { textos } from "../../../i18n";
 import Panel from "../../../layouts/panel.astro";
+import { PAISES, paisPorDefecto, separarNumero } from "../../../lib/telefono";
 
 const actual = await armar(env).obtenerMedioDePago("whatsapp");
-const t = textos(Astro.locals.idioma);
+const idioma = Astro.locals.idioma ?? "es";
+const t = textos(idioma);
+const { pais, nacional } = separarNumero(actual?.configuracion.numero, paisPorDefecto(idioma));
+const nombres = new Intl.DisplayNames([idioma], { type: "region" });
+const opciones = PAISES.map((p) => ({ ...p, nombre: nombres.of(p.iso) ?? p.iso }));
 ---
 
 <Panel titulo={t.pasoWhatsapp.tituloPagina} paso={3}>
   <h1>{t.pasoWhatsapp.titulo}</h1>
   <p>{t.pasoWhatsapp.intro}</p>
   <form data-formulario>
+    <label for="pais">{t.pasoWhatsapp.etiquetaPais}</label>
+    <select id="pais" name="pais" autocomplete="tel-country-code">
+      {opciones.map((p) => <option value={p.iso} selected={p.iso === pais}>{p.nombre} (+{p.codigo})</option>)}
+    </select>
     <label for="numero">{t.pasoWhatsapp.etiqueta}</label>
-    <input id="numero" name="numero" type="tel" required autocomplete="tel" inputmode="tel" placeholder={t.pasoWhatsapp.placeholder} value={actual?.configuracion.numero ?? ""} aria-describedby="numero-ayuda" />
+    <input id="numero" name="numero" type="tel" required autocomplete="tel-national" inputmode="tel" placeholder={t.pasoWhatsapp.placeholder} value={nacional} aria-describedby="numero-ayuda" />
     <p id="numero-ayuda"><small>{t.pasoWhatsapp.ayuda}</small></p>
     <button type="submit">{t.comun.continuar}</button>
     <p class="error" data-error role="alert"></p>
@@ -22,14 +31,16 @@ const t = textos(Astro.locals.idioma);
 </Panel>
 
 <script>
+  import { armarNumero } from "../../../lib/telefono";
   import { avanzar, elemento, mostrarError, pedir } from "../../../scripts/panel";
 
   const formulario = elemento<HTMLFormElement>("[data-formulario]");
   formulario.addEventListener("submit", async (evento) => {
     evento.preventDefault();
     try {
+      const datos = new FormData(formulario);
       await pedir("PUT", "/api/medios-de-pago/whatsapp", {
-        numero: String(new FormData(formulario).get("numero") ?? ""),
+        numero: armarNumero(String(datos.get("pais") ?? "AR"), String(datos.get("numero") ?? "")),
       });
       await avanzar("whatsapp");
     } catch (e) {
