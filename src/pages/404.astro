@@ -1,11 +1,11 @@
 ---
-import { textos } from "../i18n";
+import { texts } from "../i18n";
 import Store from "../layouts/store.astro";
 
-const t = textos(Astro.locals.idioma);
+const t = texts(Astro.locals.language);
 ---
 
-<Store title={t.tienda.noEncontradaTitulo}>
-  <h1>{t.tienda.noEncontradaTitulo}</h1>
-  <p><a href="/">{t.comun.volverALaTienda}</a></p>
+<Store title={t.store.notFoundTitle}>
+  <h1>{t.store.notFoundTitle}</h1>
+  <p><a href="/">{t.common.backToStore}</a></p>
 </Store>

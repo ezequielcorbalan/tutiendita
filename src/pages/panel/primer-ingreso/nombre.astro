@@ -1,42 +1,42 @@
 ---
 import { env } from "cloudflare:workers";
-import SelectorDeIdioma from "../../../components/selector-de-idioma.astro";
-import { armar } from "../../../container";
-import { textos } from "../../../i18n";
+import LanguageSelector from "../../../components/language-selector.astro";
+import { build } from "../../../container";
+import { texts } from "../../../i18n";
 import Panel from "../../../layouts/panel.astro";
 
-// Pantalla 2: nombre e idioma de la tienda (por defecto español). Desde la pantalla 3 todo sale en ese idioma.
-const tienda = await armar(env).obtenerTienda();
-const t = textos(Astro.locals.idioma);
+// Screen 2: store name and language (Spanish by default). From screen 3 on everything is in that language.
+const store = await build(env).getStore();
+const t = texts(Astro.locals.language);
 ---
 
-<Panel titulo={t.pasoNombre.tituloPagina} paso={2}>
-  <h1>{t.pasoNombre.titulo}</h1>
-  <form data-formulario>
-    <label for="nombre">{t.pasoNombre.etiqueta}</label>
-    <input id="nombre" name="nombre" required maxlength="80" placeholder={t.pasoNombre.placeholder} value={tienda?.nombre ?? ""} />
-    <SelectorDeIdioma actual={tienda?.idioma ?? "es"} />
-    <button type="submit">{t.comun.continuar}</button>
+<Panel title={t.nameStep.pageTitle} step={2}>
+  <h1>{t.nameStep.title}</h1>
+  <form data-form>
+    <label for="name">{t.nameStep.label}</label>
+    <input id="name" name="name" required maxlength="80" placeholder={t.nameStep.placeholder} value={store?.name ?? ""} />
+    <LanguageSelector current={store?.language ?? "es"} />
+    <button type="submit">{t.common.continue}</button>
     <p class="error" data-error role="alert"></p>
   </form>
-  <p><a href="/panel/primer-ingreso/acceso">{t.comun.volver}</a></p>
+  <p><a href="/panel/primer-ingreso/acceso">{t.common.back}</a></p>
 </Panel>
 
 <script>
-  import { avanzar, elemento, mostrarError, pedir } from "../../../scripts/panel";
+  import { advance, element, showError, request } from "../../../scripts/panel";
 
-  const formulario = elemento<HTMLFormElement>("[data-formulario]");
-  formulario.addEventListener("submit", async (evento) => {
-    evento.preventDefault();
-    const datos = new FormData(formulario);
+  const form = element<HTMLFormElement>("[data-form]");
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const data = new FormData(form);
     try {
-      await pedir("PUT", "/api/tienda", {
-        nombre: String(datos.get("nombre") ?? ""),
-        idioma: String(datos.get("idioma") ?? ""),
+      await request("PUT", "/api/store", {
+        name: String(data.get("name") ?? ""),
+        language: String(data.get("language") ?? ""),
       });
-      await avanzar("nombre");
+      await advance("nombre");
     } catch (e) {
-      mostrarError(formulario.querySelector("[data-error]"), e);
+      showError(form.querySelector("[data-error]"), e);
     }
   });
 </script>

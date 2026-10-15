@@ -1,0 +1,50 @@
+---
+import { texts } from "../i18n";
+import type { HomeData } from "../lib/pages";
+
+/** The public catalog: category navigation (if any) and the product list. Used by / and /c/<slug>. */
+interface Props {
+  data: Extract<HomeData, { status: "ready" }>;
+}
+const { data } = Astro.props;
+const t = texts(Astro.locals.language).store;
+const current = data.currentCategory?.slug;
+---
+
+<h1>{data.name}</h1>
+{
+  data.categories.length > 0 && (
+    <nav class="categories" aria-label={t.categories}>
+      <ul>
+        <li>
+          <a href="/" aria-current={current === undefined ? "page" : undefined}>{t.all}</a>
+        </li>
+        {data.categories.map((c) => (
+          <li>
+            <a href={`/c/${c.slug}`} aria-current={current === c.slug ? "page" : undefined}>{c.name}</a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+{data.currentCategory && <h2>{data.currentCategory.name}</h2>}
+{
+  data.products.length === 0 ? (
+    <p>{t.noProducts}</p>
+  ) : (
+    <ul class="catalog">
+      {data.products.map((p) => (
+        <li class="product">
+          <a href={`/p/${p.slug}`}>
+            {p.images[0] && (
+              <img src={p.images[0].url} alt={p.name} width="160" height="160" loading="lazy" />
+            )}
+            <strong>{p.name}</strong>
+          </a>
+          <span class="price">{p.priceText}</span>
+        </li>
+      ))}
+    </ul>
+  )
+}

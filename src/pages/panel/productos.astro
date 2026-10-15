@@ -1,48 +1,48 @@
 ---
 import { env } from "cloudflare:workers";
-import ProductosDeEjemplo from "../../components/productos-de-ejemplo.astro";
-import { textos } from "../../i18n";
+import SampleProducts from "../../components/sample-products.astro";
+import { texts } from "../../i18n";
 import Panel from "../../layouts/panel.astro";
-import { datosProductosDelPanel } from "../../lib/paginas";
+import { panelProductsData } from "../../lib/pages";
 
-const todos = textos(Astro.locals.idioma);
-const t = todos.productosPanel;
-const productos = await datosProductosDelPanel(env, Astro.locals.idioma);
+const all = texts(Astro.locals.language);
+const t = all.panelProducts;
+const products = await panelProductsData(env, Astro.locals.language);
 ---
 
-<Panel titulo={t.titulo} seccion="productos">
-  <h1>{t.titulo}</h1>
-  {Astro.url.searchParams.has("created") && <p role="status">{todos.newProduct.created}</p>}
-  <p><a class="boton" href="/panel/productos/nuevo">{todos.newProduct.action}</a></p>
+<Panel title={t.title} section="products">
+  <h1>{t.title}</h1>
+  {Astro.url.searchParams.has("created") && <p role="status">{all.newProduct.created}</p>}
+  <p><a class="button" href="/panel/productos/nuevo">{all.newProduct.action}</a></p>
   {
-    productos.length === 0 ? (
-      <p>{t.sinProductos}</p>
+    products.length === 0 ? (
+      <p>{t.noProducts}</p>
     ) : (
       <table>
         <thead>
           <tr>
-            <th scope="col">{t.foto}</th>
-            <th scope="col">{t.nombre}</th>
-            <th scope="col">{t.precio}</th>
-            <th scope="col">{t.estado}</th>
+            <th scope="col">{t.photo}</th>
+            <th scope="col">{t.name}</th>
+            <th scope="col">{t.price}</th>
+            <th scope="col">{t.status}</th>
           </tr>
         </thead>
         <tbody>
-          {productos.map((p) => (
+          {products.map((p) => (
             <tr>
               <td>
-                {/* alt vacío: el nombre está en la celda de al lado */}
-                {p.imagenes[0] && <img src={p.imagenes[0].url} alt="" width="64" height="64" loading="lazy" />}
+                {/* empty alt: the name is in the next cell */}
+                {p.images[0] && <img src={p.images[0].url} alt="" width="64" height="64" loading="lazy" />}
               </td>
-              <th scope="row">{p.estado === "publicado" ? <a href={`/p/${p.slug}`}>{p.nombre}</a> : p.nombre}</th>
-              <td>{p.precioTexto}</td>
-              <td>{t.estados[p.estado]}</td>
+              <th scope="row">{p.status === "publicado" ? <a href={`/p/${p.slug}`}>{p.name}</a> : p.name}</th>
+              <td>{p.priceText}</td>
+              <td>{t.statuses[p.status]}</td>
             </tr>
           ))}
         </tbody>
       </table>
     )
   }
-  <ProductosDeEjemplo intro={todos.ejemplos.introPanel} despues="recargar" conBorrar />
-  <p><a href="/panel">{todos.acceso.volverAlPanel}</a></p>
+  <SampleProducts intro={all.samples.introPanel} after="reload" withDelete />
+  <p><a href="/panel">{all.access.backToPanel}</a></p>
 </Panel>

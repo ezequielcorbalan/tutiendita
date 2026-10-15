@@ -1,174 +1,174 @@
-// Ayudas del navegador para las páginas del panel (las empaqueta Astro). Nunca importa nada del servidor:
-// el código de reclamo y la sesión viven del otro lado; acá solo se llama a la API con fetch.
+// Browser helpers for the panel pages (Astro bundles them). Never imports anything from the server:
+// the claim code and the session live on the other side; here the API is only called with fetch.
 import {
   browserSupportsWebAuthn,
   browserSupportsWebAuthnAutofill,
   startAuthentication,
   startRegistration,
 } from "@simplewebauthn/browser";
-import { idiomaDeLang, textos } from "../i18n";
+import { languageFromLang, texts } from "../i18n";
 
 export { browserSupportsWebAuthn };
 
-/** Textos en el idioma de la tienda, que el servidor dejó en `<html lang>`. */
-export const t = () => textos(idiomaDeLang(document.documentElement.lang));
+/** Texts in the store language, which the server left in `<html lang>`. */
+export const t = () => texts(languageFromLang(document.documentElement.lang));
 
-export class ErrorDelPanel extends Error {
+export class PanelError extends Error {
   constructor(
-    readonly codigo: string,
-    mensaje: string,
+    readonly code: string,
+    message: string,
   ) {
-    super(mensaje);
+    super(message);
   }
 }
 
-type CuerpoError = { error?: { codigo?: string; mensaje?: string } };
+type ErrorBody = { error?: { code?: string; message?: string } };
 
-/** fetch al mismo origen; los errores de la API se convierten en `ErrorDelPanel` con un mensaje para mostrar. */
-export async function pedir<T = unknown>(
-  metodo: string,
+/** Same-origin fetch; API errors become a `PanelError` with a message to show. */
+export async function request<T = unknown>(
+  method: string,
   url: string,
-  cuerpo?: unknown | FormData,
+  body?: unknown | FormData,
 ): Promise<T> {
-  const init: RequestInit = { method: metodo, credentials: "same-origin" };
-  if (cuerpo instanceof FormData) init.body = cuerpo;
-  else if (cuerpo !== undefined) {
-    init.body = JSON.stringify(cuerpo);
+  const init: RequestInit = { method: method, credentials: "same-origin" };
+  if (body instanceof FormData) init.body = body;
+  else if (body !== undefined) {
+    init.body = JSON.stringify(body);
     init.headers = { "content-type": "application/json" };
   }
   const res = await fetch(url, init);
   if (res.status === 204) return undefined as T;
-  const datos = (await res.json().catch(() => ({}))) as T & CuerpoError;
+  const data = (await res.json().catch(() => ({}))) as T & ErrorBody;
   if (!res.ok) {
-    const codigo = datos.error?.codigo ?? "INTERNO";
-    const mensajes: Record<string, string> = t().errores.api;
-    throw new ErrorDelPanel(codigo, mensajes[codigo] ?? datos.error?.mensaje ?? t().errores.api.INTERNO);
+    const code = data.error?.code ?? "INTERNAL";
+    const messages: Record<string, string> = t().errors.api;
+    throw new PanelError(code, messages[code] ?? data.error?.message ?? t().errors.api.INTERNAL);
   }
-  return datos;
+  return data;
 }
 
-/** Texto para mostrar ante cualquier error (de la API, de WebAuthn o de red). */
-export function mensajeDe(error: unknown): string {
-  if (error instanceof ErrorDelPanel) return error.message;
+/** Text to show for any error (API, WebAuthn or network). */
+export function messageOf(error: unknown): string {
+  if (error instanceof PanelError) return error.message;
   if (error instanceof Error && (error.name === "NotAllowedError" || error.name === "AbortError")) {
-    return t().errores.cancelado;
+    return t().errors.cancelled;
   }
   if (error instanceof Error && error.name === "InvalidStateError") {
-    return t().errores.api.PASSKEY_YA_REGISTRADA;
+    return t().errors.api.PASSKEY_ALREADY_REGISTERED;
   }
-  return t().errores.conexion;
+  return t().errors.connection;
 }
 
-export function mostrarError(donde: Element | null, error: unknown): void {
-  if (donde) donde.textContent = mensajeDe(error);
+export function showError(where: Element | null, error: unknown): void {
+  if (where) where.textContent = messageOf(error);
 }
 
-export const elemento = <T extends HTMLElement = HTMLElement>(selector: string): T => {
+export const element = <T extends HTMLElement = HTMLElement>(selector: string): T => {
   const el = document.querySelector<T>(selector);
-  if (!el) throw new Error(`Falta ${selector} en la página`);
+  if (!el) throw new Error(`Missing ${selector} on the page`);
   return el;
 };
 
-export type Progreso = { paso: string; completado: boolean };
+export type Progress = { step: string; completed: boolean };
 
-export function irAlPaso(p: Progreso): void {
-  location.assign(p.completado ? "/panel" : `/panel/primer-ingreso/${p.paso}`);
+export function goToStep(p: Progress): void {
+  location.assign(p.completed ? "/panel" : `/panel/primer-ingreso/${p.step}`);
 }
 
-/** Completa (o saltea) un paso del primer ingreso y va al siguiente. */
-export async function avanzar(paso: string, salteado = false): Promise<void> {
-  irAlPaso(
-    await pedir<Progreso>("POST", "/api/primer-ingreso/avanzar", salteado ? { paso, salteado } : { paso }),
+/** Completes (or skips) an onboarding step and goes to the next one. */
+export async function advance(step: string, skipped = false): Promise<void> {
+  goToStep(
+    await request<Progress>("POST", "/api/onboarding/advance", skipped ? { step, skipped } : { step }),
   );
 }
 
-/** Opciones del servidor → huella/cara/PIN → verificación. Devuelve el código de recuperación si hay uno nuevo. */
-export async function registrarPasskey(): Promise<{ codigoDeRecuperacion: string | null }> {
-  const opciones = await pedir<Parameters<typeof startRegistration>[0]["optionsJSON"]>(
+/** Server options → fingerprint/face/PIN → verification. Returns the recovery code if there's a new one. */
+export async function registerPasskey(): Promise<{ recoveryCode: string | null }> {
+  const options = await request<Parameters<typeof startRegistration>[0]["optionsJSON"]>(
     "POST",
-    "/api/acceso/passkeys/opciones",
+    "/api/access/passkeys/options",
     {},
   );
-  const respuesta = await startRegistration({ optionsJSON: opciones });
-  return pedir("POST", "/api/acceso/passkeys", { respuesta });
+  const response = await startRegistration({ optionsJSON: options });
+  return request("POST", "/api/access/passkeys", { response });
 }
 
-/** Ingreso con passkey; con `autocompletar`, espera a que la persona la elija en el campo (si el navegador puede). */
-export async function ingresarConPasskey(autocompletar = false): Promise<boolean> {
-  if (autocompletar && !(await browserSupportsWebAuthnAutofill())) return false;
-  const opciones = await pedir<Parameters<typeof startAuthentication>[0]["optionsJSON"]>(
+/** Passkey sign-in; with `autocomplete`, waits for the person to pick it in the field (if the browser can). */
+export async function signInWithPasskey(autocomplete = false): Promise<boolean> {
+  if (autocomplete && !(await browserSupportsWebAuthnAutofill())) return false;
+  const options = await request<Parameters<typeof startAuthentication>[0]["optionsJSON"]>(
     "POST",
-    "/api/acceso/ingreso/opciones",
+    "/api/access/sign-in/options",
     {},
   );
-  const respuesta = await startAuthentication({ optionsJSON: opciones, useBrowserAutofill: autocompletar });
-  await pedir("POST", "/api/acceso/ingreso", { respuesta });
+  const response = await startAuthentication({ optionsJSON: options, useBrowserAutofill: autocomplete });
+  await request("POST", "/api/access/sign-in", { response });
   return true;
 }
 
-/**
- * Muestra el código de recuperación UNA vez, con copiar, descargar e imprimir, y no deja seguir hasta
- * marcar "Lo guardé en un lugar seguro".
- */
-/** appendChild de nodos y textos (los tipos de Workers tapan el append del DOM en este proyecto). */
-function agregar(padre: Node, ...hijos: (Node | string)[]): void {
-  for (const h of hijos) padre.appendChild(typeof h === "string" ? document.createTextNode(h) : h);
+/** appendChild of nodes and texts (the Workers types hide the DOM append in this project). */
+function add(parent: Node, ...children: (Node | string)[]): void {
+  for (const h of children) parent.appendChild(typeof h === "string" ? document.createTextNode(h) : h);
 }
 
-export function mostrarCodigoDeRecuperacion(
-  contenedor: HTMLElement,
-  codigo: string,
-  alConfirmar: () => void,
-  textoDelBoton?: string,
+/**
+ * Shows the recovery code ONCE, with copy, download and print, and doesn't let the person go on until
+ * they tick "Lo guardé en un lugar seguro".
+ */
+export function showRecoveryCode(
+  container: HTMLElement,
+  code: string,
+  onConfirm: () => void,
+  buttonText?: string,
 ): void {
-  const textosDelCodigo = t().codigoDeRecuperacion;
-  contenedor.replaceChildren();
-  const nuevo = <K extends keyof HTMLElementTagNameMap>(tag: K, texto?: string) => {
+  const codeTexts = t().recoveryCode;
+  container.replaceChildren();
+  const make = <K extends keyof HTMLElementTagNameMap>(tag: K, text?: string) => {
     const el = document.createElement(tag);
-    if (texto !== undefined) el.textContent = texto;
+    if (text !== undefined) el.textContent = text;
     return el;
   };
-  const titulo = nuevo("h2", textosDelCodigo.titulo);
-  const explicacion = nuevo("p", textosDelCodigo.explicacion);
-  const valor = nuevo("p");
-  const fuerte = nuevo("strong", codigo);
-  fuerte.style.fontFamily = "monospace";
-  fuerte.style.fontSize = "1.4em";
-  agregar(valor, fuerte);
+  const title = make("h2", codeTexts.title);
+  const explanation = make("p", codeTexts.explanation);
+  const value = make("p");
+  const strong = make("strong", code);
+  strong.style.fontFamily = "monospace";
+  strong.style.fontSize = "1.4em";
+  add(value, strong);
 
-  const copiar = nuevo("button", textosDelCodigo.copiar);
-  copiar.type = "button";
-  copiar.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(codigo);
-    copiar.textContent = textosDelCodigo.copiado;
+  const copy = make("button", codeTexts.copy);
+  copy.type = "button";
+  copy.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(code);
+    copy.textContent = codeTexts.copied;
   });
-  const descargar = nuevo("a", textosDelCodigo.descargar);
-  descargar.href = URL.createObjectURL(
-    new Blob([textosDelCodigo.archivo(location.host, codigo)], { type: "text/plain" }),
+  const download = make("a", codeTexts.download);
+  download.href = URL.createObjectURL(
+    new Blob([codeTexts.file(location.host, code)], { type: "text/plain" }),
   );
-  descargar.download = textosDelCodigo.nombreDeArchivo;
-  const imprimir = nuevo("button", textosDelCodigo.imprimir);
-  imprimir.type = "button";
-  imprimir.addEventListener("click", () => window.print());
-  const acciones = nuevo("p");
-  agregar(acciones, copiar, " ", descargar, " ", imprimir);
+  download.download = codeTexts.fileName;
+  const print = make("button", codeTexts.print);
+  print.type = "button";
+  print.addEventListener("click", () => window.print());
+  const actions = make("p");
+  add(actions, copy, " ", download, " ", print);
 
-  const etiqueta = nuevo("label");
-  const marca = nuevo("input");
-  marca.type = "checkbox";
-  agregar(etiqueta, marca, ` ${textosDelCodigo.guardado}`);
-  const seguir = nuevo("button", textoDelBoton ?? t().comun.continuar);
-  seguir.type = "button";
-  seguir.disabled = true;
-  marca.addEventListener("change", () => {
-    seguir.disabled = !marca.checked;
+  const label = make("label");
+  const marker = make("input");
+  marker.type = "checkbox";
+  add(label, marker, ` ${codeTexts.saved}`);
+  const proceed = make("button", buttonText ?? t().common.continue);
+  proceed.type = "button";
+  proceed.disabled = true;
+  marker.addEventListener("change", () => {
+    proceed.disabled = !marker.checked;
   });
-  seguir.addEventListener("click", alConfirmar);
-  const aviso = nuevo("p");
-  agregar(aviso, nuevo("small", textosDelCodigo.aviso));
+  proceed.addEventListener("click", onConfirm);
+  const notice = make("p");
+  add(notice, make("small", codeTexts.notice));
 
-  agregar(contenedor, titulo, explicacion, valor, acciones, etiqueta, nuevo("br"), seguir, aviso);
-  contenedor.hidden = false;
+  add(container, title, explanation, value, actions, label, make("br"), proceed, notice);
+  container.hidden = false;
 }
 
 /** Price as people type it ("2.500,50" or "2500.5") → minor units (cents) as text; "x" when invalid (the API rejects it). */

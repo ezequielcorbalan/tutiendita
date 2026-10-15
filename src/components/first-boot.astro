@@ -1,0 +1,23 @@
+---
+import { texts } from "../i18n";
+import Base from "../layouts/base.astro";
+import WhereIsTheCode from "./where-is-the-code.astro";
+
+// First boot: what the merchant sees when opening the address the "Deploy to Cloudflare"
+// button gave them, before claiming their store.
+const t = texts(Astro.locals.language).firstBoot;
+---
+
+<Base title={t.title} description={t.description}>
+  <h1>{t.title}</h1>
+  <p>{t.intro}</p>
+  <ul>
+    {t.resourcesHtml.map((resource) => <li set:html={resource} />)}
+  </ul>
+  <h2>{t.whatsNext}</h2>
+  <p set:html={t.claimHtml} />
+  <WhereIsTheCode />
+  <p><a class="button" href="/panel/reclamar"><strong>{t.button}</strong></a></p>
+  <p>{t.after}</p>
+  <p set:html={t.instructionsHtml} />
+</Base>

@@ -1,0 +1,69 @@
+---
+import { DEFAULT_LANGUAGE, SAMPLE_CATALOG, SAMPLE_INDUSTRIES } from "../packages/core/index";
+import { texts } from "../i18n";
+
+/**
+ * Load an industry's sample products (and, in the panel, delete them all). During onboarding, loading also
+ * completes the product step (`after="advance"`); in the panel it reloads the page.
+ */
+interface Props {
+  intro: string;
+  after: "advance" | "reload";
+  withDelete?: boolean;
+}
+const { intro, after, withDelete = false } = Astro.props;
+const language = Astro.locals.language ?? DEFAULT_LANGUAGE;
+const t = texts(language).samples;
+---
+
+<h2>{t.title}</h2>
+<p>{intro}</p>
+<form data-samples data-after={after}>
+  <label for="industry">{t.industryLabel}</label>
+  <select id="industry" name="industry">
+    {SAMPLE_INDUSTRIES.map((r) => <option value={r}>{SAMPLE_CATALOG[r].name[language]}</option>)}
+  </select>
+  <button type="submit" class="secondary">{t.load}</button>
+  {withDelete && <button type="button" class="secondary" data-delete-samples>{t.remove}</button>}
+  <p class="error" data-error role="alert"></p>
+</form>
+
+<script>
+  import { advance, element, request, showError, t } from "../scripts/panel";
+
+  const form = element<HTMLFormElement>("[data-samples]");
+  const error = form.querySelector("[data-error]");
+  const buttons = [...form.querySelectorAll("button")];
+  const setBusy = (busy: boolean) => {
+    for (const b of buttons) b.disabled = busy;
+  };
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = form.querySelector<HTMLButtonElement>("button[type=submit]");
+    const text = button?.textContent ?? "";
+    setBusy(true);
+    if (button) button.textContent = t().samples.loading;
+    try {
+      await request("POST", "/api/samples", { industry: String(new FormData(form).get("industry") ?? "") });
+      if (form.dataset.after === "advance") await advance("producto");
+      else location.reload();
+    } catch (e) {
+      showError(error, e);
+      setBusy(false);
+      if (button) button.textContent = text;
+    }
+  });
+
+  form.querySelector("[data-delete-samples]")?.addEventListener("click", async () => {
+    if (!confirm(t().samples.confirmDelete)) return;
+    setBusy(true);
+    try {
+      await request("DELETE", "/api/samples");
+      location.reload();
+    } catch (e) {
+      showError(error, e);
+      setBusy(false);
+    }
+  });
+</script>

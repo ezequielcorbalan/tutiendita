@@ -1,25 +1,25 @@
 ---
 import { env } from "cloudflare:workers";
-import Catalogo from "../components/catalogo.astro";
-import Preparando from "../components/preparando.astro";
-import PrimerArranque from "../components/primer-arranque.astro";
-import { textos } from "../i18n";
+import Catalog from "../components/catalog.astro";
+import FirstBoot from "../components/first-boot.astro";
+import Preparing from "../components/preparing.astro";
+import { texts } from "../i18n";
 import Store from "../layouts/store.astro";
-import { datosInicio } from "../lib/paginas";
+import { homeData } from "../lib/pages";
 
-const t = textos(Astro.locals.idioma).tienda;
-const datos = await datosInicio(env, Astro.url.origin, Astro.locals.idioma);
+const t = texts(Astro.locals.language).store;
+const data = await homeData(env, Astro.url.origin, Astro.locals.language);
 ---
 
 {
-  datos.estado === "sin-reclamar" ? (
-    <PrimerArranque />
-  ) : datos.estado === "configurando" ? (
-    <Preparando />
+  data.status === "unclaimed" ? (
+    <FirstBoot />
+  ) : data.status === "setting-up" ? (
+    <Preparing />
   ) : (
-    <Store description={t.productosDe(datos.nombre)}>
-      <script slot="head" type="application/ld+json" is:inline set:html={datos.jsonLd} />
-      <Catalogo datos={datos} />
+    <Store description={t.productsOf(data.name)}>
+      <script slot="head" type="application/ld+json" is:inline set:html={data.jsonLd} />
+      <Catalog data={data} />
     </Store>
   )
 }

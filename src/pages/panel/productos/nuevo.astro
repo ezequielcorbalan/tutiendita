@@ -1,14 +1,14 @@
 ---
 import { env } from "cloudflare:workers";
-import { armar } from "../../../container";
-import { textos } from "../../../i18n";
+import { build } from "../../../container";
+import { texts } from "../../../i18n";
 import Panel from "../../../layouts/panel.astro";
 
-const currency = (await armar(env).obtenerTienda())?.moneda ?? "ARS";
-const t = textos(Astro.locals.idioma).newProduct;
+const currency = (await build(env).getStore())?.currency ?? "ARS";
+const t = texts(Astro.locals.language).newProduct;
 ---
 
-<Panel titulo={t.title} seccion="productos">
+<Panel title={t.title} section="products">
   <h1>{t.title}</h1>
   <form data-new-product data-currency={currency}>
     <label for="name">{t.name}</label>
@@ -29,30 +29,30 @@ const t = textos(Astro.locals.idioma).newProduct;
 </Panel>
 
 <script>
-  import { elemento, mostrarError, pedir, toMinorUnits } from "../../../scripts/panel";
+  import { element, request, showError, toMinorUnits } from "../../../scripts/panel";
 
-  const form = elemento<HTMLFormElement>("[data-new-product]");
+  const form = element<HTMLFormElement>("[data-new-product]");
   const error = form.querySelector("[data-error]");
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const data = new FormData(form);
     const body = new FormData();
-    body.set("nombre", String(data.get("name") ?? ""));
+    body.set("name", String(data.get("name") ?? ""));
     const description = String(data.get("description") ?? "").trim();
-    if (description) body.set("descripcion", description);
-    body.set("precio_monto", toMinorUnits(String(data.get("price") ?? "")));
-    body.set("precio_moneda", form.dataset.currency ?? "ARS");
-    body.set("publicar", data.get("publish") ? "true" : "false");
+    if (description) body.set("description", description);
+    body.set("price_amount", toMinorUnits(String(data.get("price") ?? "")));
+    body.set("price_currency", form.dataset.currency ?? "ARS");
+    body.set("publish", data.get("publish") ? "true" : "false");
     const image = data.get("image");
-    if (image instanceof File && image.size > 0) body.set("imagen", image);
+    if (image instanceof File && image.size > 0) body.set("image", image);
     const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
     if (submit) submit.disabled = true;
     try {
-      await pedir("POST", "/api/products", body);
+      await request("POST", "/api/products", body);
       location.assign("/panel/productos?created=1");
     } catch (e) {
       if (submit) submit.disabled = false;
-      mostrarError(error, e);
+      showError(error, e);
     }
   });
 </script>

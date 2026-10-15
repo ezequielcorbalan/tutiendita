@@ -1,38 +1,38 @@
 ---
-import DondeEstaElCodigo from "../../components/donde-esta-el-codigo.astro";
-import { textos } from "../../i18n";
+import WhereIsTheCode from "../../components/where-is-the-code.astro";
+import { texts } from "../../i18n";
 import Panel from "../../layouts/panel.astro";
 
-const t = textos(Astro.locals.idioma).reclamar;
+const t = texts(Astro.locals.language).claim;
 ---
 
-<Panel titulo={t.titulo}>
-  <h1>{t.titulo}</h1>
+<Panel title={t.title}>
+  <h1>{t.title}</h1>
   <p>{t.intro}</p>
-  <DondeEstaElCodigo />
-  <form data-reclamar>
-    <label for="codigo">{t.etiqueta}</label>
-    <input id="codigo" name="codigo" required autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" />
-    <button type="submit">{t.boton}</button>
+  <WhereIsTheCode />
+  <form data-claim>
+    <label for="code">{t.label}</label>
+    <input id="code" name="code" required autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" />
+    <button type="submit">{t.button}</button>
     <p class="error" data-error role="alert"></p>
   </form>
 </Panel>
 
 <script>
-  import { elemento, mostrarError, pedir } from "../../scripts/panel";
+  import { element, showError, request } from "../../scripts/panel";
 
-  const formulario = elemento<HTMLFormElement>("[data-reclamar]");
-  formulario.addEventListener("submit", async (evento) => {
-    evento.preventDefault();
-    const boton = formulario.querySelector("button");
-    if (boton) boton.disabled = true;
+  const form = element<HTMLFormElement>("[data-claim]");
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = form.querySelector("button");
+    if (button) button.disabled = true;
     try {
-      const codigo = String(new FormData(formulario).get("codigo") ?? "");
-      await pedir("POST", "/api/acceso/reclamo", { codigo });
+      const code = String(new FormData(form).get("code") ?? "");
+      await request("POST", "/api/access/claim", { code });
       location.assign("/panel/primer-ingreso/acceso");
     } catch (e) {
-      mostrarError(formulario.querySelector("[data-error]"), e);
-      if (boton) boton.disabled = false;
+      showError(form.querySelector("[data-error]"), e);
+      if (button) button.disabled = false;
     }
   });
 </script>

@@ -1,16 +1,16 @@
 import cloudflare from "@astrojs/cloudflare";
 import { defineConfig } from "astro/config";
-import codigoDeReclamo from "./integraciones/codigo-de-reclamo.mjs";
+import claimCode from "./integrations/claim-code.mjs";
 
-// Astro manda: el middleware delega /api, /img, /feed, /.well-known y /mcp a Hono.
+// Astro leads: the middleware delegates /api, /img, /feed, /.well-known and /mcp to Hono.
 export default defineConfig({
   output: "server",
   adapter: cloudflare({
-    // Sin servicio de imágenes de Astro: las imágenes de productos las sirve Hono desde R2.
+    // No Astro image service: product images are served by Hono from R2.
     imageService: "passthrough",
   }),
-  // Sin sesiones de Astro: evita que el adaptador agregue un binding KV "SESSION" que nadie usa.
+  // No Astro sessions: keeps the adapter from adding a "SESSION" KV binding nobody uses.
   session: false,
-  // Código de reclamo de la tienda: se genera en cada build y aparece al final del registro de compilación.
-  integrations: [codigoDeReclamo()],
+  // The store's claim code: generated on every build, shown at the end of the build log.
+  integrations: [claimCode()],
 });

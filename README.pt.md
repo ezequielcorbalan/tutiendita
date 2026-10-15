@@ -75,10 +75,10 @@ npm run deploy                # crea la D1 si falta + migraciones remotas + wran
 ```
 
 - O Astro monta as páginas e o Hono atende `/api`, `/img`, `/feed`, `/.well-known` e `/mcp`, tudo em um único Worker.
-- O domínio e os casos de uso ficam em `src/paquetes/core`; os adaptadores de D1 e R2 em `src/paquetes/infra-cloudflare`.
+- O domínio e os casos de uso ficam em `src/packages/core`; os adaptadores de D1 e R2 em `src/packages/infra-cloudflare`.
 - O banco D1 e o bucket R2 têm o nome do Worker mais `-db` e `-imagenes` (`wrangler.jsonc`). Se você mudar o nome do Worker à mão, mude também esses dois: assim duas lojas na mesma conta nunca compartilham dados.
 - Toda escrita exige uma sessão do dono (passkey) e o `Origin` da loja: sem sessão, `POST /api/products` responde 401. Com `npm run dev` o código de reivindicação aparece no terminal; com a variável de build `CODIGO_DE_RECLAMO` você pode fixá-lo (não é necessário em produção).
-- O código de reivindicação é gerado por `integraciones/codigo-de-reclamo.mjs` a cada `astro build`: ele o imprime e deixa no Worker só o SHA-256 dele.
+- O código de reivindicação é gerado por `integrations/claim-code.mjs` a cada `astro build`: ele o imprime e deixa no Worker só o SHA-256 dele.
 
 ## Licença
 

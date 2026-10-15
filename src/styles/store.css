@@ -1,0 +1,757 @@
+/* Store and panel styles: the same design kit as tutiendita.ar (the sitio app's stylesheet), copied
+   because they're separate apps. Mobile-first, system fonts, no external resources.
+   AA contrast in light and dark (text ≥ 4.5:1, field borders ≥ 3:1). */
+
+:root {
+  color-scheme: light dark;
+  --background: #fbf7f1;
+  --surface: #ffffff;
+  --surface-2: #f3ece2;
+  --text: #1d1b18;
+  --text-soft: #4f4a43;
+  --border: #ddd3c5;
+  --field-border: #857a6c;
+  --brand: #1d6b47;
+  --brand-text: #ffffff;
+  --brand-soft: #e3f1e8;
+  --accent: #b4461f;
+  --error: #b3261e;
+  --focus: #0b57d0;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 16px rgb(0 0 0 / 0.05);
+  --max-width: 68rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #14130f;
+    --surface: #1e1c18;
+    --surface-2: #27241f;
+    --text: #f3eee6;
+    --text-soft: #c9c1b4;
+    --border: #3b362e;
+    --field-border: #8c8477;
+    --brand: #6fd3a0;
+    --brand-text: #0f1f17;
+    --brand-soft: #1d3328;
+    --accent: #f2a07b;
+    --error: #ffb4ab;
+    --focus: #8ab4f8;
+    --shadow: none;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* The panel scripts hide with `hidden`: no display rule below may override it. */
+[hidden] {
+  /* biome-ignore lint/complexity/noImportantStyles: `hidden` has to beat any display in this sheet. */
+  display: none !important;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+
+main {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+  /* The recovery code and long addresses wrap rather than cause horizontal scroll. */
+  overflow-wrap: anywhere;
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: var(--brand);
+  text-underline-offset: 0.15em;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: clamp(1.9rem, 6vw, 2.8rem);
+  margin: 0 0 1rem;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: clamp(1.35rem, 4vw, 1.7rem);
+  margin: 2rem 0 1rem;
+}
+
+p,
+ul,
+ol {
+  margin: 0 0 1rem;
+}
+
+li + li {
+  margin-top: 0.4rem;
+}
+
+small {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+code {
+  font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  background: var(--surface-2);
+  padding: 0.1em 0.35em;
+  border-radius: 6px;
+}
+
+/* Buttons: a pill like on tutiendita.ar. Every panel <button> is primary except .secondary. */
+.button,
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  border: 2px solid var(--brand);
+  background: var(--brand);
+  color: var(--brand-text);
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.button:hover,
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Secondary: the .secondary ones and the panel's loose actions (sign out, regenerate the code). */
+button.secondary,
+.panel > button {
+  background: transparent;
+  color: var(--brand);
+}
+
+button.secondary:hover:not(:disabled),
+.panel > button:hover:not(:disabled) {
+  background: var(--brand-soft);
+  transform: none;
+}
+
+.panel > button {
+  margin-bottom: 1rem;
+}
+
+/* Panel forms: visible label on top, 48 px fields. */
+form {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+form > * {
+  margin: 0;
+}
+
+label {
+  font-weight: 600;
+}
+
+form label:not(:first-child) {
+  margin-top: 0.75rem;
+}
+
+input:not([type="checkbox"]),
+select {
+  display: block;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.6rem 0.85rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--field-border);
+  border-radius: 10px;
+}
+
+input[type="file"] {
+  padding-block: 0.5rem;
+}
+
+input[type="file"]::file-selector-button {
+  font: inherit;
+  font-weight: 700;
+  margin-right: 0.75rem;
+  padding: 0.3rem 1rem;
+  border: 2px solid var(--brand);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--brand);
+  cursor: pointer;
+}
+
+input::placeholder {
+  color: var(--text-soft);
+  opacity: 1;
+}
+
+/* "Lo guardé en un lugar seguro": the checkbox with its text, with a 48 px touch area. */
+label:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 3rem;
+}
+
+input[type="checkbox"] {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin: 0;
+  accent-color: var(--brand);
+}
+
+form button[type="submit"] {
+  margin-top: 1rem;
+}
+
+.error {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.error:empty {
+  margin: 0;
+}
+
+/* Onboarding indicator: the "Paso n de 5" text plus a (decorative) progress bar. */
+.step {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.step::after {
+  content: "";
+  display: block;
+  height: 6px;
+  margin-top: 0.4rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(var(--brand), var(--brand)) 0 / calc(var(--step, 0) * 100%) 100% no-repeat var(--border);
+}
+
+.panel {
+  max-width: 34rem;
+  margin: 0 auto;
+}
+
+/* Product page */
+main > img {
+  width: 100%;
+  max-width: 30rem;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  margin-bottom: 1rem;
+}
+
+p.price {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* Catalog: a grid of cards (square photo, name, price), the same as the tutiendita.ar sample. */
+.catalog {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  list-style: none;
+  padding: 0;
+}
+
+.catalog li + li {
+  margin-top: 0;
+}
+
+.product {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.product a {
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.product a:focus-visible {
+  outline-offset: -3px;
+}
+
+.product img,
+.product a:not(:has(img))::before {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+
+/* No photo: the same empty square so the grid stays even. */
+.product a:not(:has(img))::before {
+  content: "";
+  display: block;
+}
+
+.product strong {
+  padding: 0.6rem 0.85rem 0;
+  line-height: 1.3;
+}
+
+.product a:hover strong {
+  text-decoration: underline;
+}
+
+.product .price {
+  padding: 0.25rem 0.85rem 0.85rem;
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+@media (min-width: 40rem) {
+  .catalog {
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  }
+
+  main {
+    padding-top: 3rem;
+  }
+}
+
+/* Signed-in panel: top bar, wide content and footer (panel-bar component and panel layout). */
+.button.secondary {
+  background: transparent;
+  color: var(--brand);
+}
+
+.button.secondary:hover {
+  background: var(--brand-soft);
+  transform: none;
+}
+
+.panel-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.panel-bar__content {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0.5rem 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+}
+
+.panel-bar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.panel-bar__brand svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.panel-bar__brand .awning {
+  fill: var(--brand);
+}
+
+.panel-bar__brand .door {
+  fill: var(--accent);
+}
+
+.panel-bar nav {
+  order: 3;
+  flex: 1 1 100%;
+}
+
+.panel-bar nav ul {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.panel-bar li + li {
+  margin-top: 0;
+}
+
+.panel-bar nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 999px;
+  color: var(--text-soft);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.panel-bar nav a:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.panel-bar nav a[aria-current="page"] {
+  background: var(--brand-soft);
+  color: var(--text);
+  box-shadow: inset 0 -3px 0 var(--brand);
+}
+
+.panel-bar nav svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.panel-bar__actions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.panel-bar__actions .button,
+.panel-bar__actions button {
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+}
+
+.panel--wide {
+  max-width: var(--max-width);
+}
+
+.panel--wide > section + section {
+  margin-top: 2.5rem;
+}
+
+.label {
+  margin: 0 0 0.5rem;
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+}
+
+.dashboard__figures,
+.dashboard__insights {
+  display: grid;
+  gap: 1rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.dashboard__figures li + li,
+.dashboard__insights li + li {
+  margin-top: 0;
+}
+
+.dashboard__figures {
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.dashboard__figures .card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--text-soft);
+}
+
+.dashboard__number {
+  color: var(--text);
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard__insights {
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+.card--coming-soon h3 {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.card--coming-soon p {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.dashboard__chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  height: 3.5rem;
+  margin-top: 1rem;
+}
+
+.dashboard__chart span {
+  flex: 1;
+  height: var(--height);
+  min-height: 10%;
+  border-radius: 4px 4px 0 0;
+  background: var(--brand-soft);
+  border: 1px dashed var(--field-border);
+  border-bottom: none;
+}
+
+.panel-footer {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: 0.95rem;
+}
+
+.panel-footer p {
+  margin: 0;
+}
+
+/* Panel product table: full width; on phones it scrolls inside, never the page. */
+.panel table {
+  display: table;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.panel th,
+.panel td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.panel th {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.panel tr:last-child td {
+  border-bottom: none;
+}
+
+.panel td img {
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Header and footer of the public store (layouts/store.astro). */
+.store-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.store-bar__content {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+}
+
+.store-bar__name {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--text);
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.store-footer {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+  border-top: 1px solid var(--border);
+  color: var(--text-soft);
+  font-size: 0.95rem;
+}
+
+.store-footer p {
+  margin: 0;
+}
+
+textarea {
+  width: 100%;
+  min-height: 7rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--field-border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+
+/* Category navigation of the public store: chips, the current one filled. */
+nav.categories ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+nav.categories li + li {
+  margin-top: 0;
+}
+
+nav.categories a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--field-border);
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+nav.categories a:hover {
+  background: var(--surface-2);
+}
+
+nav.categories a[aria-current="page"] {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-text);
+}
+
+@media (max-width: 47.99rem) {
+  .panel table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+@media (min-width: 48rem) {
+  .panel-bar nav {
+    order: 0;
+    flex: 0 1 auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button,
+  button {
+    transition: none;
+  }
+
+  .button:hover,
+  button:hover:not(:disabled) {
+    transform: none;
+  }
+}

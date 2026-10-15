@@ -1,33 +1,33 @@
 ---
-import BarraDelPanel, { type SeccionDelPanel } from "../components/barra-del-panel.astro";
-import { textos } from "../i18n";
-import { VERSION_DE_LA_TIENDA } from "../version";
+import PanelBar, { type PanelSection } from "../components/panel-bar.astro";
+import { texts } from "../i18n";
+import { STORE_VERSION } from "../version";
 import Base from "./base.astro";
 
 interface Props {
-  titulo: string;
-  /** "Paso n de 5" en el primer ingreso. */
-  paso?: number;
-  /** Con sesión y la tienda lista: muestra la barra superior con esta sección marcada. */
-  seccion?: SeccionDelPanel;
+  title: string;
+  /** "Paso n de 5" during onboarding. */
+  step?: number;
+  /** Signed in and the store ready: shows the top bar with this section marked. */
+  section?: PanelSection;
 }
-const { titulo, paso, seccion } = Astro.props;
-const t = textos(Astro.locals.idioma);
+const { title, step, section } = Astro.props;
+const t = texts(Astro.locals.language);
 ---
 
-<Base titulo={`${titulo} · tiendita`}>
+<Base title={`${title} · tiendita`}>
   <meta slot="head" name="robots" content="noindex" />
-  {seccion && <BarraDelPanel slot="arriba" seccion={seccion} />}
-  <div class:list={["panel", { "panel--ancho": seccion }]}>
-    {paso !== undefined && <p class="paso" style={`--paso: ${paso / 5}`}>{t.panel.pasoDe(paso)}</p>}
+  {section && <PanelBar slot="top" section={section} />}
+  <div class:list={["panel", { "panel--wide": section }]}>
+    {step !== undefined && <p class="step" style={`--step: ${step / 5}`}>{t.panel.stepOf(step)}</p>}
     <slot />
   </div>
   {
-    seccion && (
-      <footer slot="abajo" class="pie-panel">
+    section && (
+      <footer slot="bottom" class="panel-footer">
         <p>
-          {t.navPanel.pie(VERSION_DE_LA_TIENDA)} <a href="https://tutiendita.ar">tutiendita.ar</a> ·{" "}
-          <a href="https://github.com/ezequielcorbalan/tutiendita">{t.navPanel.codigo}</a>
+          {t.navPanel.footer(STORE_VERSION)} <a href="https://tutiendita.ar">tutiendita.ar</a> ·{" "}
+          <a href="https://github.com/ezequielcorbalan/tutiendita">{t.navPanel.code}</a>
         </p>
       </footer>
     )
