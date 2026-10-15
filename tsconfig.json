@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": [
+      "@cloudflare/workers-types/experimental"
+    ],
+    "jsx": "preserve"
+  },
+  "include": [
+    ".astro/types.d.ts",
+    "src"
+  ],
+  "exclude": [
+    "dist"
+  ]
+}

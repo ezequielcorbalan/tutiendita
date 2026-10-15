@@ -1,0 +1,43 @@
+{
+  "name": "tiendita",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tu tienda online en tu propia cuenta de Cloudflare, desplegada con un botón.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "wrangler dev",
+    "deploy": "node scripts/preparar-d1.mjs && npm run db:migrations:apply && wrangler deploy",
+    "db:migrations:apply": "wrangler d1 migrations apply DB --remote",
+    "db:migrations:local": "wrangler d1 migrations apply DB --local"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "14.3.4",
+    "@hono/zod-validator": "0.9.1",
+    "@simplewebauthn/browser": "14.0.0",
+    "@simplewebauthn/server": "14.0.3",
+    "astro": "7.3.8",
+    "drizzle-orm": "0.45.4",
+    "hono": "4.13.13",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261014.1",
+    "typescript": "5.9.3",
+    "wrangler": "4.151.0"
+  },
+  "cloudflare": {
+    "bindings": {
+      "DB": {
+        "description": "Base de datos de la tienda (D1): productos, categorías y pedidos."
+      },
+      "IMAGENES": {
+        "description": "Lugar donde se guardan las imágenes de los productos (R2)."
+      }
+    }
+  }
+}

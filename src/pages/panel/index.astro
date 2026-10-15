@@ -1,0 +1,54 @@
+---
+import { env } from "cloudflare:workers";
+import SelectorDeIdioma from "../../components/selector-de-idioma.astro";
+import { armar } from "../../container";
+import { textos } from "../../i18n";
+import Panel from "../../layouts/panel.astro";
+
+const contenedor = armar(env);
+const [tienda, productos] = await Promise.all([contenedor.obtenerTienda(), contenedor.listarProductos()]);
+const t = textos(Astro.locals.idioma).inicioPanel;
+---
+
+<Panel titulo={t.titulo}>
+  <h1>{t.vendiendo}</h1>
+  <p><strong>{tienda?.nombre ?? t.tuTienda}</strong> {t.abierta} <a href="/">{t.mirala}</a>.</p>
+  {
+    productos.length === 0 ? (
+      <p>{t.sinProductos}</p>
+    ) : (
+      <p>{t.publicados(productos.length)}</p>
+    )
+  }
+  <ul>
+    <li set:html={t.accesoHtml} />
+  </ul>
+  <h2>{t.idiomaTitulo}</h2>
+  <form data-idioma>
+    <SelectorDeIdioma actual={tienda?.idioma ?? "es"} />
+    <button type="submit">{t.guardarIdioma}</button>
+    <p class="error" data-error role="alert"></p>
+  </form>
+  <button type="button" data-salir>{t.salir}</button>
+</Panel>
+
+<script>
+  import { elemento, mostrarError, pedir } from "../../scripts/panel";
+
+  const formulario = elemento<HTMLFormElement>("[data-idioma]");
+  formulario.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    try {
+      await pedir("PUT", "/api/tienda/idioma", { idioma: String(new FormData(formulario).get("idioma") ?? "") });
+      // La página se vuelve a pintar en el idioma nuevo.
+      location.reload();
+    } catch (e) {
+      mostrarError(formulario.querySelector("[data-error]"), e);
+    }
+  });
+
+  document.querySelector("[data-salir]")?.addEventListener("click", async () => {
+    await pedir("POST", "/api/acceso/salir").catch(() => undefined);
+    location.assign("/panel/ingresar");
+  });
+</script>

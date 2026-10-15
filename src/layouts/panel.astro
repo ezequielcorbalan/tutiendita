@@ -1,0 +1,28 @@
+---
+import { textos } from "../i18n";
+import Base from "./base.astro";
+
+interface Props {
+  titulo: string;
+  /** "Paso n de 5" en el primer ingreso. */
+  paso?: number;
+}
+const { titulo, paso } = Astro.props;
+const t = textos(Astro.locals.idioma);
+---
+
+<Base titulo={`${titulo} · tiendita`}>
+  <meta slot="head" name="robots" content="noindex" />
+  <main class="panel">
+    {paso !== undefined && <p class="paso">{t.panel.pasoDe(paso)}</p>}
+    <slot />
+  </main>
+  <style is:global>
+    .panel { max-width: 34rem; margin: 2rem auto; padding: 0 1rem; font-family: system-ui, sans-serif; line-height: 1.5; }
+    .panel input:not([type="checkbox"]), .panel select { display: block; width: 100%; box-sizing: border-box; padding: 0.6rem; font-size: 1.1rem; margin: 0.3rem 0 0.8rem; }
+    .panel button, .panel .boton { padding: 0.6rem 1rem; font-size: 1rem; cursor: pointer; }
+    .panel .paso { color: #555; font-size: 0.9rem; }
+    .panel .error { color: #b00020; min-height: 1.5em; }
+    .panel .secundario { background: none; border: none; text-decoration: underline; color: #333; }
+  </style>
+</Base>

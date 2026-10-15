@@ -1,0 +1,41 @@
+---
+import { env } from "cloudflare:workers";
+import Preparando from "../components/preparando.astro";
+import PrimerArranque from "../components/primer-arranque.astro";
+import { textos } from "../i18n";
+import Base from "../layouts/base.astro";
+import { datosInicio } from "../lib/paginas";
+
+const t = textos(Astro.locals.idioma).tienda;
+const datos = await datosInicio(env, Astro.url.origin, Astro.locals.idioma);
+---
+
+{
+  datos.estado === "sin-reclamar" ? (
+    <PrimerArranque />
+  ) : datos.estado === "configurando" ? (
+    <Preparando />
+  ) : (
+    <Base titulo={datos.nombre} descripcion={t.productosDe(datos.nombre)}>
+      <script slot="head" type="application/ld+json" is:inline set:html={datos.jsonLd} />
+      <h1>{datos.nombre}</h1>
+      {datos.productos.length === 0 ? (
+        <p>{t.sinProductos}</p>
+      ) : (
+        <ul>
+          {datos.productos.map((p) => (
+            <li>
+              <a href={`/p/${p.slug}`}>
+                {p.imagenes[0] && (
+                  <img src={p.imagenes[0].url} alt={p.nombre} width="160" height="160" loading="lazy" />
+                )}
+                <strong>{p.nombre}</strong>
+              </a>
+              <span>{p.precioTexto}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Base>
+  )
+}

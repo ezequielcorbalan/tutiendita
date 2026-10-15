@@ -1,0 +1,71 @@
+---
+import { env } from "cloudflare:workers";
+import RegistrarPasskey from "../../components/registrar-passkey.astro";
+import { armar } from "../../container";
+import { LOCALES, textos } from "../../i18n";
+import Panel from "../../layouts/panel.astro";
+
+const idioma = Astro.locals.idioma ?? "es";
+const t = textos(idioma).acceso;
+const passkeys = await armar(env).acceso.listarPasskeys();
+const fecha = (d: Date | null) =>
+  d === null ? t.nunca : d.toLocaleDateString(LOCALES[idioma], { timeZone: "UTC" });
+---
+
+<Panel titulo={t.titulo}>
+  <h1>{t.titulo}</h1>
+  <h2>{t.tusPasskeys}</h2>
+  <ul>
+    {
+      passkeys.map((p) => (
+        <li>
+          <strong>{p.nombre}</strong> — {t.creada(fecha(p.creadaEn), fecha(p.ultimoUsoEn))}{" "}
+          {passkeys.length > 1 && (
+            <button type="button" class="secundario" data-borrar={p.id}>
+              {t.borrar}
+            </button>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+  <p class="error" data-error role="alert"></p>
+  <RegistrarPasskey siguiente="/panel/acceso" texto={t.agregar} />
+
+  <h2>{t.codigoTitulo}</h2>
+  <p>{t.codigoTexto}</p>
+  <button type="button" data-regenerar>{t.regenerar}</button>
+  <div data-codigo-nuevo hidden></div>
+  <p><a href="/panel">{t.volverAlPanel}</a></p>
+</Panel>
+
+<script>
+  import { elemento, mostrarCodigoDeRecuperacion, mostrarError, pedir, t } from "../../scripts/panel";
+
+  const error = elemento("[data-error]");
+  for (const boton of document.querySelectorAll<HTMLButtonElement>("[data-borrar]")) {
+    boton.addEventListener("click", async () => {
+      if (!confirm(t().acceso.confirmarBorrar)) return;
+      try {
+        await pedir("DELETE", `/api/acceso/passkeys/${encodeURIComponent(boton.dataset.borrar ?? "")}`);
+        location.reload();
+      } catch (e) {
+        mostrarError(error, e);
+      }
+    });
+  }
+  const regenerar = elemento<HTMLButtonElement>("[data-regenerar]");
+  regenerar.addEventListener("click", async () => {
+    try {
+      const { codigoDeRecuperacion } = await pedir<{ codigoDeRecuperacion: string }>(
+        "POST",
+        "/api/acceso/codigo-de-recuperacion",
+        {},
+      );
+      regenerar.hidden = true;
+      mostrarCodigoDeRecuperacion(elemento("[data-codigo-nuevo]"), codigoDeRecuperacion, () => location.reload(), t().acceso.listo);
+    } catch (e) {
+      mostrarError(error, e);
+    }
+  });
+</script>

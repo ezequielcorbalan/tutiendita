@@ -1,0 +1,59 @@
+---
+import RegistrarPasskey from "../../components/registrar-passkey.astro";
+import { textos } from "../../i18n";
+import Panel from "../../layouts/panel.astro";
+
+// Sin sesión: pide el código de recuperación. Con la sesión de recuperación: crear la passkey nueva.
+const enRecuperacion = Astro.locals.panel?.sesion === "recuperacion";
+const t = textos(Astro.locals.idioma);
+---
+
+<Panel titulo={t.recuperar.tituloPagina}>
+  {
+    enRecuperacion ? (
+      <>
+        <h1>{t.recuperar.nuevaTitulo}</h1>
+        <p>{t.recuperar.nuevaTexto}</p>
+        <RegistrarPasskey siguiente="/panel/acceso" texto={t.recuperar.nuevaBoton} />
+      </>
+    ) : (
+      <>
+        <h1>{t.recuperar.titulo}</h1>
+        <p>{t.recuperar.intro}</p>
+        <p data-sin-soporte hidden>{t.recuperar.sinSoporte}</p>
+        <form data-recuperar>
+          <label for="codigo">{t.recuperar.etiqueta}</label>
+          <input id="codigo" name="codigo" required autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX-XXXX" />
+          <button type="submit">{t.recuperar.boton}</button>
+          <p class="error" data-error role="alert" />
+        </form>
+        <p>
+          <small>{t.recuperar.emergencia}</small>
+        </p>
+        <p><a href="/panel/ingresar">{t.comun.volver}</a></p>
+      </>
+    )
+  }
+</Panel>
+
+<script>
+  import { browserSupportsWebAuthn, mostrarError, pedir } from "../../scripts/panel";
+
+  const formulario = document.querySelector<HTMLFormElement>("[data-recuperar]");
+  // Sin WebAuthn no tiene sentido entrar con el código: no se podría crear la passkey nueva.
+  if (formulario && !browserSupportsWebAuthn()) {
+    document.querySelector<HTMLElement>("[data-sin-soporte]")?.removeAttribute("hidden");
+    for (const campo of formulario.querySelectorAll<HTMLInputElement | HTMLButtonElement>("input, button")) {
+      campo.disabled = true;
+    }
+  }
+  formulario?.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    try {
+      await pedir("POST", "/api/acceso/recuperacion", { codigo: String(new FormData(formulario).get("codigo") ?? "") });
+      location.reload();
+    } catch (e) {
+      mostrarError(formulario.querySelector("[data-error]"), e);
+    }
+  });
+</script>

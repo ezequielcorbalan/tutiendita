@@ -1,0 +1,30 @@
+---
+import { env } from "cloudflare:workers";
+import { textos } from "../../i18n";
+import Base from "../../layouts/base.astro";
+import { datosProducto } from "../../lib/paginas";
+
+const t = textos(Astro.locals.idioma);
+const datos = await datosProducto(env, Astro.params.slug ?? "", Astro.url.origin, Astro.locals.idioma);
+if (!datos.encontrado) Astro.response.status = 404;
+---
+
+{
+  datos.encontrado ? (
+    <Base titulo={`${datos.producto.nombre} · tiendita`} descripcion={datos.producto.descripcion}>
+      <script slot="head" type="application/ld+json" is:inline set:html={datos.jsonLd} />
+      <p><a href="/">← tiendita</a></p>
+      <h1>{datos.producto.nombre}</h1>
+      {datos.producto.imagenes.map((img) => (
+        <img src={img.url} alt={datos.producto.nombre} width="480" height="480" />
+      ))}
+      <p>{datos.producto.precioTexto}</p>
+      {datos.producto.descripcion && <p>{datos.producto.descripcion}</p>}
+    </Base>
+  ) : (
+    <Base titulo={`${t.tienda.productoNoEncontradoTitulo} · tiendita`}>
+      <h1>{t.tienda.productoNoEncontradoTitulo}</h1>
+      <p>{t.tienda.productoNoEncontrado} <a href="/">{t.comun.volverALaTienda}</a></p>
+    </Base>
+  )
+}

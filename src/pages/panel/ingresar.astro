@@ -1,0 +1,44 @@
+---
+import { textos } from "../../i18n";
+import Panel from "../../layouts/panel.astro";
+
+const t = textos(Astro.locals.idioma).ingresar;
+---
+
+<Panel titulo={t.tituloPagina}>
+  <h1>{t.titulo}</h1>
+  <p>{t.intro}</p>
+  <!-- El campo habilita el autocompletado de passkeys en los navegadores que lo soportan. -->
+  <label for="usuario">{t.etiqueta}</label>
+  <input id="usuario" name="usuario" autocomplete="username webauthn" placeholder={t.placeholder} />
+  <button type="button" data-entrar>{t.boton}</button>
+  <p class="error" data-error role="alert"></p>
+  <p data-sin-soporte hidden>{t.sinSoporte}</p>
+  <p><a href="/panel/recuperar">{t.perdiMiDispositivo}</a></p>
+</Panel>
+
+<script>
+  import { browserSupportsWebAuthn, elemento, ingresarConPasskey, mostrarError } from "../../scripts/panel";
+
+  const error = elemento("[data-error]");
+  const boton = elemento<HTMLButtonElement>("[data-entrar]");
+  if (!browserSupportsWebAuthn()) {
+    elemento("[data-sin-soporte]").hidden = false;
+    boton.disabled = true;
+  } else {
+    ingresarConPasskey(true)
+      .then((entro) => entro && location.assign("/panel"))
+      .catch(() => {
+        // El autocompletado se cancela solo cuando se toca el botón; no es un error para mostrar.
+      });
+    boton.addEventListener("click", async () => {
+      error.textContent = "";
+      try {
+        await ingresarConPasskey(false);
+        location.assign("/panel");
+      } catch (e) {
+        mostrarError(error, e);
+      }
+    });
+  }
+</script>

@@ -1,0 +1,85 @@
+[English](README.md) · **Español** · [Português](README.pt.md)
+
+# tutiendita
+
+Tu tienda online, funcionando en **tu propia cuenta de Cloudflare**, con un solo botón. Sin saber programar, sin pagar hosting y sin pegar claves ni contraseñas. Sitio del proyecto: [tutiendita.ar](https://tutiendita.ar).
+
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ezequielcorbalan/tutiendita)
+
+## Cómo se instala
+
+1. Tocá el botón **Deploy to Cloudflare** de arriba.
+2. Entrá con tu cuenta de Cloudflare (si no tenés, podés crear una gratis en el momento).
+3. Conectá tu cuenta de GitHub o GitLab cuando te lo pida. Es una sola vez: ahí se guarda tu copia de la tienda.
+4. Elegí el nombre de tu tienda (el del Worker; si ya tenés otra tiendita en la misma cuenta, usá uno distinto) y tocá **Create and deploy**.
+5. Esperá un par de minutos. Al terminar, abrí la dirección que te muestra (termina en `.workers.dev`): vas a ver **"Tu tiendita está lista"**.
+
+No hace falta escribir comandos ni configurar nada más.
+
+La tienda se puede mostrar en español, inglés o portugués: lo elegís en el primer ingreso y lo podés cambiar después desde el panel (viene en español).
+
+## Qué se crea en tu cuenta
+
+Todo queda a tu nombre; nadie más tiene acceso.
+
+| Qué | Para qué |
+|---|---|
+| Un **Worker** con el nombre de tu tienda | Es la tienda: las páginas que ven tus clientes y la API. |
+| Una base de datos **D1** a nombre de tu tienda | Guarda tus productos, categorías y pedidos. |
+| Un espacio de imágenes **R2** a nombre de tu tienda | Guarda las fotos de tus productos. |
+| Un repositorio en tu GitHub o GitLab | Tu copia del código. Cada cambio que subas ahí se publica solo. |
+
+## Cuánto cuesta
+
+Para una tienda chica, **nada**: entra en el plan gratuito de Cloudflare (Workers, D1 y R2 tienen cuotas gratuitas diarias y mensuales). Si algún día tu tienda crece mucho, Cloudflare te avisa antes de cobrarte; nunca se activa un plan pago solo.
+
+## Reclamá tu tienda
+
+La dirección de tu tienda es fácil de adivinar, así que la primera vez que entrás te pedimos un **código de reclamo** que solo vos podés ver. Se genera cada vez que la tienda se publica y aparece al final del registro de compilación:
+
+1. Entrá a tu [panel de Cloudflare](https://dash.cloudflare.com/).
+2. Andá a **Workers y Pages** (*Workers & Pages*) y abrí tu tienda (el Worker con el nombre que elegiste al instalarla; si no lo cambiaste, **tiendita**).
+3. En la pestaña **Implementaciones** (*Deployments*), abrí la más reciente y tocá **Ver registro de compilación** (*View build log*).
+4. Al final vas a ver un recuadro con `CODIGO DE RECLAMO: XXXX-XXXX-XXXX-XXXX-XXXX-XXXX`.
+5. Abrí tu tienda, tocá **Reclamar mi tienda** y pegá el código.
+
+Después vas a:
+
+1. Crear tu **passkey**: entrás con la huella, la cara o el PIN de tu teléfono o computadora. No hay contraseña.
+2. Guardar tu **código de recuperación** (te sirve si perdés el dispositivo). Se muestra una sola vez.
+3. Elegir el **nombre** de tu tienda.
+4. Dejar tu **WhatsApp**: por ahí te llegan los pedidos.
+5. Si querés, dejar tu **alias o CBU** para cobrar por transferencia y cargar tu **primer producto**.
+
+Si lo cerrás a la mitad, volvé a entrar con tu passkey y seguís donde quedaste. Una vez reclamada la tienda, el código de reclamo ya no sirve para nada.
+
+## Si perdés el acceso
+
+- **Perdiste el dispositivo pero tenés el código de recuperación:** en la pantalla de ingreso tocá **Perdí mi dispositivo**, escribí el código y creá una passkey nueva. El código sigue sirviendo hasta que la crees; después te damos uno nuevo (el anterior deja de servir) y podés borrar las passkeys viejas desde **Acceso**.
+- **Plan de emergencia (perdiste la passkey y también el código):** quien tiene la cuenta de Cloudflare puede devolver la tienda a "sin reclamar". Tus productos, fotos y datos **no se pierden**.
+  1. En el panel de Cloudflare, andá a **Almacenamiento y bases de datos → D1** (*Storage & Databases → D1*), abrí la base que se llama como tu tienda más `-db` (si no le cambiaste el nombre, **tiendita-db**) y entrá a la **Consola**.
+  2. Ejecutá: `DELETE FROM acceso;`
+  3. Volvé a publicar la tienda para que se genere un código de reclamo nuevo: en **Workers y Pages →** tu tienda **→ Implementaciones**, reintentá la última compilación (o subí cualquier cambio a tu repositorio).
+  4. Buscá el código nuevo en el registro de compilación y reclamá la tienda como la primera vez (podés hacerlo desde otra dirección: sin dueño, las direcciones viejas no cuentan). Las passkeys, sesiones y direcciones viejas se borran solas al reclamarla.
+
+## Para quien sabe programar
+
+Este repo es una copia autocontenida de la tienda del monorepo de **tutiendita** (`apps/tiendita` más sus paquetes; sitio del proyecto: https://tutiendita.ar): se genera automáticamente y conviene hacer los cambios allá. Igual podés modificarlo a gusto.
+
+```sh
+npm ci                        # dependencias
+npm run db:migrations:local   # crea la base D1 local
+npm run dev                   # Astro + wrangler en http://localhost:4321
+npm run build                 # build de producción (dist/)
+npm run deploy                # crea la D1 si falta + migraciones remotas + wrangler deploy (lo que corre Cloudflare)
+```
+
+- Astro arma las páginas y Hono atiende `/api`, `/img`, `/feed`, `/.well-known` y `/mcp`, todo en un solo Worker.
+- El dominio y los casos de uso están en `src/paquetes/core`; los adaptadores de D1 y R2 en `src/paquetes/infra-cloudflare`.
+- La base D1 y el bucket R2 se llaman como el Worker más `-db` e `-imagenes` (`wrangler.jsonc`). Si le cambiás el nombre al Worker a mano, cambiá también esos dos: así dos tiendas en la misma cuenta nunca comparten datos.
+- Toda escritura exige una sesión del dueño (passkey) y el `Origin` de la tienda: sin sesión, `POST /api/products` responde 401. En `npm run dev` el código de reclamo aparece en la terminal; con la variable de build `CODIGO_DE_RECLAMO` podés fijarlo (no hace falta en producción).
+- El código de reclamo lo genera `integraciones/codigo-de-reclamo.mjs` en cada `astro build`: lo imprime y deja en el Worker solo su SHA-256.
+
+## Licencia
+
+[FSL-1.1-MIT](LICENSE) (Functional Source License): podés usar, copiar, modificar y forkear el código para lo que quieras, incluido tener tu tienda y vender con ella. Lo único que no se permite es ofrecerlo, o algo derivado, como producto o servicio comercial que compita con tutiendita. Cada versión pasa a MIT a los dos años de publicada.

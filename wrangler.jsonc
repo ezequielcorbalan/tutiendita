@@ -1,0 +1,17 @@
+{
+  // Generado por scripts/generar-tiendita.mjs del monorepo de tutiendita (los cambios conviene hacerlos allá).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tiendita",
+  // Entrada del adaptador @astrojs/cloudflare: `astro build` genera dist/server/wrangler.json y
+  // `wrangler deploy` lo encuentra solo.
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-08-15",
+  "compatibility_flags": [ "nodejs_compat" ],
+  "assets": { "binding": "ASSETS" },
+  // Sin IDs a propósito: `npm run deploy` crea la base D1 si falta (scripts/preparar-d1.mjs) y
+  // `wrangler deploy` crea el bucket R2. Los nombres siguen al del Worker (<worker>-db,
+  // <worker>-imagenes, como el aprovisionamiento de wrangler): si le cambiás el nombre al Worker,
+  // cambiá también estos dos, así dos tiendas en la misma cuenta nunca comparten datos.
+  "d1_databases": [{ "binding": "DB", "database_name": "tiendita-db", "migrations_dir": "migraciones" }],
+  "r2_buckets": [{ "binding": "IMAGENES", "bucket_name": "tiendita-imagenes" }]
+}

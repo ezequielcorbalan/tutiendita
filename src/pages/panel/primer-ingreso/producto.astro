@@ -1,0 +1,59 @@
+---
+import { env } from "cloudflare:workers";
+import { armar } from "../../../container";
+import { textos } from "../../../i18n";
+import Panel from "../../../layouts/panel.astro";
+
+const moneda = (await armar(env).obtenerTienda())?.moneda ?? "ARS";
+const t = textos(Astro.locals.idioma);
+---
+
+<Panel titulo={t.pasoProducto.tituloPagina} paso={5}>
+  <h1>{t.pasoProducto.titulo}</h1>
+  <p>{t.pasoProducto.intro}</p>
+  <form data-formulario data-moneda={moneda}>
+    <label for="nombre">{t.pasoProducto.etiquetaNombre}</label>
+    <input id="nombre" name="nombre" required maxlength="120" placeholder={t.pasoProducto.placeholderNombre} />
+    <label for="precio">{t.pasoProducto.etiquetaPrecio(moneda)}</label>
+    <input id="precio" name="precio" required inputmode="decimal" placeholder="2500" />
+    <label for="imagen">{t.pasoProducto.etiquetaFoto}</label>
+    <input id="imagen" name="imagen" type="file" required accept="image/jpeg,image/png,image/webp" />
+    <button type="submit">{t.pasoProducto.publicar}</button>
+    <button type="button" class="secundario" data-saltear>{t.pasoProducto.saltear}</button>
+    <p class="error" data-error role="alert"></p>
+  </form>
+  <p><a href="/panel/primer-ingreso/transferencia">{t.comun.volver}</a></p>
+</Panel>
+
+<script>
+  import { avanzar, elemento, mostrarError, pedir } from "../../../scripts/panel";
+
+  /** "2.500,50" o "2500.5" → centavos (entero). */
+  const aCentavos = (texto: string): string => {
+    const limpio = texto.trim().replace(/\s/g, "");
+    const normalizado = /,\d{1,2}$/.test(limpio) ? limpio.replace(/\./g, "").replace(",", ".") : limpio.replace(/,/g, "");
+    const valor = Number(normalizado);
+    return Number.isFinite(valor) && valor >= 0 ? String(Math.round(valor * 100)) : "x";
+  };
+
+  const formulario = elemento<HTMLFormElement>("[data-formulario]");
+  const error = formulario.querySelector("[data-error]");
+  formulario.addEventListener("submit", async (evento) => {
+    evento.preventDefault();
+    const datos = new FormData(formulario);
+    const alta = new FormData();
+    alta.set("nombre", String(datos.get("nombre") ?? ""));
+    alta.set("precio_monto", aCentavos(String(datos.get("precio") ?? "")));
+    alta.set("precio_moneda", formulario.dataset.moneda ?? "ARS");
+    alta.set("publicar", "true");
+    const imagen = datos.get("imagen");
+    if (imagen instanceof File && imagen.size > 0) alta.set("imagen", imagen);
+    try {
+      await pedir("POST", "/api/products", alta);
+      await avanzar("producto");
+    } catch (e) {
+      mostrarError(error, e);
+    }
+  });
+  elemento("[data-saltear]").addEventListener("click", () => avanzar("producto", true).catch((e) => mostrarError(error, e)));
+</script>
