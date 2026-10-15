@@ -22,16 +22,16 @@ const datos = await datosInicio(env, Astro.url.origin, Astro.locals.idioma);
       {datos.productos.length === 0 ? (
         <p>{t.sinProductos}</p>
       ) : (
-        <ul>
+        <ul class="catalogo">
           {datos.productos.map((p) => (
-            <li>
+            <li class="producto">
               <a href={`/p/${p.slug}`}>
                 {p.imagenes[0] && (
                   <img src={p.imagenes[0].url} alt={p.nombre} width="160" height="160" loading="lazy" />
                 )}
                 <strong>{p.nombre}</strong>
               </a>
-              <span>{p.precioTexto}</span>
+              <span class="precio">{p.precioTexto}</span>
             </li>
           ))}
         </ul>

@@ -70,7 +70,7 @@ const esSlugDuplicado = (error: unknown): boolean => {
 export function crearRepositorioProductosD1(db: D1Database): RepositorioProductos {
   const orm = drizzle(db);
 
-  const consultar = (donde: SQL, orden: SQL[] = []): Promise<FilaUnida[]> =>
+  const consultar = (donde: SQL | undefined, orden: SQL[] = []): Promise<FilaUnida[]> =>
     orm
       .select()
       .from(productos)
@@ -104,14 +104,13 @@ export function crearRepositorioProductosD1(db: D1Database): RepositorioProducto
     await orm.batch([upsert, borrarImagenes, insertarImagenes]);
   };
 
+  const masNuevosPrimero = [desc(productos.creadoEn), asc(productos.id)];
+
   return {
-    async listarPublicados() {
-      const filas = await consultar(eq(productos.estado, "publicado"), [
-        desc(productos.creadoEn),
-        asc(productos.id),
-      ]);
-      return agrupar(filas);
-    },
+    listarPublicados: async () =>
+      agrupar(await consultar(eq(productos.estado, "publicado"), masNuevosPrimero)),
+
+    listarTodos: async () => agrupar(await consultar(undefined, masNuevosPrimero)),
 
     buscarPorSlug: (slug) => buscarUno(eq(productos.slug, slug)),
 

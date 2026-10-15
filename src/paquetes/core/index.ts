@@ -2,6 +2,7 @@ export * from "./casos-de-uso/acceso";
 export * from "./casos-de-uso/actualizaciones";
 export * from "./casos-de-uso/crear-producto";
 export * from "./casos-de-uso/listar-productos-publicados";
+export * from "./casos-de-uso/listar-todos-los-productos";
 export * from "./casos-de-uso/obtener-estado-de-la-tienda";
 export * from "./casos-de-uso/obtener-producto";
 export * from "./casos-de-uso/primer-ingreso";

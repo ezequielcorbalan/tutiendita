@@ -2,6 +2,8 @@ import type { Producto } from "../dominio/producto";
 
 export interface RepositorioProductos {
   listarPublicados(): Promise<Producto[]>;
+  /** Publicados, borradores y pausados, en el mismo orden que `listarPublicados`. */
+  listarTodos(): Promise<Producto[]>;
   buscarPorSlug(slug: string): Promise<Producto | null>;
   buscarPorId(id: string): Promise<Producto | null>;
   existeSlug(slug: string): Promise<boolean>;

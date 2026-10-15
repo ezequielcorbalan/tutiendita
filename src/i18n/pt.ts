@@ -111,11 +111,21 @@ export const pt: Textos = {
     sinProductos: "Você ainda não cadastrou produtos. Muito em breve vai poder fazer isso por aqui.",
     publicados: (n: number) => `Você tem ${n} ${n === 1 ? "produto publicado" : "produtos publicados"}.`,
     accesoHtml: '<a href="/panel/acceso">Acesso</a>: suas passkeys e seu código de recuperação.',
+    productosHtml: '<a href="/panel/productos">Produtos</a>: tudo o que você cadastrou, publicado ou não.',
     actualizacionesHtml:
       '<a href="/panel/actualizaciones">Atualizações</a>: traga as melhorias do tutiendita quando quiser.',
     idiomaTitulo: "Idioma",
     guardarIdioma: "Salvar idioma",
     salir: "Sair",
+  },
+  productosPanel: {
+    titulo: "Produtos",
+    sinProductos: "Você ainda não cadastrou produtos. Muito em breve vai poder fazer isso por aqui.",
+    foto: "Foto",
+    nombre: "Produto",
+    precio: "Preço",
+    estado: "Status",
+    estados: { publicado: "Publicado", borrador: "Rascunho", pausado: "Pausado" },
   },
   idioma: {
     etiqueta: "Idioma da loja",

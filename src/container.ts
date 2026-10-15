@@ -20,6 +20,7 @@ import {
   iniciarRegistroDePasskey,
   listarPasskeys,
   listarProductosPublicados,
+  listarTodosLosProductos,
   obtenerEstadoDeLaTienda,
   obtenerProducto,
   prepararActualizacion,
@@ -85,6 +86,7 @@ export function armar(env: Env) {
     obtenerTienda: () => tienda.obtener(),
     obtenerMedioDePago: depsPrimerIngreso.medios.obtener.bind(depsPrimerIngreso.medios),
     listarProductos: listarProductosPublicados({ repo }),
+    listarTodosLosProductos: listarTodosLosProductos({ repo }),
     obtenerProducto: obtenerProducto({ repo }),
     crearProducto: crearProducto({ repo, categorias, imagenes, reloj: relojSistema, ids: generadorUlid }),
     acceso: {

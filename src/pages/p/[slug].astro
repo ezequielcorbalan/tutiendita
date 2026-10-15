@@ -18,7 +18,7 @@ if (!datos.encontrado) Astro.response.status = 404;
       {datos.producto.imagenes.map((img) => (
         <img src={img.url} alt={datos.producto.nombre} width="480" height="480" />
       ))}
-      <p>{datos.producto.precioTexto}</p>
+      <p class="precio">{datos.producto.precioTexto}</p>
       {datos.producto.descripcion && <p>{datos.producto.descripcion}</p>}
     </Base>
   ) : (

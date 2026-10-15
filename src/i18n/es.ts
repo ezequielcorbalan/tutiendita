@@ -1,4 +1,4 @@
-import type { CodigoError } from "../paquetes/core/index";
+import type { CodigoError, EstadoProducto } from "../paquetes/core/index";
 
 /**
  * Textos de la tiendita en español (el idioma por defecto). en.ts y pt.ts tienen el tipo `Textos`: si falta
@@ -114,11 +114,24 @@ export const es = {
     sinProductos: "Todavía no cargaste productos. Muy pronto vas a poder hacerlo desde acá.",
     publicados: (n: number) => `Tenés ${n} ${n === 1 ? "producto publicado" : "productos publicados"}.`,
     accesoHtml: '<a href="/panel/acceso">Acceso</a>: tus passkeys y tu código de recuperación.',
+    productosHtml: '<a href="/panel/productos">Productos</a>: todo lo que cargaste, publicado o no.',
     actualizacionesHtml:
       '<a href="/panel/actualizaciones">Actualizaciones</a>: traé las mejoras de tutiendita cuando quieras.',
     idiomaTitulo: "Idioma",
     guardarIdioma: "Guardar idioma",
     salir: "Salir",
+  },
+  productosPanel: {
+    titulo: "Productos",
+    sinProductos: "Todavía no cargaste productos. Muy pronto vas a poder hacerlo desde acá.",
+    foto: "Foto",
+    nombre: "Producto",
+    precio: "Precio",
+    estado: "Estado",
+    estados: { publicado: "Publicado", borrador: "Borrador", pausado: "Pausado" } satisfies Record<
+      EstadoProducto,
+      string
+    >,
   },
   idioma: {
     etiqueta: "Idioma de la tienda",

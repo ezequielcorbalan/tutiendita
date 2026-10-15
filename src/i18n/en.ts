@@ -110,11 +110,21 @@ export const en: Textos = {
     sinProductos: "You haven't added any products yet. You'll be able to do it from here very soon.",
     publicados: (n: number) => `You have ${n} ${n === 1 ? "published product" : "published products"}.`,
     accesoHtml: '<a href="/panel/acceso">Access</a>: your passkeys and your recovery code.',
+    productosHtml: '<a href="/panel/productos">Products</a>: everything you added, published or not.',
     actualizacionesHtml:
       '<a href="/panel/actualizaciones">Updates</a>: bring in tutiendita improvements whenever you want.',
     idiomaTitulo: "Language",
     guardarIdioma: "Save language",
     salir: "Sign out",
+  },
+  productosPanel: {
+    titulo: "Products",
+    sinProductos: "You haven't added any products yet. You'll be able to do it from here very soon.",
+    foto: "Photo",
+    nombre: "Product",
+    precio: "Price",
+    estado: "Status",
+    estados: { publicado: "Published", borrador: "Draft", pausado: "Paused" },
   },
   idioma: {
     etiqueta: "Store language",
