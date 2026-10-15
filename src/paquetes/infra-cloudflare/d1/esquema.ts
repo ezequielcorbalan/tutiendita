@@ -163,3 +163,19 @@ export const mediosDePago = sqliteTable(
   },
   (t) => [check("medios_de_pago_tipo_check", sql`${t.tipo} IN ('whatsapp', 'transferencia')`)],
 );
+
+/** La GitHub App propia de la tienda para actualizarla desde el panel. Una sola fila (`id` = 1). */
+export const conexionGithub = sqliteTable(
+  "conexion_github",
+  {
+    id: integer("id").primaryKey(),
+    appId: integer("app_id").notNull(),
+    slug: text("slug").notNull(),
+    /** PEM que devuelve GitHub; quien accede a esta base ya es dueño de la tienda. */
+    clavePrivada: text("clave_privada").notNull(),
+    instalacionId: integer("instalacion_id"),
+    repositorio: text("repositorio"),
+    actualizadoEn: text("actualizado_en").notNull(),
+  },
+  (t) => [check("conexion_github_una_fila", sql`${t.id} = 1`)],
+);

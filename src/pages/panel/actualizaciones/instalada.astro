@@ -1,0 +1,27 @@
+---
+// Vuelta de GitHub después de instalar la app: guarda la instalación si ve solo el repo de la tienda.
+import { env } from "cloudflare:workers";
+import { armar } from "../../../container";
+import { textos } from "../../../i18n";
+import Panel from "../../../layouts/panel.astro";
+
+const t = textos(Astro.locals.idioma);
+const id = Number(Astro.url.searchParams.get("installation_id"));
+
+let error: string = t.actualizaciones.conexionFallida;
+let reconfigurar: string | null = null;
+if (Number.isSafeInteger(id) && id > 0) {
+  const r = await armar(env).actualizaciones.registrarInstalacion(id);
+  if (r.ok) return Astro.redirect("/panel/actualizaciones");
+  error = t.errores.api[r.error.codigo];
+  if (r.error.codigo === "GITHUB_VARIOS_REPOSITORIOS")
+    reconfigurar = `https://github.com/settings/installations/${id}`;
+}
+---
+
+<Panel titulo={t.actualizaciones.titulo}>
+  <h1>{t.actualizaciones.titulo}</h1>
+  <p class="error" role="alert">{error}</p>
+  {reconfigurar && <p><a class="boton" href={reconfigurar}>{t.actualizaciones.instalar}</a></p>}
+  <p><a href="/panel/actualizaciones">{t.actualizaciones.volver}</a></p>
+</Panel>

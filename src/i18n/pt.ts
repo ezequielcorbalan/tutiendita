@@ -112,6 +112,8 @@ export const pt: Textos = {
     publicados: (n: number) => `Você tem ${n} ${n === 1 ? "produto publicado" : "produtos publicados"}.`,
     accesoHtml: '<a href="/panel/acceso">Acesso</a>: suas passkeys e seu código de recuperação.',
     productosHtml: '<a href="/panel/productos">Produtos</a>: tudo o que você cadastrou, publicado ou não.',
+    actualizacionesHtml:
+      '<a href="/panel/actualizaciones">Atualizações</a>: traga as melhorias do tutiendita quando quiser.',
     idiomaTitulo: "Idioma",
     guardarIdioma: "Salvar idioma",
     salir: "Sair",
@@ -194,6 +196,36 @@ export const pt: Textos = {
     guardado: "Guardei em um lugar seguro",
     aviso: "Se você perder o dispositivo e também este código, vai ter que publicar a loja de novo.",
   },
+  actualizaciones: {
+    titulo: "Atualizações",
+    intro:
+      "O tutiendita continua melhorando. Daqui você traz as melhorias para a sua loja quando quiser: nada muda sem a sua aprovação.",
+    version: (v: string) => `Sua loja está na versão ${v}.`,
+    conectarTitulo: "Conecte sua loja ao GitHub",
+    conectarTexto:
+      "Sua loja fica num repositório do seu GitHub. Para trazer as melhorias, a loja cria um app do GitHub em seu nome, que só você controla: nada passa por nós. É uma vez só; o GitHub vai pedir que você confirme no botão verde.",
+    conectar: "Conectar ao GitHub",
+    instalarTitulo: "Falta um passo: escolha o repositório",
+    instalarTexto:
+      "O app já foi criado. Agora instale só no repositório da sua loja (o que a Cloudflare criou, por exemplo tiendita).",
+    instalar: "Escolher o repositório no GitHub",
+    conectada: (repo: string) => `Conectada a ${repo}.`,
+    alDia: (v: string) => `Você tem a versão mais recente (${v}). Volte a olhar mais tarde.`,
+    hayNueva: (nueva: string, actual: string) => `Tem uma versão nova: ${nueva} (você tem ${actual}).`,
+    prepararTexto:
+      "Primeiro montamos no seu GitHub uma proposta com as mudanças (um pull request). Nada é aplicado ainda.",
+    preparar: "Ver o que muda",
+    preparado: (n: number) => `Pronto: a proposta muda ${n} ${n === 1 ? "arquivo" : "arquivos"}.`,
+    verEnGithub: "Ver as mudanças no GitHub",
+    aviso:
+      "Se alguém mudou o código da sua loja, revise as mudanças antes: a atualização substitui os arquivos que mudaram na versão oficial.",
+    aplicar: "Atualizar minha loja",
+    aplicado:
+      "Pronto! A Cloudflare está publicando a versão nova. Em alguns minutos você vai ver na sua loja.",
+    errorEstado: "Não conseguimos falar com o GitHub. Tente de novo daqui a pouco.",
+    conexionFallida: "A conexão não deu certo (o link venceu ou não é desta loja). Tente conectar de novo.",
+    volver: "Voltar para atualizações",
+  },
   errores: {
     cancelado: "Tudo bem, tente de novo quando quiser.",
     conexion: "Algo deu errado. Confira sua conexão e tente de novo.",
@@ -223,6 +255,11 @@ export const pt: Textos = {
       TRANSFERENCIA_INVALIDA: "Confira o alias ou CBU/CVU e o nome do titular.",
       PASO_INVALIDO: "Esse passo ainda não está disponível. Volte para a tela anterior.",
       IDIOMA_INVALIDO: "Escolha espanhol, inglês ou português.",
+      GITHUB_SIN_CONECTAR: "Primeiro conecte sua loja ao GitHub.",
+      GITHUB_NO_RESPONDE: "O GitHub não respondeu. Tente de novo daqui a pouco.",
+      GITHUB_VARIOS_REPOSITORIOS:
+        "O app tem acesso a mais de um repositório. No GitHub, deixe acesso só ao repositório da sua loja e tente de novo.",
+      YA_ACTUALIZADA: "Sua loja já tem a versão mais recente.",
       ENTRADA_INVALIDA: "Confira os dados e tente de novo.",
       NO_ENCONTRADO: "Não encontramos o que você procurava.",
       INTERNO: "Algo falhou do nosso lado. Tente de novo daqui a pouco.",

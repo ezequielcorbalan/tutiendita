@@ -3,6 +3,7 @@ import { errorInterno, noEncontrado } from "./errores";
 import { exigirOrigenPermitido } from "./middlewares/origen";
 import { cargarSesion } from "./middlewares/sesion";
 import { rutasAcceso } from "./rutas/acceso";
+import { rutasActualizaciones } from "./rutas/actualizaciones";
 import { rutasImg } from "./rutas/img";
 import { rutasMediosDePago, rutasPrimerIngreso, rutasTienda } from "./rutas/primer-ingreso";
 import { rutasProductos } from "./rutas/productos";
@@ -18,6 +19,7 @@ export const api = new Hono<EntornoApi>()
   .route("/api/tienda", rutasTienda)
   .route("/api/medios-de-pago", rutasMediosDePago)
   .route("/api/primer-ingreso", rutasPrimerIngreso)
+  .route("/api/actualizaciones", rutasActualizaciones)
   .route("/img", rutasImg)
   .notFound(noEncontrado)
   .onError((causa, c) => errorInterno(c, causa));
