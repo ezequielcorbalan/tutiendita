@@ -1,0 +1,27 @@
+---
+/**
+ * Store language selector (onboarding and panel). A native <select> with its <label> and the help
+ * linked by aria-describedby: accessible with keyboard and screen reader without extra code. Each option
+ * is written in its own language and declares it with `lang`.
+ */
+import { LANGUAGES, type Language } from "../packages/core/index";
+import { HTML_LANG, LANGUAGE_NAMES, texts } from "../i18n";
+
+interface Props {
+  current: Language;
+}
+const { current } = Astro.props;
+const t = texts(Astro.locals.language).language;
+---
+
+<label for="language">{t.label}</label>
+<select id="language" name="language" aria-describedby="language-help">
+  {
+    LANGUAGES.map((language) => (
+      <option value={language} lang={HTML_LANG[language]} selected={language === current}>
+        {LANGUAGE_NAMES[language]}
+      </option>
+    ))
+  }
+</select>
+<p id="language-help"><small>{t.help}</small></p>

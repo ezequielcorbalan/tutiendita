@@ -1,0 +1,70 @@
+---
+/**
+ * Panel top bar (signed in and the store ready): brand, navigation between sections with the current one
+ * marked (aria-current) and, apart, the actions to view the store and sign out.
+ */
+import { texts } from "../i18n";
+
+export type PanelSection = "home" | "products" | "updates" | "access";
+interface Props {
+  section: PanelSection;
+}
+const { section } = Astro.props;
+const t = texts(Astro.locals.language);
+const n = t.navPanel;
+// Simple stroke icons (24×24, stroke 2), decorative: the text names them.
+const ICONS: Record<PanelSection, string> = {
+  home: "M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10",
+  products: "M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8",
+  updates: "M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7",
+  access: "M7 14a4 4 0 1 1 3.9-5H21v3h-2v3h-3v-3h-5.1A4 4 0 0 1 7 14z",
+};
+const sections: { id: PanelSection; href: string; text: string }[] = [
+  { id: "home", href: "/panel", text: n.home },
+  { id: "products", href: "/panel/productos", text: n.products },
+  { id: "updates", href: "/panel/actualizaciones", text: n.updates },
+  { id: "access", href: "/panel/acceso", text: n.access },
+];
+---
+
+<header class="panel-bar">
+  <div class="panel-bar__content">
+    <a class="panel-bar__brand" href="/panel">
+      <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <rect x="5" y="14" width="22" height="14" rx="2" fill="currentColor" opacity="0.18"></rect>
+        <path class="awning" d="M4 12l3-7h18l3 7a4 4 0 0 1-8 0 4 4 0 0 1-8 0 4 4 0 0 1-8 0z"></path>
+        <rect class="door" x="13" y="19" width="6" height="9" rx="1"></rect>
+      </svg>
+      <span>{n.marker}</span>
+    </a>
+    <nav aria-label={n.label}>
+      <ul>
+        {
+          sections.map((s) => (
+            <li>
+              <a href={s.href} aria-current={s.id === section ? "page" : undefined}>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d={ICONS[s.id]} />
+                </svg>
+                {s.text}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div class="panel-bar__actions">
+      <a class="button secondary" href="/" target="_blank" rel="noopener">{n.viewStore}</a>
+      <button type="button" class="secondary" data-sign-out>{t.panelHome.exit}</button>
+    </div>
+  </div>
+</header>
+
+<script>
+  import { request } from "../scripts/panel";
+
+  document.querySelector("[data-sign-out]")?.addEventListener("click", async () => {
+    await request("POST", "/api/access/sign-out").catch(() => undefined);
+    location.assign("/panel/ingresar");
+  });
+</script>

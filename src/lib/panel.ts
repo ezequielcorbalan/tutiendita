@@ -1,43 +1,44 @@
-import { type EstadoDeLaTienda, PASOS_DEL_PRIMER_INGRESO, type TipoSesion } from "../paquetes/core/index";
+import { ONBOARDING_STEPS, type SessionType, type StoreStatus } from "../packages/core/index";
 
 /**
- * A dónde puede ir el comerciante dentro de /panel según el estado de la tienda y su sesión.
- * Función pura: la usa el middleware de Astro y se testea sin build.
+ * Where the merchant can go inside /panel by store status and session. Pure function: the Astro
+ * middleware uses it and it's tested without a build. Paths are public URLs and session types are
+ * stored in D1: both stay in Spanish.
  */
-export type DecisionDelPanel = { tipo: "mostrar" } | { tipo: "redirigir"; a: string };
+export type PanelDecision = { type: "show" } | { type: "redirect"; to: string };
 
-const MOSTRAR: DecisionDelPanel = { tipo: "mostrar" };
-const ir = (a: string): DecisionDelPanel => ({ tipo: "redirigir", a });
-const PRIMER_INGRESO = "/panel/primer-ingreso/";
+const SHOW: PanelDecision = { type: "show" };
+const go = (to: string): PanelDecision => ({ type: "redirect", to });
+const ONBOARDING = "/panel/primer-ingreso/";
 
-const soloEstas = (ruta: string, permitidas: readonly string[], destino: string): DecisionDelPanel =>
-  permitidas.includes(ruta) ? MOSTRAR : ir(destino);
+const onlyThese = (path: string, allowed: readonly string[], target: string): PanelDecision =>
+  allowed.includes(path) ? SHOW : go(target);
 
-export function decidirRutaDelPanel(e: {
-  estado: EstadoDeLaTienda;
-  sesion: TipoSesion | null;
-  ruta: string;
-}): DecisionDelPanel {
-  const ruta = e.ruta.length > 1 ? e.ruta.replace(/\/+$/, "") : e.ruta;
-  const { estado } = e;
+export function decidePanelRoute(e: {
+  status: StoreStatus;
+  session: SessionType | null;
+  path: string;
+}): PanelDecision {
+  const path = e.path.length > 1 ? e.path.replace(/\/+$/, "") : e.path;
+  const { status } = e;
 
-  if (estado.estado === "sin-reclamar") {
-    // Con el código ya validado, lo que falta es crear la passkey.
-    return e.sesion === "reclamo"
-      ? soloEstas(ruta, ["/panel/reclamar", `${PRIMER_INGRESO}acceso`], `${PRIMER_INGRESO}acceso`)
-      : soloEstas(ruta, ["/panel/reclamar"], "/panel/reclamar");
+  if (status.status === "unclaimed") {
+    // With the code already validated, what's left is creating the passkey.
+    return e.session === "reclamo"
+      ? onlyThese(path, ["/panel/reclamar", `${ONBOARDING}acceso`], `${ONBOARDING}acceso`)
+      : onlyThese(path, ["/panel/reclamar"], "/panel/reclamar");
   }
-  if (e.sesion === "recuperacion") return soloEstas(ruta, ["/panel/recuperar"], "/panel/recuperar");
-  if (e.sesion !== "completa")
-    return soloEstas(ruta, ["/panel/ingresar", "/panel/recuperar"], "/panel/ingresar");
+  if (e.session === "recuperacion") return onlyThese(path, ["/panel/recuperar"], "/panel/recuperar");
+  if (e.session !== "completa")
+    return onlyThese(path, ["/panel/ingresar", "/panel/recuperar"], "/panel/ingresar");
 
-  if (estado.estado === "configurando") {
-    const actual = `${PRIMER_INGRESO}${estado.paso}`;
-    if (!ruta.startsWith(PRIMER_INGRESO)) return ir(actual);
-    const pedido = PASOS_DEL_PRIMER_INGRESO.indexOf(ruta.slice(PRIMER_INGRESO.length) as never);
-    return pedido !== -1 && pedido <= PASOS_DEL_PRIMER_INGRESO.indexOf(estado.paso) ? MOSTRAR : ir(actual);
+  if (status.status === "setting-up") {
+    const current = `${ONBOARDING}${status.step}`;
+    if (!path.startsWith(ONBOARDING)) return go(current);
+    const order = ONBOARDING_STEPS.indexOf(path.slice(ONBOARDING.length) as never);
+    return order !== -1 && order <= ONBOARDING_STEPS.indexOf(status.step) ? SHOW : go(current);
   }
 
-  const soloSinSesion = ["/panel/reclamar", "/panel/ingresar", "/panel/recuperar"];
-  return soloSinSesion.includes(ruta) || ruta.startsWith(PRIMER_INGRESO) ? ir("/panel") : MOSTRAR;
+  const signedOutOnly = ["/panel/reclamar", "/panel/ingresar", "/panel/recuperar"];
+  return signedOutOnly.includes(path) || path.startsWith(ONBOARDING) ? go("/panel") : SHOW;
 }

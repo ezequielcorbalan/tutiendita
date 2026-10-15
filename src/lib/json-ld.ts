@@ -1,44 +1,44 @@
-import { decimalesDeMoneda } from "../paquetes/core/index";
-import type { ProductoJson } from "./producto-json";
+import { currencyDecimals } from "../packages/core/index";
+import type { ProductJson } from "./product-json";
 
-/** Monto entero en unidad mínima → string decimal sin floats: (4500, "ARS") → "45.00". */
-export function montoDecimal(monto: number, moneda: string): string {
-  const decimales = decimalesDeMoneda(moneda);
-  if (decimales === 0) return String(monto);
-  const digitos = String(monto).padStart(decimales + 1, "0");
-  return `${digitos.slice(0, -decimales)}.${digitos.slice(-decimales)}`;
+/** Integer amount in the minor unit → decimal string without floats: (4500, "ARS") → "45.00". */
+export function decimalAmount(amount: number, currency: string): string {
+  const decimals = currencyDecimals(currency);
+  if (decimals === 0) return String(amount);
+  const digits = String(amount).padStart(decimals + 1, "0");
+  return `${digits.slice(0, -decimals)}.${digits.slice(-decimals)}`;
 }
 
-const DISPONIBLE = "https://schema.org/InStock";
-const AGOTADO = "https://schema.org/OutOfStock";
+const AVAILABLE = "https://schema.org/InStock";
+const SOLD_OUT = "https://schema.org/OutOfStock";
 
-const absoluta = (ruta: string, baseUrl: string): string => new URL(ruta, baseUrl).href;
-export const urlProducto = (slug: string, baseUrl: string): string => absoluta(`/p/${slug}`, baseUrl);
+const absolute = (path: string, baseUrl: string): string => new URL(path, baseUrl).href;
+export const productUrl = (slug: string, baseUrl: string): string => absolute(`/p/${slug}`, baseUrl);
 
-/** schema.org Product con Offer, para la ficha del producto. */
-export function jsonLdProducto(p: ProductoJson, baseUrl: string) {
-  const url = urlProducto(p.slug, baseUrl);
+/** schema.org Product with Offer, for the product page. */
+export function jsonLdProduct(p: ProductJson, baseUrl: string) {
+  const url = productUrl(p.slug, baseUrl);
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     "@id": url,
-    name: p.nombre,
-    ...(p.descripcion !== "" ? { description: p.descripcion } : {}),
+    name: p.name,
+    ...(p.description !== "" ? { description: p.description } : {}),
     sku: p.id,
     url,
-    image: p.imagenes.map((img) => absoluta(img.url, baseUrl)),
+    image: p.images.map((img) => absolute(img.url, baseUrl)),
     offers: {
       "@type": "Offer",
       url,
-      price: montoDecimal(p.precio.monto, p.precio.moneda),
-      priceCurrency: p.precio.moneda,
-      availability: p.stock === null || p.stock > 0 ? DISPONIBLE : AGOTADO,
+      price: decimalAmount(p.price.amount, p.price.currency),
+      priceCurrency: p.price.currency,
+      availability: p.stock === null || p.stock > 0 ? AVAILABLE : SOLD_OUT,
     },
   };
 }
 
-/** schema.org ItemList con los productos de la portada. */
-export function jsonLdLista(ps: readonly ProductoJson[], baseUrl: string) {
+/** schema.org ItemList with the home page products. */
+export function jsonLdList(ps: readonly ProductJson[], baseUrl: string) {
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -46,11 +46,11 @@ export function jsonLdLista(ps: readonly ProductoJson[], baseUrl: string) {
     itemListElement: ps.map((p, i) => ({
       "@type": "ListItem",
       position: i + 1,
-      url: urlProducto(p.slug, baseUrl),
-      name: p.nombre,
+      url: productUrl(p.slug, baseUrl),
+      name: p.name,
     })),
   };
 }
 
-/** JSON apto para incrustar en <script>: escapa `<` para que un nombre con "</script>" no cierre la etiqueta. */
-export const serializarJsonLd = (dato: unknown): string => JSON.stringify(dato).replace(/</g, "\\u003c");
+/** JSON safe to embed in <script>: escapes `<` so a name with "</script>" doesn't close the tag. */
+export const serializeJsonLd = (data: unknown): string => JSON.stringify(data).replace(/</g, "\\u003c");

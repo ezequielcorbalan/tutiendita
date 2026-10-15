@@ -1,28 +1,28 @@
 ---
-import { LANG_HTML } from "../i18n";
-import "../estilos/tienda.css";
+import { HTML_LANG } from "../i18n";
+import "../styles/store.css";
 
 interface Props {
-  titulo: string;
-  descripcion?: string;
+  title: string;
+  description?: string;
 }
-const { titulo, descripcion } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
 <!doctype html>
-<html lang={LANG_HTML[Astro.locals.idioma ?? "es"]}>
+<html lang={HTML_LANG[Astro.locals.language ?? "es"]}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{titulo}</title>
-    {descripcion && <meta name="description" content={descripcion} />}
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
     <slot name="head" />
   </head>
   <body>
-    <slot name="arriba" />
+    <slot name="top" />
     <main>
       <slot />
     </main>
-    <slot name="abajo" />
+    <slot name="bottom" />
   </body>
 </html>

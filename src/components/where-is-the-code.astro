@@ -1,0 +1,12 @@
+---
+// Where the merchant finds the claim code. Used by the first-boot home page and
+// /panel/reclamar; the generated repo's README repeats the same.
+import { texts } from "../i18n";
+
+const t = texts(Astro.locals.language).whereIsTheCode;
+---
+
+<ol>
+  {t.stepsHtml.map((step) => <li set:html={step} />)}
+</ol>
+<p set:html={t.noteHtml} />

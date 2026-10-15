@@ -1,17 +1,17 @@
 import { defineMiddleware } from "astro:middleware";
 import { env } from "cloudflare:workers";
-import { IDIOMA_POR_DEFECTO } from "./paquetes/core/index";
-import { api, RUTAS_API } from "./api/app";
-import { armar } from "./container";
-import { COOKIE_SESION, nombreDeCookie, opcionesDeCookie } from "./lib/cookies";
-import { METODOS_SEGUROS, origenAceptado } from "./lib/origen";
-import { decidirRutaDelPanel } from "./lib/panel";
+import { DEFAULT_LANGUAGE } from "./packages/core/index";
+import { API_ROUTES, api } from "./api/app";
+import { build } from "./container";
+import { cookieName, cookieOptions, SESSION_COOKIE } from "./lib/cookies";
+import { acceptedOrigin, SAFE_METHODS } from "./lib/origin";
+import { decidePanelRoute } from "./lib/panel";
 
-const RUTA_PANEL = /^\/panel(\/|$)/;
+const PANEL_PATH = /^\/panel(\/|$)/;
 
-/** Cabeceras de todas las respuestas del panel. */
-function conCabecerasDelPanel(respuesta: Response): Response {
-  const r = new Response(respuesta.body, respuesta);
+/** Headers of every panel response. */
+function withPanelHeaders(response: Response): Response {
+  const r = new Response(response.body, response);
   r.headers.set("cache-control", "no-store");
   r.headers.set("referrer-policy", "same-origin");
   r.headers.set("x-frame-options", "DENY");
@@ -19,40 +19,40 @@ function conCabecerasDelPanel(respuesta: Response): Response {
 }
 
 /**
- * Astro manda: las rutas de máquina las atiende Hono. Desde Astro 6 el `env` del Worker se
- * importa de `cloudflare:workers` y el ExecutionContext está en `locals.cfContext`. Además protege
- * /panel/*: origen permitido en métodos inseguros y redirecciones según estado y sesión (§6.1).
+ * Astro is in charge: Hono handles the machine routes. Since Astro 6 the Worker's `env` is imported
+ * from `cloudflare:workers` and the ExecutionContext is in `locals.cfContext`. It also protects
+ * /panel/*: allowed origin on unsafe methods and redirects by status and session (§6.1).
  */
 export const onRequest = defineMiddleware(async (context, next) => {
   const { pathname } = context.url;
-  if (RUTAS_API.test(pathname)) {
+  if (API_ROUTES.test(pathname)) {
     return api.fetch(context.request, env, context.locals.cfContext);
   }
-  const contenedor = armar(env);
-  context.locals.idioma = (await contenedor.obtenerTienda())?.idioma ?? IDIOMA_POR_DEFECTO;
-  if (!RUTA_PANEL.test(pathname)) return next();
+  const container = build(env);
+  context.locals.language = (await container.getStore())?.language ?? DEFAULT_LANGUAGE;
+  if (!PANEL_PATH.test(pathname)) return next();
 
   if (
-    !METODOS_SEGUROS.has(context.request.method) &&
-    !origenAceptado(context.request, await contenedor.origenesPermitidos())
+    !SAFE_METHODS.has(context.request.method) &&
+    !acceptedOrigin(context.request, await container.allowedOrigins())
   ) {
-    return conCabecerasDelPanel(Response.json({ error: { codigo: "ORIGEN_NO_PERMITIDO" } }, { status: 403 }));
+    return withPanelHeaders(Response.json({ error: { code: "ORIGIN_NOT_ALLOWED" } }, { status: 403 }));
   }
 
-  const estado = await contenedor.estadoDeLaTienda();
-  const nombre = nombreDeCookie(COOKIE_SESION, context.url);
-  const token = context.cookies.get(nombre)?.value;
-  const validada = token ? await contenedor.acceso.validarSesion(token) : null;
-  const sesion = validada?.ok ? validada.valor.sesion : null;
-  if (token && validada?.ok && validada.valor.renovada) {
-    const o = opcionesDeCookie(context.url, (validada.valor.sesion.expiraEn.getTime() - Date.now()) / 1000);
-    context.cookies.set(nombre, token, { ...o, sameSite: "lax" });
+  const status = await container.storeStatus();
+  const name = cookieName(SESSION_COOKIE, context.url);
+  const token = context.cookies.get(name)?.value;
+  const validated = token ? await container.access.validateSession(token) : null;
+  const session = validated?.ok ? validated.value.session : null;
+  if (token && validated?.ok && validated.value.renewed) {
+    const o = cookieOptions(context.url, (validated.value.session.expiresAt.getTime() - Date.now()) / 1000);
+    context.cookies.set(name, token, { ...o, sameSite: "lax" });
   }
 
-  const decision = decidirRutaDelPanel({ estado, sesion: sesion?.tipo ?? null, ruta: pathname });
-  if (decision.tipo === "redirigir") {
-    return conCabecerasDelPanel(new Response(null, { status: 303, headers: { location: decision.a } }));
+  const decision = decidePanelRoute({ status, session: session?.type ?? null, path: pathname });
+  if (decision.type === "redirect") {
+    return withPanelHeaders(new Response(null, { status: 303, headers: { location: decision.to } }));
   }
-  context.locals.panel = { estado, sesion: sesion?.tipo ?? null };
-  return conCabecerasDelPanel(await next());
+  context.locals.panel = { status, session: session?.type ?? null };
+  return withPanelHeaders(await next());
 });

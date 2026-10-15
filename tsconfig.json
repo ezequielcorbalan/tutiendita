@@ -22,6 +22,29 @@
     "src"
   ],
   "exclude": [
-    "dist"
+    "dist",
+    "src/paquetes",
+    "src/adaptadores",
+    "src/api/rutas",
+    "src/estilos",
+    "src/api/errores.ts",
+    "src/api/middlewares/origen.ts",
+    "src/api/middlewares/sesion.ts",
+    "src/api/tipos.ts",
+    "src/api/validacion.ts",
+    "src/api/verificar-imagen.ts",
+    "src/components/barra-del-panel.astro",
+    "src/components/donde-esta-el-codigo.astro",
+    "src/components/preparando.astro",
+    "src/components/primer-arranque.astro",
+    "src/components/registrar-passkey.astro",
+    "src/components/selector-de-idioma.astro",
+    "src/lib/dispositivo.ts",
+    "src/lib/github-manifiesto.ts",
+    "src/lib/origen.ts",
+    "src/lib/paginas.ts",
+    "src/lib/producto-json.ts",
+    "src/lib/telefono.ts",
+    "src/reclamo.ts"
   ]
 }

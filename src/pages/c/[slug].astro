@@ -1,26 +1,26 @@
 ---
 import { env } from "cloudflare:workers";
-import Catalogo from "../../components/catalogo.astro";
-import { textos } from "../../i18n";
+import Catalog from "../../components/catalog.astro";
+import { texts } from "../../i18n";
 import Store from "../../layouts/store.astro";
-import { datosInicio } from "../../lib/paginas";
+import { homeData } from "../../lib/pages";
 
-const t = textos(Astro.locals.idioma);
-const datos = await datosInicio(env, Astro.url.origin, Astro.locals.idioma, Astro.params.slug ?? "");
-const encontrada = datos.estado === "lista" && datos.categoriaActual !== null;
-if (!encontrada) Astro.response.status = 404;
+const t = texts(Astro.locals.language);
+const data = await homeData(env, Astro.url.origin, Astro.locals.language, Astro.params.slug ?? "");
+const found = data.status === "ready" && data.currentCategory !== null;
+if (!found) Astro.response.status = 404;
 ---
 
 {
-  datos.estado === "lista" && datos.categoriaActual ? (
-    <Store title={datos.categoriaActual.nombre} description={t.tienda.productosDe(datos.nombre)}>
-      <script slot="head" type="application/ld+json" is:inline set:html={datos.jsonLd} />
-      <Catalogo datos={datos} />
+  data.status === "ready" && data.currentCategory ? (
+    <Store title={data.currentCategory.name} description={t.store.productsOf(data.name)}>
+      <script slot="head" type="application/ld+json" is:inline set:html={data.jsonLd} />
+      <Catalog data={data} />
     </Store>
   ) : (
-    <Store title={t.tienda.categoriaNoEncontradaTitulo}>
-      <h1>{t.tienda.categoriaNoEncontradaTitulo}</h1>
-      <p>{t.tienda.categoriaNoEncontrada} <a href="/">{t.comun.volverALaTienda}</a></p>
+    <Store title={t.store.categoryNotFoundTitle}>
+      <h1>{t.store.categoryNotFoundTitle}</h1>
+      <p>{t.store.categoryNotFound} <a href="/">{t.common.backToStore}</a></p>
     </Store>
   )
 }

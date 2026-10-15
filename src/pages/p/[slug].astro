@@ -1,30 +1,30 @@
 ---
 import { env } from "cloudflare:workers";
-import { textos } from "../../i18n";
+import { texts } from "../../i18n";
 import Store from "../../layouts/store.astro";
-import { datosProducto } from "../../lib/paginas";
+import { productData } from "../../lib/pages";
 
-const t = textos(Astro.locals.idioma);
-const datos = await datosProducto(env, Astro.params.slug ?? "", Astro.url.origin, Astro.locals.idioma);
-if (!datos.encontrado) Astro.response.status = 404;
+const t = texts(Astro.locals.language);
+const data = await productData(env, Astro.params.slug ?? "", Astro.url.origin, Astro.locals.language);
+if (!data.found) Astro.response.status = 404;
 ---
 
 {
-  datos.encontrado ? (
-    <Store title={datos.producto.nombre} description={datos.producto.descripcion}>
-      <script slot="head" type="application/ld+json" is:inline set:html={datos.jsonLd} />
-      <p><a href="/">← {t.comun.volverALaTienda}</a></p>
-      <h1>{datos.producto.nombre}</h1>
-      {datos.producto.imagenes.map((img) => (
-        <img src={img.url} alt={datos.producto.nombre} width="480" height="480" />
+  data.found ? (
+    <Store title={data.product.name} description={data.product.description}>
+      <script slot="head" type="application/ld+json" is:inline set:html={data.jsonLd} />
+      <p><a href="/">← {t.common.backToStore}</a></p>
+      <h1>{data.product.name}</h1>
+      {data.product.images.map((img) => (
+        <img src={img.url} alt={data.product.name} width="480" height="480" />
       ))}
-      <p class="precio">{datos.producto.precioTexto}</p>
-      {datos.producto.descripcion && <p>{datos.producto.descripcion}</p>}
+      <p class="price">{data.product.priceText}</p>
+      {data.product.description && <p>{data.product.description}</p>}
     </Store>
   ) : (
-    <Store title={t.tienda.productoNoEncontradoTitulo}>
-      <h1>{t.tienda.productoNoEncontradoTitulo}</h1>
-      <p>{t.tienda.productoNoEncontrado} <a href="/">{t.comun.volverALaTienda}</a></p>
+    <Store title={t.store.productNotFoundTitle}>
+      <h1>{t.store.productNotFoundTitle}</h1>
+      <p>{t.store.productNotFound} <a href="/">{t.common.backToStore}</a></p>
     </Store>
   )
 }

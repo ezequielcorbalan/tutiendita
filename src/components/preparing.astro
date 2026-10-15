@@ -1,0 +1,13 @@
+---
+import { texts } from "../i18n";
+import Base from "../layouts/base.astro";
+
+// Home page while onboarding is half done: the catalog isn't shown yet.
+const t = texts(Astro.locals.language).preparing;
+---
+
+<Base title={t.title} description={t.description}>
+  <h1>{t.title}</h1>
+  <p>{t.text}</p>
+  <p><small set:html={t.isYourStoreHtml} /></p>
+</Base>

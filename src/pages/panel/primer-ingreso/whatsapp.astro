@@ -1,50 +1,50 @@
 ---
 import { env } from "cloudflare:workers";
-import { armar } from "../../../container";
-import { textos } from "../../../i18n";
+import { build } from "../../../container";
+import { texts } from "../../../i18n";
 import Panel from "../../../layouts/panel.astro";
-import { PAISES, paisPorDefecto, separarNumero } from "../../../lib/telefono";
+import { COUNTRIES, defaultCountry, splitNumber } from "../../../lib/phone";
 
-const actual = await armar(env).obtenerMedioDePago("whatsapp");
-const idioma = Astro.locals.idioma ?? "es";
-const t = textos(idioma);
-const { pais, nacional } = separarNumero(actual?.configuracion.numero, paisPorDefecto(idioma));
-const nombres = new Intl.DisplayNames([idioma], { type: "region" });
-const opciones = PAISES.map((p) => ({ ...p, nombre: nombres.of(p.iso) ?? p.iso }));
+const current = await build(env).getPaymentMethod("whatsapp");
+const language = Astro.locals.language ?? "es";
+const t = texts(language);
+const { country, national } = splitNumber(current?.config.number, defaultCountry(language));
+const names = new Intl.DisplayNames([language], { type: "region" });
+const options = COUNTRIES.map((p) => ({ ...p, name: names.of(p.iso) ?? p.iso }));
 ---
 
-<Panel titulo={t.pasoWhatsapp.tituloPagina} paso={3}>
-  <h1>{t.pasoWhatsapp.titulo}</h1>
-  <p>{t.pasoWhatsapp.intro}</p>
-  <form data-formulario>
-    <label for="pais">{t.pasoWhatsapp.etiquetaPais}</label>
-    <select id="pais" name="pais" autocomplete="tel-country-code">
-      {opciones.map((p) => <option value={p.iso} selected={p.iso === pais}>{p.nombre} (+{p.codigo})</option>)}
+<Panel title={t.whatsappStep.pageTitle} step={3}>
+  <h1>{t.whatsappStep.title}</h1>
+  <p>{t.whatsappStep.intro}</p>
+  <form data-form>
+    <label for="country">{t.whatsappStep.countryLabel}</label>
+    <select id="country" name="country" autocomplete="tel-country-code">
+      {options.map((p) => <option value={p.iso} selected={p.iso === country}>{p.name} (+{p.code})</option>)}
     </select>
-    <label for="numero">{t.pasoWhatsapp.etiqueta}</label>
-    <input id="numero" name="numero" type="tel" required autocomplete="tel-national" inputmode="tel" placeholder={t.pasoWhatsapp.placeholder} value={nacional} aria-describedby="numero-ayuda" />
-    <p id="numero-ayuda"><small>{t.pasoWhatsapp.ayuda}</small></p>
-    <button type="submit">{t.comun.continuar}</button>
+    <label for="number">{t.whatsappStep.label}</label>
+    <input id="number" name="number" type="tel" required autocomplete="tel-national" inputmode="tel" placeholder={t.whatsappStep.placeholder} value={national} aria-describedby="number-help" />
+    <p id="number-help"><small>{t.whatsappStep.help}</small></p>
+    <button type="submit">{t.common.continue}</button>
     <p class="error" data-error role="alert"></p>
   </form>
-  <p><a href="/panel/primer-ingreso/nombre">{t.comun.volver}</a></p>
+  <p><a href="/panel/primer-ingreso/nombre">{t.common.back}</a></p>
 </Panel>
 
 <script>
-  import { armarNumero } from "../../../lib/telefono";
-  import { avanzar, elemento, mostrarError, pedir } from "../../../scripts/panel";
+  import { buildNumber } from "../../../lib/phone";
+  import { advance, element, showError, request } from "../../../scripts/panel";
 
-  const formulario = elemento<HTMLFormElement>("[data-formulario]");
-  formulario.addEventListener("submit", async (evento) => {
-    evento.preventDefault();
+  const form = element<HTMLFormElement>("[data-form]");
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
     try {
-      const datos = new FormData(formulario);
-      await pedir("PUT", "/api/medios-de-pago/whatsapp", {
-        numero: armarNumero(String(datos.get("pais") ?? "AR"), String(datos.get("numero") ?? "")),
+      const data = new FormData(form);
+      await request("PUT", "/api/payment-methods/whatsapp", {
+        number: buildNumber(String(data.get("country") ?? "AR"), String(data.get("number") ?? "")),
       });
-      await avanzar("whatsapp");
+      await advance("whatsapp");
     } catch (e) {
-      mostrarError(formulario.querySelector("[data-error]"), e);
+      showError(form.querySelector("[data-error]"), e);
     }
   });
 </script>

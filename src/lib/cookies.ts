@@ -1,21 +1,20 @@
 /**
- * Cookies del panel (sesión y desafío de WebAuthn): `HttpOnly`, `SameSite=Lax`, `Path=/` y, en HTTPS o
- * cualquier host que no sea local, prefijo `__Host-` con `Secure`. En `http://localhost` (y 127.0.0.1)
- * van sin prefijo ni `Secure`: Chrome y Firefox aceptarían `__Host-` ahí, pero Safari no guarda cookies
- * `Secure` en http. Fuera de localhost un http nunca recibe la cookie (el navegador la descarta).
+ * Panel cookies (session and WebAuthn challenge): `HttpOnly`, `SameSite=Lax`, `Path=/` and, on HTTPS or
+ * any non-local host, the `__Host-` prefix with `Secure`. On `http://localhost` (and 127.0.0.1) they go
+ * without prefix or `Secure`: Chrome and Firefox would accept `__Host-` there, but Safari doesn't keep
+ * `Secure` cookies over http. Outside localhost, http never gets the cookie (the browser drops it).
+ * The cookie names stay in Spanish: deployed stores' browsers already have them.
  */
-export const COOKIE_SESION = "tiendita_sesion";
-export const COOKIE_DESAFIO = "tiendita_desafio";
+export const SESSION_COOKIE = "tiendita_sesion";
+export const CHALLENGE_COOKIE = "tiendita_desafio";
 
-const HOSTS_LOCALES = new Set(["localhost", "127.0.0.1", "[::1]"]);
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
-export const esDesarrolloLocal = (url: URL): boolean =>
-  url.protocol === "http:" && HOSTS_LOCALES.has(url.hostname);
+export const isLocalDev = (url: URL): boolean => url.protocol === "http:" && LOCAL_HOSTS.has(url.hostname);
 
-export const nombreDeCookie = (base: string, url: URL): string =>
-  esDesarrolloLocal(url) ? base : `__Host-${base}`;
+export const cookieName = (base: string, url: URL): string => (isLocalDev(url) ? base : `__Host-${base}`);
 
-export type OpcionesDeCookie = {
+export type CookieOptions = {
   path: "/";
   httpOnly: true;
   sameSite: "Lax";
@@ -23,10 +22,10 @@ export type OpcionesDeCookie = {
   maxAge: number;
 };
 
-export const opcionesDeCookie = (url: URL, maxAgeSegundos: number): OpcionesDeCookie => ({
+export const cookieOptions = (url: URL, maxAgeSeconds: number): CookieOptions => ({
   path: "/",
   httpOnly: true,
   sameSite: "Lax",
-  secure: !esDesarrolloLocal(url),
-  maxAge: Math.max(0, Math.round(maxAgeSegundos)),
+  secure: !isLocalDev(url),
+  maxAge: Math.max(0, Math.round(maxAgeSeconds)),
 });

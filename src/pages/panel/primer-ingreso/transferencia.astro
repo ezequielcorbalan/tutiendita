@@ -1,45 +1,45 @@
 ---
 import { env } from "cloudflare:workers";
-import { armar } from "../../../container";
-import { textos } from "../../../i18n";
+import { build } from "../../../container";
+import { texts } from "../../../i18n";
 import Panel from "../../../layouts/panel.astro";
 
-const actual = await armar(env).obtenerMedioDePago("transferencia");
-const t = textos(Astro.locals.idioma);
+const current = await build(env).getPaymentMethod("transferencia");
+const t = texts(Astro.locals.language);
 ---
 
-<Panel titulo={t.pasoTransferencia.tituloPagina} paso={4}>
-  <h1>{t.pasoTransferencia.titulo}</h1>
-  <p>{t.pasoTransferencia.intro}</p>
-  <form data-formulario>
-    <label for="cuenta">{t.pasoTransferencia.etiquetaCuenta}</label>
-    <input id="cuenta" name="cuenta" required autocomplete="off" spellcheck="false" placeholder={t.pasoTransferencia.placeholderCuenta} value={actual?.configuracion.cuenta ?? ""} />
-    <label for="titular">{t.pasoTransferencia.etiquetaTitular}</label>
-    <input id="titular" name="titular" required maxlength="80" autocomplete="name" placeholder={t.pasoTransferencia.placeholderTitular} value={actual?.configuracion.titular ?? ""} />
-    <button type="submit">{t.comun.continuar}</button>
-    <button type="button" class="secundario" data-saltear>{t.pasoTransferencia.saltear}</button>
+<Panel title={t.transferStep.pageTitle} step={4}>
+  <h1>{t.transferStep.title}</h1>
+  <p>{t.transferStep.intro}</p>
+  <form data-form>
+    <label for="account">{t.transferStep.accountLabel}</label>
+    <input id="account" name="account" required autocomplete="off" spellcheck="false" placeholder={t.transferStep.accountPlaceholder} value={current?.config.account ?? ""} />
+    <label for="holder">{t.transferStep.holderLabel}</label>
+    <input id="holder" name="holder" required maxlength="80" autocomplete="name" placeholder={t.transferStep.holderPlaceholder} value={current?.config.holder ?? ""} />
+    <button type="submit">{t.common.continue}</button>
+    <button type="button" class="secondary" data-skip>{t.transferStep.skip}</button>
     <p class="error" data-error role="alert"></p>
   </form>
-  <p><a href="/panel/primer-ingreso/whatsapp">{t.comun.volver}</a></p>
+  <p><a href="/panel/primer-ingreso/whatsapp">{t.common.back}</a></p>
 </Panel>
 
 <script>
-  import { avanzar, elemento, mostrarError, pedir } from "../../../scripts/panel";
+  import { advance, element, showError, request } from "../../../scripts/panel";
 
-  const formulario = elemento<HTMLFormElement>("[data-formulario]");
-  const error = formulario.querySelector("[data-error]");
-  formulario.addEventListener("submit", async (evento) => {
-    evento.preventDefault();
-    const datos = new FormData(formulario);
+  const form = element<HTMLFormElement>("[data-form]");
+  const error = form.querySelector("[data-error]");
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const data = new FormData(form);
     try {
-      await pedir("PUT", "/api/medios-de-pago/transferencia", {
-        cuenta: String(datos.get("cuenta") ?? ""),
-        titular: String(datos.get("titular") ?? ""),
+      await request("PUT", "/api/payment-methods/transfer", {
+        account: String(data.get("account") ?? ""),
+        holder: String(data.get("holder") ?? ""),
       });
-      await avanzar("transferencia");
+      await advance("transferencia");
     } catch (e) {
-      mostrarError(error, e);
+      showError(error, e);
     }
   });
-  elemento("[data-saltear]").addEventListener("click", () => avanzar("transferencia", true).catch((e) => mostrarError(error, e)));
+  element("[data-skip]").addEventListener("click", () => advance("transferencia", true).catch((e) => showError(error, e)));
 </script>

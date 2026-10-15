@@ -1,29 +1,29 @@
 ---
-// Vuelta de GitHub después de crear la app desde el manifiesto: canjea el `code` y manda a instalarla.
+// Return from GitHub after creating the app from the manifest: exchanges the `code` and sends to install it.
 import { env } from "cloudflare:workers";
-import { armar } from "../../../container";
-import { textos } from "../../../i18n";
+import { build } from "../../../container";
+import { texts } from "../../../i18n";
 import Panel from "../../../layouts/panel.astro";
-import { nombreDeCookie } from "../../../lib/cookies";
-import { COOKIE_ESTADO_GITHUB } from "../../../lib/github-manifiesto";
+import { cookieName } from "../../../lib/cookies";
+import { GITHUB_STATE_COOKIE } from "../../../lib/github-manifest";
 
-const t = textos(Astro.locals.idioma);
-const cookie = nombreDeCookie(COOKIE_ESTADO_GITHUB, Astro.url);
-const esperado = Astro.cookies.get(cookie)?.value;
-const codigo = Astro.url.searchParams.get("code");
-const estado = Astro.url.searchParams.get("state");
+const t = texts(Astro.locals.language);
+const cookie = cookieName(GITHUB_STATE_COOKIE, Astro.url);
+const expected = Astro.cookies.get(cookie)?.value;
+const code = Astro.url.searchParams.get("code");
+const status = Astro.url.searchParams.get("state");
 Astro.cookies.delete(cookie, { path: "/" });
 
-let error: string = t.actualizaciones.conexionFallida;
-if (esperado && codigo && estado === esperado) {
-  const r = await armar(env).actualizaciones.conectar(codigo);
-  if (r.ok) return Astro.redirect(`https://github.com/apps/${r.valor.slug}/installations/new`);
-  error = t.errores.api[r.error.codigo];
+let error: string = t.updates.failedConnection;
+if (expected && code && status === expected) {
+  const r = await build(env).updates.connect(code);
+  if (r.ok) return Astro.redirect(`https://github.com/apps/${r.value.slug}/installations/new`);
+  error = t.errors.api[r.error.code];
 }
 ---
 
-<Panel titulo={t.actualizaciones.titulo} seccion="actualizaciones">
-  <h1>{t.actualizaciones.titulo}</h1>
+<Panel title={t.updates.title} section="updates">
+  <h1>{t.updates.title}</h1>
   <p class="error" role="alert">{error}</p>
-  <p><a href="/panel/actualizaciones">{t.actualizaciones.volver}</a></p>
+  <p><a href="/panel/actualizaciones">{t.updates.back}</a></p>
 </Panel>

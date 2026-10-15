@@ -1,28 +1,28 @@
 ---
 import { env } from "cloudflare:workers";
-import RegistrarPasskey from "../../components/registrar-passkey.astro";
-import { armar } from "../../container";
-import { LOCALES, textos } from "../../i18n";
+import RegisterPasskey from "../../components/register-passkey.astro";
+import { build } from "../../container";
+import { LOCALES, texts } from "../../i18n";
 import Panel from "../../layouts/panel.astro";
 
-const idioma = Astro.locals.idioma ?? "es";
-const t = textos(idioma).acceso;
-const passkeys = await armar(env).acceso.listarPasskeys();
-const fecha = (d: Date | null) =>
-  d === null ? t.nunca : d.toLocaleDateString(LOCALES[idioma], { timeZone: "UTC" });
+const language = Astro.locals.language ?? "es";
+const t = texts(language).access;
+const passkeys = await build(env).access.listPasskeys();
+const date = (d: Date | null) =>
+  d === null ? t.never : d.toLocaleDateString(LOCALES[language], { timeZone: "UTC" });
 ---
 
-<Panel titulo={t.titulo} seccion="acceso">
-  <h1>{t.titulo}</h1>
-  <h2>{t.tusPasskeys}</h2>
+<Panel title={t.title} section="access">
+  <h1>{t.title}</h1>
+  <h2>{t.yourPasskeys}</h2>
   <ul>
     {
       passkeys.map((p) => (
         <li>
-          <strong>{p.nombre}</strong> — {t.creada(fecha(p.creadaEn), fecha(p.ultimoUsoEn))}{" "}
+          <strong>{p.name}</strong> — {t.created(date(p.createdAt), date(p.lastUsedAt))}{" "}
           {passkeys.length > 1 && (
-            <button type="button" class="secundario" data-borrar={p.id}>
-              {t.borrar}
+            <button type="button" class="secondary" data-delete={p.id}>
+              {t.remove}
             </button>
           )}
         </li>
@@ -30,42 +30,42 @@ const fecha = (d: Date | null) =>
     }
   </ul>
   <p class="error" data-error role="alert"></p>
-  <RegistrarPasskey siguiente="/panel/acceso" texto={t.agregar} />
+  <RegisterPasskey next="/panel/acceso" text={t.add} />
 
-  <h2>{t.codigoTitulo}</h2>
-  <p>{t.codigoTexto}</p>
-  <button type="button" data-regenerar>{t.regenerar}</button>
-  <div data-codigo-nuevo hidden></div>
-  <p><a href="/panel">{t.volverAlPanel}</a></p>
+  <h2>{t.codeTitle}</h2>
+  <p>{t.codeText}</p>
+  <button type="button" data-regenerate>{t.regenerate}</button>
+  <div data-new-code hidden></div>
+  <p><a href="/panel">{t.backToPanel}</a></p>
 </Panel>
 
 <script>
-  import { elemento, mostrarCodigoDeRecuperacion, mostrarError, pedir, t } from "../../scripts/panel";
+  import { element, showRecoveryCode, showError, request, t } from "../../scripts/panel";
 
-  const error = elemento("[data-error]");
-  for (const boton of document.querySelectorAll<HTMLButtonElement>("[data-borrar]")) {
-    boton.addEventListener("click", async () => {
-      if (!confirm(t().acceso.confirmarBorrar)) return;
+  const error = element("[data-error]");
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-delete]")) {
+    button.addEventListener("click", async () => {
+      if (!confirm(t().access.confirmDelete)) return;
       try {
-        await pedir("DELETE", `/api/acceso/passkeys/${encodeURIComponent(boton.dataset.borrar ?? "")}`);
+        await request("DELETE", `/api/access/passkeys/${encodeURIComponent(button.dataset.delete ?? "")}`);
         location.reload();
       } catch (e) {
-        mostrarError(error, e);
+        showError(error, e);
       }
     });
   }
-  const regenerar = elemento<HTMLButtonElement>("[data-regenerar]");
-  regenerar.addEventListener("click", async () => {
+  const regenerate = element<HTMLButtonElement>("[data-regenerate]");
+  regenerate.addEventListener("click", async () => {
     try {
-      const { codigoDeRecuperacion } = await pedir<{ codigoDeRecuperacion: string }>(
+      const { recoveryCode } = await request<{ recoveryCode: string }>(
         "POST",
-        "/api/acceso/codigo-de-recuperacion",
+        "/api/access/recovery-code",
         {},
       );
-      regenerar.hidden = true;
-      mostrarCodigoDeRecuperacion(elemento("[data-codigo-nuevo]"), codigoDeRecuperacion, () => location.reload(), t().acceso.listo);
+      regenerate.hidden = true;
+      showRecoveryCode(element("[data-new-code]"), recoveryCode, () => location.reload(), t().access.ready);
     } catch (e) {
-      mostrarError(error, e);
+      showError(error, e);
     }
   });
 </script>

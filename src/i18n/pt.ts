@@ -1,158 +1,158 @@
-import type { Textos } from "./es";
+import type { Texts } from "./es";
 
-/** Textos em português do Brasil (mismas claves que es.ts; ver ahí cómo se usan las que terminan en `Html`). */
-export const pt: Textos = {
-  comun: {
-    volver: "Voltar",
-    continuar: "Continuar",
-    volverALaTienda: "Voltar para a loja",
-    sinPasskeys:
+/** Brazilian Portuguese texts (same keys as es.ts; see there how the keys ending in `Html` are used). */
+export const pt: Texts = {
+  common: {
+    back: "Voltar",
+    continue: "Continuar",
+    backToStore: "Voltar para a loja",
+    noPasskeys:
       "Este navegador não aceita passkeys. Abra sua loja no celular ou atualize o navegador e tente de novo.",
   },
   storeLayout: {
     madeWith: "Feito com",
   },
-  tienda: {
-    sinProductos: "Ainda não há produtos.",
-    productosDe: (nombre: string) => `Produtos de ${nombre}`,
-    noEncontradaTitulo: "Página não encontrada",
-    productoNoEncontradoTitulo: "Produto não encontrado",
-    productoNoEncontrado: "Não existe um produto publicado neste endereço.",
-    categorias: "Categorias",
-    todos: "Todos",
-    categoriaNoEncontradaTitulo: "Categoria não encontrada",
-    categoriaNoEncontrada: "Não há produtos publicados nessa categoria.",
+  store: {
+    noProducts: "Ainda não há produtos.",
+    productsOf: (name: string) => `Produtos de ${name}`,
+    notFoundTitle: "Página não encontrada",
+    productNotFoundTitle: "Produto não encontrado",
+    productNotFound: "Não existe um produto publicado neste endereço.",
+
+    categories: "Categorias",
+    all: "Todos",
+    categoryNotFoundTitle: "Categoria não encontrada",
+    categoryNotFound: "Não há produtos publicados nessa categoria.",
   },
-  preparando: {
-    titulo: "Estamos preparando a loja",
-    descripcion: "Esta loja abre muito em breve",
-    texto: "Muito em breve você vai poder ver os produtos aqui. Volte daqui a pouquinho!",
-    esTuTiendaHtml:
+  preparing: {
+    title: "Estamos preparando a loja",
+    description: "Esta loja abre muito em breve",
+    text: "Muito em breve você vai poder ver os produtos aqui. Volte daqui a pouquinho!",
+    isYourStoreHtml:
       'Esta loja é sua? <a href="/panel">Entre no seu painel</a> para terminar de configurá-la.',
   },
-  primerArranque: {
-    titulo: "Sua tiendita está pronta",
-    descripcion: "A tiendita foi publicada na sua conta da Cloudflare",
+  firstBoot: {
+    title: "Sua tiendita está pronta",
+    description: "A tiendita foi publicada na sua conta da Cloudflare",
     intro: "Ela foi publicada na sua conta da Cloudflare. Isto é o que foi criado, tudo no seu nome:",
-    recursosHtml: [
+    resourcesHtml: [
       "<strong>A loja</strong>: um Worker da Cloudflare que atende este endereço.",
       "<strong>O banco de dados</strong>: um banco D1 da sua loja, onde vão ficar seus produtos e pedidos.",
       "<strong>O lugar das fotos</strong>: um espaço de imagens R2 da sua loja, com as fotos dos seus produtos.",
       "<strong>Sua cópia do código</strong>: um repositório na sua conta do GitHub ou GitLab. Cada mudança enviada para lá é publicada sozinha.",
     ],
-    queSigue: "E agora? Reivindique sua loja",
-    reclamoHtml:
+    whatsNext: "E agora? Reivindique sua loja",
+    claimHtml:
       "Para ninguém mais conseguir se apropriar dela, na primeira vez que você entra pedimos um <strong>código de reivindicação</strong> que só você pode ver. Veja onde encontrá-lo:",
-    boton: "Reivindicar minha loja",
-    despues:
+    button: "Reivindicar minha loja",
+    after:
       "Depois você vai criar sua chave de acesso (passkey: você entra com a digital, o rosto ou o PIN do celular, sem senha), escolher o nome e o idioma da loja e informar seu WhatsApp. São cinco telas curtas.",
-    instruccionesHtml:
+    instructionsHtml:
       'As instruções completas estão no arquivo <code>README.md</code> do seu repositório. Você pode ver os recursos criados no seu <a href="https://dash.cloudflare.com/">painel da Cloudflare</a>.',
   },
-  dondeEstaElCodigo: {
-    pasosHtml: [
+  whereIsTheCode: {
+    stepsHtml: [
       'Entre no seu <a href="https://dash.cloudflare.com/" rel="noopener" target="_blank">painel da Cloudflare</a> com a mesma conta que você usou para criar a loja.',
       "Vá em <strong>Workers e Pages</strong> (em inglês, <em>Workers &amp; Pages</em>) e abra <strong>tiendita</strong>.",
       "Na aba <strong>Implantações</strong> (<em>Deployments</em>), abra a mais recente e clique em <strong>Ver log de compilação</strong> (<em>View build log</em>).",
       "Role até o final do log: você vai ver um quadro com <code>CODIGO DE RECLAMO: XXXX-XXXX-XXXX-XXXX-XXXX-XXXX</code> (esse é o seu código de reivindicação).",
     ],
-    notaHtml:
+    noteHtml:
       "Esse log só pode ser visto por quem tem acesso à sua conta da Cloudflare, então ninguém mais consegue se apropriar da sua loja. Cada vez que a loja é publicada de novo, um código novo é gerado: use o mais recente. Se você está testando no seu computador (<code>npm run dev</code>), o código aparece no terminal.",
   },
   panel: {
-    pasoDe: (n: number) => `Passo ${n} de 5`,
+    stepOf: (n: number) => `Passo ${n} de 5`,
   },
-  reclamar: {
-    titulo: "Reivindique sua loja",
+  claim: {
+    title: "Reivindique sua loja",
     intro: "Cole o código de reivindicação. Veja onde encontrar o seu:",
-    etiqueta: "Código de reivindicação",
-    boton: "Reivindicar minha loja",
+    label: "Código de reivindicação",
+    button: "Reivindicar minha loja",
   },
-  ingresar: {
-    tituloPagina: "Entrar",
-    titulo: "Entre na sua loja",
+  signIn: {
+    pageTitle: "Entrar",
+    title: "Entre na sua loja",
     intro: "Use a digital, o rosto ou o PIN do seu dispositivo.",
-    etiqueta: "Sua passkey",
+    label: "Sua passkey",
     placeholder: "Escolha sua passkey",
-    boton: "Entrar com passkey",
-    sinSoporte:
+    button: "Entrar com passkey",
+    unsupported:
       "Este navegador não aceita passkeys. Abra sua loja no dispositivo onde você criou a passkey ou atualize o navegador.",
-    perdiMiDispositivo: "Perdi meu dispositivo",
+    lostMyDevice: "Perdi meu dispositivo",
   },
-  recuperar: {
-    tituloPagina: "Recuperar o acesso",
-    nuevaTitulo: "Crie uma passkey nova",
-    nuevaTexto:
+  recover: {
+    pageTitle: "Recuperar o acesso",
+    newTitle: "Crie uma passkey nova",
+    newText:
       'Pronto, seu código funcionou. Agora crie uma passkey neste dispositivo. Seu código continua valendo até você criá-la; depois damos um novo (o anterior para de funcionar) e você pode apagar as passkeys antigas em "Acesso".',
-    nuevaBoton: "Criar minha passkey nova",
-    titulo: "Perdeu seu dispositivo?",
+    newButton: "Criar minha passkey nova",
+    title: "Perdeu seu dispositivo?",
     intro: "Digite o código de recuperação que você guardou quando criou sua passkey.",
-    sinSoporte:
+    unsupported:
       "Este navegador não aceita passkeys, então você não conseguiria criar uma nova. Abra sua loja no celular ou atualize o navegador e tente de novo: seu código não é gasto.",
-    etiqueta: "Código de recuperação",
-    boton: "Continuar",
-    emergencia:
+    label: "Código de recuperação",
+    button: "Continuar",
+    emergency:
       "Se você perdeu o dispositivo e também o código, a única saída é o plano de emergência do README do seu repositório: quem tem a conta da Cloudflare apaga o acesso no banco de dados e publica a loja de novo para reivindicá-la com um código novo. Seus produtos não se perdem.",
   },
-  acceso: {
-    titulo: "Acesso",
-    tusPasskeys: "Suas passkeys",
-    nunca: "nunca",
-    creada: (fecha: string, ultimoUso: string) => `criada em ${fecha}, último uso: ${ultimoUso}`,
-    borrar: "Apagar",
-    confirmarBorrar: "Apagar esta passkey? Esse dispositivo não vai mais conseguir entrar.",
-    agregar: "Adicionar passkey",
-    codigoTitulo: "Código de recuperação",
-    codigoTexto:
-      "Se você perdeu o código ou acha que alguém o viu, gere um novo: o anterior para de funcionar.",
-    regenerar: "Gerar um código de recuperação novo",
-    listo: "Pronto",
-    volverAlPanel: "Voltar para o painel",
+  access: {
+    title: "Acesso",
+    yourPasskeys: "Suas passkeys",
+    never: "nunca",
+    created: (date: string, lastUsed: string) => `criada em ${date}, último uso: ${lastUsed}`,
+    remove: "Apagar",
+    confirmDelete: "Apagar esta passkey? Esse dispositivo não vai mais conseguir entrar.",
+    add: "Adicionar passkey",
+    codeTitle: "Código de recuperação",
+    codeText: "Se você perdeu o código ou acha que alguém o viu, gere um novo: o anterior para de funcionar.",
+    regenerate: "Gerar um código de recuperação novo",
+    ready: "Pronto",
+    backToPanel: "Voltar para o painel",
   },
   navPanel: {
-    marca: "tiendita",
-    etiqueta: "Seções do painel",
-    inicio: "Início",
-    productos: "Produtos",
-    actualizaciones: "Atualizações",
-    acceso: "Acesso",
-    verTienda: "Ver minha loja",
-    codigo: "Código público",
-    pie: (v: string) => `tiendita ${v} ·`,
+    marker: "tiendita",
+    label: "Seções do painel",
+    home: "Início",
+    products: "Produtos",
+    updates: "Atualizações",
+    access: "Acesso",
+    viewStore: "Ver minha loja",
+    code: "Código público",
+    footer: (v: string) => `tiendita ${v} ·`,
   },
-  inicioPanel: {
-    titulo: "Painel",
-    vendiendo: "Sua loja está vendendo",
-    tuTienda: "Sua loja",
-    abierta: "já está aberta:",
-    mirala: "veja como seus clientes a veem",
-    sinProductos: "Você ainda não cadastrou produtos. Cadastre o primeiro em Produtos.",
-    publicados: (n: number) => `Você tem ${n} ${n === 1 ? "produto publicado" : "produtos publicados"}.`,
-    resumen: "Resumo",
-    cifraPublicados: "produtos publicados",
-    cifraSinPublicar: "não publicados (rascunhos ou pausados)",
-    verProductos: "Ver meus produtos",
-    insightsTitulo: "Insights",
+  panelHome: {
+    title: "Painel",
+    selling: "Sua loja está vendendo",
+    yourStore: "Sua loja",
+    open: "já está aberta:",
+    seeIt: "veja como seus clientes a veem",
+    noProducts: "Você ainda não cadastrou produtos. Cadastre o primeiro em Produtos.",
+    published: (n: number) => `Você tem ${n} ${n === 1 ? "produto publicado" : "produtos publicados"}.`,
+    summary: "Resumo",
+    publishedCount: "produtos publicados",
+    unpublishedCount: "não publicados (rascunhos ou pausados)",
+    viewProducts: "Ver meus produtos",
+    insightsTitle: "Insights",
     insightsIntro: "Em breve você vai ver aqui como vai a sua loja, com números simples e sem letras miúdas.",
-    proximamente: "Em breve",
+    comingSoon: "Em breve",
     insights: [
-      { titulo: "Visitas à sua loja", texto: "Quantas pessoas entram por dia e de onde vêm." },
-      { titulo: "Produtos mais vistos", texto: "Quais produtos seus clientes mais olham." },
-      { titulo: "Pedidos pelo WhatsApp", texto: "Quantas perguntas e pedidos chegam por semana." },
-      { titulo: "Vendas do mês", texto: "O que você vendeu este mês comparado com o anterior." },
+      { title: "Visitas à sua loja", text: "Quantas pessoas entram por dia e de onde vêm." },
+      { title: "Produtos mais vistos", text: "Quais produtos seus clientes mais olham." },
+      { title: "Pedidos pelo WhatsApp", text: "Quantas perguntas e pedidos chegam por semana." },
+      { title: "Vendas do mês", text: "O que você vendeu este mês comparado com o anterior." },
     ],
-    idiomaTitulo: "Idioma",
-    guardarIdioma: "Salvar idioma",
-    salir: "Sair",
+    languageTitle: "Idioma",
+    saveLanguage: "Salvar idioma",
+    exit: "Sair",
   },
-  productosPanel: {
-    titulo: "Produtos",
-    sinProductos: "Você ainda não cadastrou produtos. Cadastre o primeiro com o botão acima.",
-    foto: "Foto",
-    nombre: "Produto",
-    precio: "Preço",
-    estado: "Status",
-    estados: { publicado: "Publicado", borrador: "Rascunho", pausado: "Pausado" },
+  panelProducts: {
+    title: "Produtos",
+    noProducts: "Você ainda não cadastrou produtos. Cadastre o primeiro com o botão acima.",
+    photo: "Foto",
+    name: "Produto",
+    price: "Preço",
+    status: "Status",
+    statuses: { publicado: "Publicado", borrador: "Rascunho", pausado: "Pausado" },
   },
   newProduct: {
     action: "Cadastrar produto",
@@ -170,154 +170,154 @@ export const pt: Textos = {
     back: "Voltar para produtos",
     created: "Pronto, o produto foi cadastrado.",
   },
-  idioma: {
-    etiqueta: "Idioma da loja",
-    ayuda: "Seus clientes veem a loja neste idioma, e você vê o painel nele. Você pode mudar quando quiser.",
+  language: {
+    label: "Idioma da loja",
+    help: "Seus clientes veem a loja neste idioma, e você vê o painel nele. Você pode mudar quando quiser.",
   },
-  pasoAcceso: {
-    tituloPagina: "Seu acesso",
-    titulo: "Sua chave de acesso",
+  accessStep: {
+    pageTitle: "Seu acesso",
+    title: "Sua chave de acesso",
     intro:
       "Você vai entrar na sua loja com a digital, o rosto ou o PIN deste dispositivo. Não tem senha: ninguém pode roubá-la e você não precisa lembrar dela.",
-    yaCreada:
+    alreadyCreated:
       "Você já criou sua passkey. Se quiser, adicione outro dispositivo (por exemplo, seu computador).",
-    agregarOtro: "Adicionar outro dispositivo",
-    aviso:
+    addAnother: "Adicionar outro dispositivo",
+    notice:
       "Ao criá-la, vamos te dar um código de recuperação. Guarde bem: se você perder o dispositivo e também esse código, vai ter que publicar a loja de novo.",
   },
-  pasoNombre: {
-    tituloPagina: "Nome da loja",
-    titulo: "Qual é o nome da sua loja?",
-    etiqueta: "Nome",
+  nameStep: {
+    pageTitle: "Nome da loja",
+    title: "Qual é o nome da sua loja?",
+    label: "Nome",
     placeholder: "Padaria Espiga",
   },
-  pasoWhatsapp: {
-    tituloPagina: "WhatsApp",
-    titulo: "Em qual WhatsApp os clientes falam com você?",
+  whatsappStep: {
+    pageTitle: "WhatsApp",
+    title: "Em qual WhatsApp os clientes falam com você?",
     intro: "Os pedidos da sua loja vão chegar por WhatsApp neste número.",
-    etiquetaPais: "País",
-    etiqueta: "Número de WhatsApp",
+    countryLabel: "País",
+    label: "Número de WhatsApp",
     placeholder: "11 91234-5678",
-    ayuda: "Escolha o país e digite o número com o DDD, do jeito que você sempre disca.",
+    help: "Escolha o país e digite o número com o DDD, do jeito que você sempre disca.",
   },
-  pasoTransferencia: {
-    tituloPagina: "Transferência",
-    titulo: "Para onde os clientes transferem?",
+  transferStep: {
+    pageTitle: "Transferência",
+    title: "Para onde os clientes transferem?",
     intro:
       "Se você quer receber por transferência, informe seu alias ou CBU/CVU (conta bancária da Argentina). Mostramos isso ao cliente quando ele faz o pedido.",
-    etiquetaCuenta: "Alias ou CBU/CVU",
-    placeholderCuenta: "padaria.espiga",
-    etiquetaTitular: "Titular da conta",
-    placeholderTitular: "Ana Souza",
-    saltear: "Agora não",
+    accountLabel: "Alias ou CBU/CVU",
+    accountPlaceholder: "padaria.espiga",
+    holderLabel: "Titular da conta",
+    holderPlaceholder: "Ana Souza",
+    skip: "Agora não",
   },
-  pasoProducto: {
-    tituloPagina: "Primeiro produto",
-    titulo: "Cadastre seu primeiro produto",
+  productStep: {
+    pageTitle: "Primeiro produto",
+    title: "Cadastre seu primeiro produto",
     intro: "Com nome, preço e uma foto ele já fica à venda. Depois você pode cadastrar quantos quiser.",
-    etiquetaNombre: "Nome",
-    placeholderNombre: "Pão caseiro",
-    etiquetaPrecio: (moneda: string) => `Preço (${moneda})`,
-    etiquetaFoto: "Foto",
-    publicar: "Publicar",
-    saltear: "Cadastro depois",
+    nameLabel: "Nome",
+    namePlaceholder: "Pão caseiro",
+    priceLabel: (currency: string) => `Preço (${currency})`,
+    photoLabel: "Foto",
+    publish: "Publicar",
+    skip: "Cadastro depois",
   },
-  ejemplos: {
-    titulo: "Produtos de exemplo",
-    introPrimerIngreso:
+  samples: {
+    title: "Produtos de exemplo",
+    introOnboarding:
       "Prefere ver primeiro como fica? Carregue produtos de exemplo de um segmento, com fotos e categorias. Depois você apaga todos de uma vez pelo painel.",
     introPanel:
       "Carregue produtos de exemplo de um segmento, com fotos e categorias, para ver como a loja fica. Quando quiser, apague todos de uma vez (seus produtos não são afetados).",
-    etiquetaRubro: "Segmento",
-    cargar: "Carregar produtos de exemplo",
-    cargando: "Carregando…",
-    borrar: "Apagar os produtos de exemplo",
-    confirmarBorrar: "Apagar todos os produtos de exemplo? Seus produtos não são afetados.",
+    industryLabel: "Segmento",
+    load: "Carregar produtos de exemplo",
+    loading: "Carregando…",
+    remove: "Apagar os produtos de exemplo",
+    confirmDelete: "Apagar todos os produtos de exemplo? Seus produtos não são afetados.",
   },
   passkey: {
-    crear: "Criar minha passkey",
+    create: "Criar minha passkey",
   },
-  codigoDeRecuperacion: {
-    titulo: "Seu código de recuperação",
-    explicacion:
+  recoveryCode: {
+    title: "Seu código de recuperação",
+    explanation:
       "Se um dia você perder este dispositivo, é com este código que você volta a entrar. Guarde em um lugar seguro (anotado em papel, no seu gerenciador de senhas). Você só vai vê-lo agora.",
-    copiar: "Copiar",
-    copiado: "Copiado!",
-    descargar: "Baixar .txt",
-    archivo: (host: string, codigo: string) =>
-      `Código de recuperação da sua tiendita (${host}):\n${codigo}\n`,
-    nombreDeArchivo: "codigo-de-recuperacao-tiendita.txt",
-    imprimir: "Imprimir",
-    guardado: "Guardei em um lugar seguro",
-    aviso: "Se você perder o dispositivo e também este código, vai ter que publicar a loja de novo.",
+    copy: "Copiar",
+    copied: "Copiado!",
+    download: "Baixar .txt",
+    file: (host: string, code: string) => `Código de recuperação da sua tiendita (${host}):\n${code}\n`,
+    fileName: "codigo-de-recuperacao-tiendita.txt",
+    print: "Imprimir",
+    saved: "Guardei em um lugar seguro",
+    notice: "Se você perder o dispositivo e também este código, vai ter que publicar a loja de novo.",
   },
-  actualizaciones: {
-    titulo: "Atualizações",
+  updates: {
+    title: "Atualizações",
     intro:
       "O tutiendita continua melhorando. Daqui você traz as melhorias para a sua loja quando quiser: nada muda sem a sua aprovação.",
     version: (v: string) => `Sua loja está na versão ${v}.`,
-    conectarTitulo: "Conecte sua loja ao GitHub",
-    conectarTexto:
+    connectTitle: "Conecte sua loja ao GitHub",
+    connectText:
       "Sua loja fica num repositório do seu GitHub. Para trazer as melhorias, a loja cria um app do GitHub em seu nome, que só você controla: nada passa por nós. É uma vez só; o GitHub vai pedir que você confirme no botão verde.",
-    conectar: "Conectar ao GitHub",
-    instalarTitulo: "Falta um passo: escolha o repositório",
-    instalarTexto:
+    connect: "Conectar ao GitHub",
+    installTitle: "Falta um passo: escolha o repositório",
+    installText:
       "O app já foi criado. Agora instale só no repositório da sua loja (o que a Cloudflare criou, por exemplo tiendita).",
-    instalar: "Escolher o repositório no GitHub",
-    conectada: (repo: string) => `Conectada a ${repo}.`,
-    alDia: (v: string) => `Você tem a versão mais recente (${v}). Volte a olhar mais tarde.`,
-    hayNueva: (nueva: string, actual: string) => `Tem uma versão nova: ${nueva} (você tem ${actual}).`,
-    prepararTexto:
+    install: "Escolher o repositório no GitHub",
+    connected: (repo: string) => `Conectada a ${repo}.`,
+    upToDate: (v: string) => `Você tem a versão mais recente (${v}). Volte a olhar mais tarde.`,
+    updateAvailable: (newVersion: string, current: string) =>
+      `Tem uma versão nova: ${newVersion} (você tem ${current}).`,
+    prepareText:
       "Primeiro montamos no seu GitHub uma proposta com as mudanças (um pull request). Nada é aplicado ainda.",
-    preparar: "Ver o que muda",
-    preparado: (n: number) => `Pronto: a proposta muda ${n} ${n === 1 ? "arquivo" : "arquivos"}.`,
-    verEnGithub: "Ver as mudanças no GitHub",
-    aviso:
+    prepare: "Ver o que muda",
+    prepared: (n: number) => `Pronto: a proposta muda ${n} ${n === 1 ? "arquivo" : "arquivos"}.`,
+    viewOnGithub: "Ver as mudanças no GitHub",
+    notice:
       "Se alguém mudou o código da sua loja, revise as mudanças antes: a atualização substitui os arquivos que mudaram na versão oficial.",
-    aplicar: "Atualizar minha loja",
-    aplicado:
+    apply: "Atualizar minha loja",
+    applied:
       "Pronto! A Cloudflare está publicando a versão nova. Em alguns minutos você vai ver na sua loja.",
-    errorEstado: "Não conseguimos falar com o GitHub. Tente de novo daqui a pouco.",
-    conexionFallida: "A conexão não deu certo (o link venceu ou não é desta loja). Tente conectar de novo.",
-    volver: "Voltar para atualizações",
+    errorStatus: "Não conseguimos falar com o GitHub. Tente de novo daqui a pouco.",
+    failedConnection: "A conexão não deu certo (o link venceu ou não é desta loja). Tente conectar de novo.",
+    back: "Voltar para atualizações",
   },
-  errores: {
-    cancelado: "Tudo bem, tente de novo quando quiser.",
-    conexion: "Algo deu errado. Confira sua conexão e tente de novo.",
+  errors: {
+    cancelled: "Tudo bem, tente de novo quando quiser.",
+    connection: "Algo deu errado. Confira sua conexão e tente de novo.",
     api: {
-      PRECIO_INVALIDO: "Confira o preço: digite só o número, por exemplo 2500.",
-      SIN_IMAGEN: "Falta a foto do produto.",
-      NOMBRE_VACIO: "Digite um nome (até 80 caracteres).",
-      SLUG_INVALIDO: "O endereço do produto não é válido.",
-      IMAGEN_INVALIDA: "A foto precisa ser JPG, PNG ou WebP e não muito pesada. Tente outra.",
-      PRODUCTO_PAUSADO: "Esse produto está pausado.",
-      PRODUCTO_NO_ENCONTRADO: "Não encontramos esse produto.",
-      CATEGORIA_NO_ENCONTRADA: "Não encontramos essa categoria.",
-      CATEGORIA_CON_PRODUCTOS: "Essa categoria ainda tem produtos.",
-      ESTADO_INVALIDO: "Não dá para fazer essa mudança neste produto.",
-      CODIGO_INVALIDO: "O código não está correto. Confira e tente de novo.",
-      TIENDA_YA_RECLAMADA: "Esta loja já tem dono. Se for você, entre com sua passkey.",
-      DESAFIO_VENCIDO: "Passou tempo demais. Tente de novo.",
-      PASSKEY_NO_VERIFICADA: "Não conseguimos verificar sua passkey. Tente de novo.",
-      PASSKEY_DESCONOCIDA: "Essa passkey não é desta loja. Tente outra ou use seu código de recuperação.",
-      PASSKEY_YA_REGISTRADA: "Este dispositivo já tem uma passkey da sua loja.",
-      ORIGEN_NO_PERMITIDO: "Abra sua loja pelo endereço de sempre para fazer isso.",
-      NO_AUTENTICADO: "Sua sessão terminou. Entre de novo.",
-      ACCESO_LIMITADO: "Com este acesso você ainda não pode fazer isso.",
-      DEMASIADOS_INTENTOS: "Você tentou vezes demais. Espere alguns minutos e tente de novo.",
-      ULTIMA_PASSKEY: "Você não pode apagar sua única passkey: adicione outra antes.",
-      WHATSAPP_INVALIDO: "Confira o número: comece com + e o código do país, por exemplo +55 11 91234-5678.",
-      TRANSFERENCIA_INVALIDA: "Confira o alias ou CBU/CVU e o nome do titular.",
-      PASO_INVALIDO: "Esse passo ainda não está disponível. Volte para a tela anterior.",
-      IDIOMA_INVALIDO: "Escolha espanhol, inglês ou português.",
-      GITHUB_SIN_CONECTAR: "Primeiro conecte sua loja ao GitHub.",
-      GITHUB_NO_RESPONDE: "O GitHub não respondeu. Tente de novo daqui a pouco.",
-      GITHUB_VARIOS_REPOSITORIOS:
+      INVALID_PRICE: "Confira o preço: digite só o número, por exemplo 2500.",
+      NO_IMAGE: "Falta a foto do produto.",
+      EMPTY_NAME: "Digite um nome (até 80 caracteres).",
+      INVALID_SLUG: "O endereço do produto não é válido.",
+      INVALID_IMAGE: "A foto precisa ser JPG, PNG ou WebP e não muito pesada. Tente outra.",
+      PRODUCT_PAUSED: "Esse produto está pausado.",
+      PRODUCT_NOT_FOUND: "Não encontramos esse produto.",
+      CATEGORY_NOT_FOUND: "Não encontramos essa categoria.",
+      CATEGORY_HAS_PRODUCTS: "Essa categoria ainda tem produtos.",
+      INVALID_STATUS: "Não dá para fazer essa mudança neste produto.",
+      INVALID_CODE: "O código não está correto. Confira e tente de novo.",
+      STORE_ALREADY_CLAIMED: "Esta loja já tem dono. Se for você, entre com sua passkey.",
+      CHALLENGE_EXPIRED: "Passou tempo demais. Tente de novo.",
+      PASSKEY_NOT_VERIFIED: "Não conseguimos verificar sua passkey. Tente de novo.",
+      UNKNOWN_PASSKEY: "Essa passkey não é desta loja. Tente outra ou use seu código de recuperação.",
+      PASSKEY_ALREADY_REGISTERED: "Este dispositivo já tem uma passkey da sua loja.",
+      ORIGIN_NOT_ALLOWED: "Abra sua loja pelo endereço de sempre para fazer isso.",
+      NOT_AUTHENTICATED: "Sua sessão terminou. Entre de novo.",
+      ACCESS_LIMITED: "Com este acesso você ainda não pode fazer isso.",
+      TOO_MANY_ATTEMPTS: "Você tentou vezes demais. Espere alguns minutos e tente de novo.",
+      LAST_PASSKEY: "Você não pode apagar sua única passkey: adicione outra antes.",
+      INVALID_WHATSAPP: "Confira o número: comece com + e o código do país, por exemplo +55 11 91234-5678.",
+      INVALID_TRANSFER: "Confira o alias ou CBU/CVU e o nome do titular.",
+      INVALID_STEP: "Esse passo ainda não está disponível. Volte para a tela anterior.",
+      INVALID_LANGUAGE: "Escolha espanhol, inglês ou português.",
+      GITHUB_NOT_CONNECTED: "Primeiro conecte sua loja ao GitHub.",
+      GITHUB_NOT_RESPONDING: "O GitHub não respondeu. Tente de novo daqui a pouco.",
+      GITHUB_MULTIPLE_REPOSITORIES:
         "O app tem acesso a mais de um repositório. No GitHub, deixe acesso só ao repositório da sua loja e tente de novo.",
-      YA_ACTUALIZADA: "Sua loja já tem a versão mais recente.",
-      ENTRADA_INVALIDA: "Confira os dados e tente de novo.",
-      NO_ENCONTRADO: "Não encontramos o que você procurava.",
-      INTERNO: "Algo falhou do nosso lado. Tente de novo daqui a pouco.",
+      ALREADY_UP_TO_DATE: "Sua loja já tem a versão mais recente.",
+      INVALID_INPUT: "Confira os dados e tente de novo.",
+      NOT_FOUND: "Não encontramos o que você procurava.",
+      INTERNAL: "Algo falhou do nosso lado. Tente de novo daqui a pouco.",
     },
   },
 };

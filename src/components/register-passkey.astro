@@ -1,0 +1,67 @@
+---
+/**
+ * "Crear mi passkey" button + showing the recovery code when the server issues one (claim or
+ * recovery). Used in step 1, in /panel/recuperar and in /panel/acceso.
+ */
+import { texts } from "../i18n";
+
+interface Props {
+  /** Where to go when done (after confirming the code, if there was one). */
+  next: string;
+  /** Onboarding step completed when done. */
+  step?: string;
+  text?: string;
+}
+const t = texts(Astro.locals.language);
+const { next, step, text = t.passkey.create } = Astro.props;
+---
+
+<div data-register-passkey data-next={next} data-step={step ?? ""}>
+  <p data-unsupported hidden>{t.common.noPasskeys}</p>
+  <button type="button" data-create>{text}</button>
+  <p class="error" data-error role="alert"></p>
+  <div data-code hidden></div>
+</div>
+
+<script>
+  import {
+    advance,
+    browserSupportsWebAuthn,
+    showRecoveryCode,
+    showError,
+    registerPasskey,
+  } from "../scripts/panel";
+
+  for (const block of document.querySelectorAll<HTMLElement>("[data-register-passkey]")) {
+    const button = block.querySelector<HTMLButtonElement>("[data-create]");
+    const error = block.querySelector("[data-error]");
+    const code = block.querySelector<HTMLElement>("[data-code]");
+    const { next = "/panel", step = "" } = block.dataset;
+    const finish = async () => {
+      try {
+        if (step) await advance(step);
+        else location.assign(next);
+      } catch (e) {
+        showError(error, e);
+      }
+    };
+    if (!browserSupportsWebAuthn()) {
+      block.querySelector<HTMLElement>("[data-unsupported]")?.removeAttribute("hidden");
+      if (button) button.disabled = true;
+      continue;
+    }
+    button?.addEventListener("click", async () => {
+      button.disabled = true;
+      if (error) error.textContent = "";
+      try {
+        const r = await registerPasskey();
+        button.hidden = true;
+        if (r.recoveryCode && code) showRecoveryCode(code, r.recoveryCode, finish);
+        else await finish();
+      } catch (e) {
+        showError(error, e);
+        button.disabled = false;
+      }
+    });
+  }
+</script>
