@@ -5,6 +5,7 @@ import { loadSession } from "./middlewares/session";
 import { accessRoutes } from "./routes/access";
 import { imgRoutes } from "./routes/img";
 import { onboardingRoutes, paymentMethodRoutes, storeRoutes } from "./routes/onboarding";
+import { orderRoutes } from "./routes/orders";
 import { productRoutes } from "./routes/products";
 import { sampleRoutes } from "./routes/samples";
 import { updatesRoutes } from "./routes/updates";
@@ -17,6 +18,7 @@ export const api = new Hono<ApiEnv>()
   .use("/api/*", loadSession)
   .route("/api/access", accessRoutes)
   .route("/api/products", productRoutes)
+  .route("/api/orders", orderRoutes)
   .route("/api/store", storeRoutes)
   .route("/api/payment-methods", paymentMethodRoutes)
   .route("/api/onboarding", onboardingRoutes)

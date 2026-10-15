@@ -1,0 +1,263 @@
+---
+// Public URL stays in Spanish (/carrito), like the rest of the store's URLs.
+import { env } from "cloudflare:workers";
+import { WHATSAPP_TEMPLATE } from "../packages/core/index";
+import { build } from "../container";
+import { LOCALES, texts } from "../i18n";
+import Store from "../layouts/store.astro";
+
+const container = build(env);
+const [whatsapp, transfer] = await Promise.all([
+  container.getPaymentMethod("whatsapp"),
+  container.getPaymentMethod("transferencia"),
+]);
+const language = Astro.locals.language ?? "es";
+const t = texts(language).cart;
+const wa = whatsapp?.type === "whatsapp" && whatsapp.active ? whatsapp.config : null;
+const tr = transfer?.type === "transferencia" && transfer.active ? transfer.config : null;
+// The default template is Spanish: in other languages the greeting comes from the dictionary.
+const greeting = !wa || wa.template === WHATSAPP_TEMPLATE ? t.msgGreeting : wa.template;
+---
+
+<Store title={t.title}>
+  <h1>{t.title}</h1>
+  <div
+    data-cart
+    data-locale={LOCALES[language]}
+    data-whatsapp={wa ? wa.number.replace(/\D/g, "") : ""}
+    data-greeting={greeting}
+  >
+    <p data-empty hidden>{t.empty} <a href="/">{t.keepShopping}</a></p>
+    <p class="error" data-unavailable hidden role="alert">{t.unavailable}</p>
+    <ul class="cart-lines" data-lines></ul>
+    <p class="cart-total" data-total-row hidden>{t.total}: <strong data-total></strong></p>
+
+    <form data-checkout hidden>
+      <label for="buyer-name">{t.yourName}</label>
+      <input id="buyer-name" name="name" required maxlength="80" autocomplete="name" />
+      <label for="note">{t.note}</label>
+      <textarea id="note" name="note" rows="2" maxlength="500" placeholder={t.notePlaceholder}></textarea>
+      <fieldset>
+        <legend>{t.payWith}</legend>
+        {
+          tr && (
+            <label>
+              <input type="radio" name="payment" value="transfer" checked /> {t.payTransfer}
+            </label>
+          )
+        }
+        <label>
+          <input type="radio" name="payment" value="agree" checked={!tr} /> {t.payAgree}
+        </label>
+      </fieldset>
+      {wa ? <button type="submit">{t.finish}</button> : <p class="error">{t.noWhatsapp}</p>}
+      <p class="error" data-error role="alert"></p>
+    </form>
+
+    <section class="cart-review" data-review hidden aria-labelledby="review-title">
+      <h2 id="review-title" tabindex="-1">{t.reviewTitle}</h2>
+      {
+        tr && (
+          <div class="card" data-transfer hidden>
+            <h3>{t.transferTitle}</h3>
+            <dl class="transfer-data">
+              <dt>{tr.accountType === "alias" ? t.alias : t.cbu}</dt>
+              <dd>
+                <code>{tr.account}</code>
+                <button type="button" class="secondary" data-copy={tr.account} aria-live="polite">
+                  {t.copy}
+                </button>
+              </dd>
+              <dt>{t.holder}</dt>
+              <dd>{tr.holder}</dd>
+              <dt>{t.amount}</dt>
+              <dd>
+                <strong data-review-total />
+                <button type="button" class="secondary" data-copy-total aria-live="polite">
+                  {t.copy}
+                </button>
+              </dd>
+            </dl>
+            <p class="notice">{t.receiptNotice}</p>
+          </div>
+        )
+      }
+      <p><a class="button" data-send target="_blank" rel="noopener">{t.send}</a></p>
+      <p class="send-help"><small>{t.sendHelp}</small></p>
+    </section>
+  </div>
+</Store>
+
+<script>
+  import { currencyDecimals } from "../packages/core/index";
+  import { languageFromLang, texts } from "../i18n";
+  import { type CartItem, formatMoney, MAX_QUANTITY, readCart, writeCart } from "../scripts/cart";
+  import { add, request, showError } from "../scripts/panel";
+
+  const t = texts(languageFromLang(document.documentElement.lang)).cart;
+  const root = document.querySelector<HTMLElement>("[data-cart]");
+  type Quote = {
+    items: { product_id: string; name: string; quantity: number; unit_price: { amount: number; currency: string } }[];
+    total: { amount: number; currency: string };
+  };
+
+  if (root) {
+    const locale = root.dataset.locale ?? "es-AR";
+    const money = (amount: number, currency: string) => formatMoney(amount, currency, locale);
+    const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s);
+    const form = $<HTMLFormElement>("[data-checkout]");
+    let quote: Quote | null = null;
+
+    /** Prices the cart on the server and drops what is no longer for sale (one product at a time). */
+    async function priceCart(): Promise<void> {
+      let items = readCart();
+      quote = null;
+      while (items.length > 0) {
+        try {
+          quote = await request<Quote>("POST", "/api/orders/quote", {
+            items: items.map((i) => ({ product_id: i.productId, quantity: i.quantity })),
+          });
+          break;
+        } catch (e) {
+          const gone = (e as { code?: string }).code === "PRODUCT_UNAVAILABLE";
+          if (!gone) throw e;
+          // shortcut: drops the whole cart line by line via a fresh quote; fine for small carts.
+          const valid: CartItem[] = [];
+          for (const item of items) {
+            const one = await request<Quote>("POST", "/api/orders/quote", {
+              items: [{ product_id: item.productId, quantity: item.quantity }],
+            }).catch(() => null);
+            if (one) valid.push(item);
+          }
+          $("[data-unavailable]")?.removeAttribute("hidden");
+          items = valid;
+          writeCart(items);
+        }
+      }
+      if (quote) {
+        // The server's prices win: refresh what the cart shows.
+        const prices = new Map(quote.items.map((i) => [i.product_id, i.unit_price.amount]));
+        writeCart(items.map((i) => ({ ...i, amount: prices.get(i.productId) ?? i.amount })));
+      }
+      render();
+    }
+
+    function render(): void {
+      const items = readCart();
+      const list = $("[data-lines]");
+      if (!list) return;
+      list.replaceChildren();
+      add(
+        list,
+        ...items.map((item) => {
+          const li = document.createElement("li");
+          li.className = "cart-line";
+          if (item.image) {
+            const img = document.createElement("img");
+            img.src = item.image;
+            img.alt = "";
+            img.width = 64;
+            img.height = 64;
+            add(li, img);
+          }
+          const info = document.createElement("div");
+          const link = document.createElement("a");
+          link.href = `/p/${item.slug}`;
+          link.textContent = item.name;
+          const price = document.createElement("span");
+          price.className = "price";
+          price.textContent = money(item.amount * item.quantity, item.currency);
+          add(info, link, document.createElement("br"), price);
+          const qty = document.createElement("input");
+          qty.type = "number";
+          qty.min = "1";
+          qty.max = String(MAX_QUANTITY);
+          qty.value = String(item.quantity);
+          qty.setAttribute("aria-label", `${t.quantity}: ${item.name}`);
+          qty.addEventListener("change", () => {
+            const n = Math.max(1, Math.min(MAX_QUANTITY, Math.round(Number(qty.value)) || 1));
+            writeCart(readCart().map((i) => (i.productId === item.productId ? { ...i, quantity: n } : i)));
+            void priceCart();
+          });
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "secondary";
+          remove.textContent = t.remove;
+          remove.setAttribute("aria-label", `${t.remove}: ${item.name}`);
+          remove.addEventListener("click", () => {
+            writeCart(readCart().filter((i) => i.productId !== item.productId));
+            void priceCart();
+          });
+          add(li, info, qty, remove);
+          return li;
+        }),
+      );
+      const empty = items.length === 0;
+      $("[data-empty]")?.toggleAttribute("hidden", !empty);
+      $("[data-total-row]")?.toggleAttribute("hidden", empty || !quote);
+      form?.toggleAttribute("hidden", empty);
+      const total = $("[data-total]");
+      if (total && quote) total.textContent = money(quote.total.amount, quote.total.currency);
+    }
+
+    function message(q: Quote, data: FormData, transfer: boolean): string {
+      const lines = q.items.map((i) => {
+        const each = money(i.unit_price.amount, i.unit_price.currency);
+        const subtotal = money(i.unit_price.amount * i.quantity, i.unit_price.currency);
+        return `• ${i.quantity} x ${i.name} (${each} ${t.msgEach}) = ${subtotal}`;
+      });
+      const note = String(data.get("note") ?? "").trim();
+      return [
+        root?.dataset.greeting ?? t.msgGreeting,
+        ...lines,
+        `${t.total}: ${money(q.total.amount, q.total.currency)}`,
+        "",
+        `${t.msgName}: ${String(data.get("name") ?? "").trim()}`,
+        `${t.msgPayment}: ${transfer ? t.msgTransfer : t.msgAgree}`,
+        ...(note ? [`${t.msgNote}: ${note}`] : []),
+      ].join("\n");
+    }
+
+    form?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      try {
+        await priceCart();
+        if (!quote) return;
+        const data = new FormData(form);
+        const transfer = data.get("payment") === "transfer";
+        const text = message(quote, data, transfer);
+        const send = $<HTMLAnchorElement>("[data-send]");
+        if (send) send.href = `https://wa.me/${root.dataset.whatsapp}?text=${encodeURIComponent(text)}`;
+        $("[data-transfer]")?.toggleAttribute("hidden", !transfer);
+        const reviewTotal = $("[data-review-total]");
+        if (reviewTotal) reviewTotal.textContent = money(quote.total.amount, quote.total.currency);
+        // Banking apps want just the number: no currency symbol, no thousands separator.
+        const plain = new Intl.NumberFormat(locale, {
+          useGrouping: false,
+          minimumFractionDigits: currencyDecimals(quote.total.currency),
+          maximumFractionDigits: currencyDecimals(quote.total.currency),
+        }).format(quote.total.amount / 10 ** currencyDecimals(quote.total.currency));
+        $("[data-copy-total]")?.setAttribute("data-copy", plain);
+        $("[data-review]")?.removeAttribute("hidden");
+        $<HTMLElement>("#review-title")?.focus();
+      } catch (e) {
+        showError($("[data-error]"), e);
+      }
+    });
+
+    // Sending opens WhatsApp in another tab; the order is in the message, so the cart can be emptied.
+    $("[data-send]")?.addEventListener("click", () => writeCart([]));
+
+    root.addEventListener("click", async (event) => {
+      const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-copy]");
+      if (!button) return;
+      await navigator.clipboard.writeText(button.dataset.copy ?? "").catch(() => undefined);
+      button.textContent = t.copied;
+      setTimeout(() => {
+        button.textContent = t.copy;
+      }, 2000);
+    });
+
+    void priceCart().catch((e) => showError($("[data-error]"), e));
+  }
+</script>

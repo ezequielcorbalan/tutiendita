@@ -18,6 +18,7 @@ import {
   loadSampleProducts,
   type OnboardingDeps,
   prepareUpdate,
+  quoteOrder,
   regenerateRecoveryCode,
   registerInstallation,
   saveStoreName,
@@ -104,6 +105,7 @@ export function build(env: Env) {
     updateProduct: updateProduct(productDeps),
     deleteProduct: deleteProduct(productDeps),
     findProductById: (id: string) => repo.findById(id),
+    quoteOrder: quoteOrder({ repo }),
     listCategories: () => categories.list(),
     samples: {
       load: (industry: Parameters<ReturnType<typeof loadSampleProducts>>[0], origin: string) =>

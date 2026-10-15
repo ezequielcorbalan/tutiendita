@@ -202,7 +202,7 @@ form label:not(:first-child) {
   margin-top: 0.75rem;
 }
 
-input:not([type="checkbox"]),
+input:not([type="checkbox"]):not([type="radio"]),
 select {
   display: block;
   width: 100%;
@@ -237,14 +237,16 @@ input::placeholder {
 }
 
 /* "Lo guardé en un lugar seguro": the checkbox with its text, with a 48 px touch area. */
-label:has(input[type="checkbox"]) {
+label:has(input[type="checkbox"]),
+label:has(input[type="radio"]) {
   display: flex;
   align-items: center;
   gap: 0.6rem;
   min-height: 3rem;
 }
 
-input[type="checkbox"] {
+input[type="checkbox"],
+input[type="radio"] {
   width: 1.4rem;
   height: 1.4rem;
   margin: 0;
@@ -657,6 +659,36 @@ p.price {
   max-width: var(--max-width);
   margin: 0 auto;
   padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.store-bar__cart {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--field-border);
+  border-radius: 999px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.store-bar__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--brand-text);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .store-bar__name {
@@ -764,6 +796,113 @@ form button.danger:hover:not(:disabled) {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/* Cart page */
+.cart-lines {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+ul.cart-lines li + li {
+  margin-top: 0;
+}
+
+.cart-line {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+li.cart-line img {
+  width: 4rem;
+  height: 4rem;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+li.cart-line input {
+  width: 4.5rem;
+}
+
+.cart-total {
+  margin: 0 0 2rem;
+  font-size: 1.25rem;
+}
+
+/* Review step: its own block, with room between the transfer card, the send button and its help. */
+.cart-review {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+
+.cart-review > * + * {
+  margin-top: 1.25rem;
+}
+
+/* The heading gets focus by script (so screen readers land on the review); no ring on it. */
+.cart-review h2:focus {
+  outline: none;
+}
+
+.cart-review h3 {
+  margin-top: 0;
+}
+
+.cart-review .send-help {
+  margin-top: 0.5rem;
+}
+
+fieldset label + label {
+  margin-top: 0.25rem;
+}
+
+.transfer-data {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem 1rem;
+  align-items: center;
+}
+
+.transfer-data dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notice {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--accent);
+  background: var(--surface-2);
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 30rem) {
+  .cart-line {
+    grid-template-columns: auto 1fr;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

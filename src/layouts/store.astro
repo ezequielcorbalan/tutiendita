@@ -12,7 +12,8 @@ interface Props {
 }
 const { title, description } = Astro.props;
 const storeName = (await build(env).getStore())?.name ?? "tiendita";
-const t = texts(Astro.locals.language).storeLayout;
+const all = texts(Astro.locals.language);
+const t = all.storeLayout;
 ---
 
 <Base title={title ? `${title} · ${storeName}` : storeName} {...(description ? { description } : {})}>
@@ -20,6 +21,9 @@ const t = texts(Astro.locals.language).storeLayout;
   <header class="store-bar" slot="top">
     <div class="store-bar__content">
       <a class="store-bar__name" href="/">{storeName}</a>
+      <a class="store-bar__cart" href="/carrito">
+        {all.cart.link} <span class="store-bar__count" data-cart-count hidden>0</span>
+      </a>
     </div>
   </header>
   <slot />
@@ -29,3 +33,9 @@ const t = texts(Astro.locals.language).storeLayout;
     </p>
   </footer>
 </Base>
+
+<script>
+  import { updateCartCount } from "../scripts/cart";
+
+  updateCartCount();
+</script>
