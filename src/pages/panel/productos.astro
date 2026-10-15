@@ -9,7 +9,7 @@ const t = todos.productosPanel;
 const productos = await datosProductosDelPanel(env, Astro.locals.idioma);
 ---
 
-<Panel titulo={t.titulo}>
+<Panel titulo={t.titulo} seccion="productos">
   <h1>{t.titulo}</h1>
   {
     productos.length === 0 ? (

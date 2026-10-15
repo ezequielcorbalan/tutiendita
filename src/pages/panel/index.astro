@@ -6,32 +6,63 @@ import { textos } from "../../i18n";
 import Panel from "../../layouts/panel.astro";
 
 const contenedor = armar(env);
-const [tienda, productos] = await Promise.all([contenedor.obtenerTienda(), contenedor.listarProductos()]);
+const [tienda, todos] = await Promise.all([contenedor.obtenerTienda(), contenedor.listarTodosLosProductos()]);
+const publicados = todos.filter((p) => p.estado === "publicado").length;
 const t = textos(Astro.locals.idioma).inicioPanel;
 ---
 
-<Panel titulo={t.titulo}>
-  <h1>{t.vendiendo}</h1>
-  <p><strong>{tienda?.nombre ?? t.tuTienda}</strong> {t.abierta} <a href="/">{t.mirala}</a>.</p>
-  {
-    productos.length === 0 ? (
-      <p>{t.sinProductos}</p>
-    ) : (
-      <p>{t.publicados(productos.length)}</p>
-    )
-  }
-  <ul>
-    <li set:html={t.productosHtml} />
-    <li set:html={t.accesoHtml} />
-    <li set:html={t.actualizacionesHtml} />
-  </ul>
-  <h2>{t.idiomaTitulo}</h2>
-  <form data-idioma>
-    <SelectorDeIdioma actual={tienda?.idioma ?? "es"} />
-    <button type="submit">{t.guardarIdioma}</button>
-    <p class="error" data-error role="alert"></p>
-  </form>
-  <button type="button" data-salir>{t.salir}</button>
+<Panel titulo={t.titulo} seccion="inicio">
+  <section class="tablero__saludo" aria-labelledby="saludo">
+    <p class="etiqueta">{tienda?.nombre ?? t.tuTienda}</p>
+    <h1 id="saludo">{t.vendiendo}</h1>
+    <p>{t.abierta} <a href="/">{t.mirala}</a>.</p>
+  </section>
+
+  <section aria-labelledby="resumen">
+    <h2 id="resumen">{t.resumen}</h2>
+    <ul class="tablero__cifras">
+      <li class="tarjeta">
+        <span class="tablero__numero">{publicados}</span>
+        <span>{t.cifraPublicados}</span>
+      </li>
+      <li class="tarjeta">
+        <span class="tablero__numero">{todos.length - publicados}</span>
+        <span>{t.cifraSinPublicar}</span>
+      </li>
+    </ul>
+    {todos.length === 0 && <p>{t.sinProductos}</p>}
+    <p><a class="boton secundario" href="/panel/productos">{t.verProductos}</a></p>
+  </section>
+
+  <section aria-labelledby="insights">
+    <h2 id="insights">{t.insightsTitulo}</h2>
+    <p>{t.insightsIntro}</p>
+    <ul class="tablero__insights">
+      {
+        t.insights.map((i, n) => (
+          <li class="tarjeta tarjeta--proximamente">
+            <span class="insignia">{t.proximamente}</span>
+            <h3>{i.titulo}</h3>
+            <p>{i.texto}</p>
+            <div class="tablero__grafico" aria-hidden="true">
+              {[40, 65, 50, 80, 60, 90, 70].map((alto, k) => (
+                <span style={`--alto: ${(alto + n * 7 + k * 3) % 100}%`} />
+              ))}
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section aria-labelledby="configuracion">
+    <h2 id="configuracion">{t.idiomaTitulo}</h2>
+    <form data-idioma>
+      <SelectorDeIdioma actual={tienda?.idioma ?? "es"} />
+      <button type="submit">{t.guardarIdioma}</button>
+      <p class="error" data-error role="alert"></p>
+    </form>
+  </section>
 </Panel>
 
 <script>
@@ -47,10 +78,5 @@ const t = textos(Astro.locals.idioma).inicioPanel;
     } catch (e) {
       mostrarError(formulario.querySelector("[data-error]"), e);
     }
-  });
-
-  document.querySelector("[data-salir]")?.addEventListener("click", async () => {
-    await pedir("POST", "/api/acceso/salir").catch(() => undefined);
-    location.assign("/panel/ingresar");
   });
 </script>
