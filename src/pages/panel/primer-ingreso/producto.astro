@@ -1,5 +1,6 @@
 ---
 import { env } from "cloudflare:workers";
+import ProductosDeEjemplo from "../../../components/productos-de-ejemplo.astro";
 import { armar } from "../../../container";
 import { textos } from "../../../i18n";
 import Panel from "../../../layouts/panel.astro";
@@ -22,6 +23,7 @@ const t = textos(Astro.locals.idioma);
     <button type="button" class="secundario" data-saltear>{t.pasoProducto.saltear}</button>
     <p class="error" data-error role="alert"></p>
   </form>
+  <ProductosDeEjemplo intro={t.ejemplos.introPrimerIngreso} despues="avanzar" />
   <p><a href="/panel/primer-ingreso/transferencia">{t.comun.volver}</a></p>
 </Panel>
 

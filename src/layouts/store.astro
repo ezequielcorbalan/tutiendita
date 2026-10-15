@@ -1,0 +1,31 @@
+---
+/** Public store pages: header with the store name, the page in <main> and a footer. */
+import { env } from "cloudflare:workers";
+import { armar } from "../container";
+import { textos } from "../i18n";
+import Base from "./base.astro";
+
+interface Props {
+  /** Page title without the store name (it's appended). Omit it for the home page. */
+  title?: string;
+  description?: string;
+}
+const { title, description } = Astro.props;
+const storeName = (await armar(env).obtenerTienda())?.nombre ?? "tiendita";
+const t = textos(Astro.locals.idioma).storeLayout;
+---
+
+<Base titulo={title ? `${title} · ${storeName}` : storeName} {...(description ? { descripcion: description } : {})}>
+  <slot name="head" slot="head" />
+  <header class="barra-tienda" slot="arriba">
+    <div class="barra-tienda__contenido">
+      <a class="barra-tienda__nombre" href="/">{storeName}</a>
+    </div>
+  </header>
+  <slot />
+  <footer class="pie-tienda" slot="abajo">
+    <p>
+      © {new Date().getUTCFullYear()} {storeName} · {t.madeWith} <a href="https://tutiendita.ar">tiendita</a>
+    </p>
+  </footer>
+</Base>

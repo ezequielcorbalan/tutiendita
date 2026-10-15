@@ -15,7 +15,9 @@ const t = textos(Astro.locals.idioma).inicioPanel;
   <section class="tablero__saludo" aria-labelledby="saludo">
     <p class="etiqueta">{tienda?.nombre ?? t.tuTienda}</p>
     <h1 id="saludo">{t.vendiendo}</h1>
-    <p>{t.abierta} <a href="/">{t.mirala}</a>.</p>
+    <p>
+      <strong>{tienda?.nombre ?? t.tuTienda}</strong> {t.abierta} <a href="/">{t.mirala}</a>.
+    </p>
   </section>
 
   <section aria-labelledby="resumen">

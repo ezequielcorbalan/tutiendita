@@ -134,5 +134,13 @@ export function crearRepositorioProductosD1(db: D1Database): RepositorioProducto
         throw error;
       }
     },
+
+    /** Con sus filas de imágenes, en un batch (una transacción en D1). */
+    async borrar(id) {
+      await orm.batch([
+        orm.delete(imagenesProducto).where(eq(imagenesProducto.productoId, id)),
+        orm.delete(productos).where(eq(productos.id, id)),
+      ]);
+    },
   };
 }

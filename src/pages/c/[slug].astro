@@ -1,0 +1,26 @@
+---
+import { env } from "cloudflare:workers";
+import Catalogo from "../../components/catalogo.astro";
+import { textos } from "../../i18n";
+import Store from "../../layouts/store.astro";
+import { datosInicio } from "../../lib/paginas";
+
+const t = textos(Astro.locals.idioma);
+const datos = await datosInicio(env, Astro.url.origin, Astro.locals.idioma, Astro.params.slug ?? "");
+const encontrada = datos.estado === "lista" && datos.categoriaActual !== null;
+if (!encontrada) Astro.response.status = 404;
+---
+
+{
+  datos.estado === "lista" && datos.categoriaActual ? (
+    <Store title={datos.categoriaActual.nombre} description={t.tienda.productosDe(datos.nombre)}>
+      <script slot="head" type="application/ld+json" is:inline set:html={datos.jsonLd} />
+      <Catalogo datos={datos} />
+    </Store>
+  ) : (
+    <Store title={t.tienda.categoriaNoEncontradaTitulo}>
+      <h1>{t.tienda.categoriaNoEncontradaTitulo}</h1>
+      <p>{t.tienda.categoriaNoEncontrada} <a href="/">{t.comun.volverALaTienda}</a></p>
+    </Store>
+  )
+}

@@ -27,27 +27,48 @@ const aVista =
 export type DatosInicio =
   | { estado: "sin-reclamar" }
   | { estado: "configurando" }
-  | { estado: "lista"; nombre: string; productos: ProductoVista[]; jsonLd: string };
+  | {
+      estado: "lista";
+      nombre: string;
+      productos: ProductoVista[];
+      jsonLd: string;
+      /** Las categorías con al menos un producto publicado (vacío si no hay: la portada queda como siempre). */
+      categorias: CategoriaVista[];
+      /** La de /c/<slug>, o null en la portada y si el slug no corresponde a ninguna de `categorias`. */
+      categoriaActual: CategoriaVista | null;
+    };
+
+export type CategoriaVista = { nombre: string; slug: string };
 
 /**
  * Portada según el estado de la tienda: sin dueño muestra el primer arranque con el
- * botón para reclamarla; con el primer ingreso a medias, "Estamos preparando la tienda"; lista, el catálogo.
+ * botón para reclamarla; con el primer ingreso a medias, "Estamos preparando la tienda"; lista, el catálogo
+ * (con `slugCategoria`, solo los productos de esa categoría).
  */
 export async function datosInicio(
   env: Env,
   baseUrl: string,
   idioma: Idioma = IDIOMA_POR_DEFECTO,
+  slugCategoria?: string,
 ): Promise<DatosInicio> {
   const contenedor = armar(env);
   const { estado } = await contenedor.estadoDeLaTienda();
   if (estado !== "lista") return { estado };
-  const [tienda, publicados] = await Promise.all([contenedor.obtenerTienda(), contenedor.listarProductos()]);
-  const productos = publicados.map(aProductoJson);
+  const [tienda, publicados, todas] = await Promise.all([
+    contenedor.obtenerTienda(),
+    contenedor.listarProductos(),
+    contenedor.listarCategorias(),
+  ]);
+  const categorias = todas.filter((c) => publicados.some((p) => p.categoriaId === c.id));
+  const actual = slugCategoria === undefined ? undefined : categorias.find((c) => c.slug === slugCategoria);
+  const productos = publicados.filter((p) => !actual || p.categoriaId === actual.id).map(aProductoJson);
   return {
     estado: "lista",
     nombre: tienda?.nombre ?? "tiendita",
     productos: productos.map(aVista(idioma)),
     jsonLd: serializarJsonLd(jsonLdLista(productos, baseUrl)),
+    categorias: categorias.map(({ nombre, slug }) => ({ nombre, slug })),
+    categoriaActual: actual ? { nombre: actual.nombre, slug: actual.slug } : null,
   };
 }
 

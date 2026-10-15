@@ -1,11 +1,11 @@
 ---
 import { textos } from "../i18n";
-import Base from "../layouts/base.astro";
+import Store from "../layouts/store.astro";
 
 const t = textos(Astro.locals.idioma);
 ---
 
-<Base titulo={`${t.tienda.noEncontradaTitulo} · tiendita`}>
+<Store title={t.tienda.noEncontradaTitulo}>
   <h1>{t.tienda.noEncontradaTitulo}</h1>
   <p><a href="/">{t.comun.volverALaTienda}</a></p>
-</Base>
+</Store>
