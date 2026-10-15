@@ -51,6 +51,15 @@ export async function datosInicio(
   };
 }
 
+/** Panel del dueño: todos los productos (también borradores y pausados), con el precio ya formateado. */
+export async function datosProductosDelPanel(
+  env: Env,
+  idioma: Idioma = IDIOMA_POR_DEFECTO,
+): Promise<ProductoVista[]> {
+  const productos = await armar(env).listarTodosLosProductos();
+  return productos.map(aProductoJson).map(aVista(idioma));
+}
+
 export async function datosProducto(
   env: Env,
   slug: string,

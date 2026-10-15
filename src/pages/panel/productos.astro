@@ -1,0 +1,44 @@
+---
+import { env } from "cloudflare:workers";
+import { textos } from "../../i18n";
+import Panel from "../../layouts/panel.astro";
+import { datosProductosDelPanel } from "../../lib/paginas";
+
+const todos = textos(Astro.locals.idioma);
+const t = todos.productosPanel;
+const productos = await datosProductosDelPanel(env, Astro.locals.idioma);
+---
+
+<Panel titulo={t.titulo}>
+  <h1>{t.titulo}</h1>
+  {
+    productos.length === 0 ? (
+      <p>{t.sinProductos}</p>
+    ) : (
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">{t.foto}</th>
+            <th scope="col">{t.nombre}</th>
+            <th scope="col">{t.precio}</th>
+            <th scope="col">{t.estado}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {productos.map((p) => (
+            <tr>
+              <td>
+                {/* alt vacío: el nombre está en la celda de al lado */}
+                {p.imagenes[0] && <img src={p.imagenes[0].url} alt="" width="64" height="64" loading="lazy" />}
+              </td>
+              <th scope="row">{p.estado === "publicado" ? <a href={`/p/${p.slug}`}>{p.nombre}</a> : p.nombre}</th>
+              <td>{p.precioTexto}</td>
+              <td>{t.estados[p.estado]}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    )
+  }
+  <p><a href="/panel">{todos.acceso.volverAlPanel}</a></p>
+</Panel>
