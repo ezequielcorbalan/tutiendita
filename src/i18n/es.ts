@@ -122,7 +122,7 @@ export const es = {
     tuTienda: "Tu tienda",
     abierta: "ya está abierta:",
     mirala: "mirala como la ven tus clientes",
-    sinProductos: "Todavía no cargaste productos. Muy pronto vas a poder hacerlo desde acá.",
+    sinProductos: "Todavía no cargaste productos. Cargá el primero desde Productos.",
     publicados: (n: number) => `Tenés ${n} ${n === 1 ? "producto publicado" : "productos publicados"}.`,
     resumen: "Resumen",
     cifraPublicados: "productos publicados",
@@ -143,7 +143,7 @@ export const es = {
   },
   productosPanel: {
     titulo: "Productos",
-    sinProductos: "Todavía no cargaste productos. Muy pronto vas a poder hacerlo desde acá.",
+    sinProductos: "Todavía no cargaste productos. Cargá el primero con el botón de arriba.",
     foto: "Foto",
     nombre: "Producto",
     precio: "Precio",
@@ -152,6 +152,23 @@ export const es = {
       EstadoProducto,
       string
     >,
+  },
+  newProduct: {
+    action: "Cargar producto",
+    title: "Nuevo producto",
+    name: "Nombre",
+    namePlaceholder: "Torta de chocolate",
+    description: "Descripción (opcional)",
+    descriptionHelp:
+      "Contá cómo es, de qué tamaño, qué incluye. La ven tus clientes en la página del producto.",
+    price: (currency: string) => `Precio (${currency})`,
+    photo: "Foto",
+    photoHelp:
+      "JPG, PNG o WebP de hasta 5 MB. Para publicar hace falta una foto; sin foto queda como borrador.",
+    publishNow: "Publicarlo ahora",
+    save: "Guardar producto",
+    back: "Volver a productos",
+    created: "Listo, el producto quedó cargado.",
   },
   idioma: {
     etiqueta: "Idioma de la tienda",
