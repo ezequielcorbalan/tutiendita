@@ -20,6 +20,10 @@ export type UpdatesDeps = {
 const notConnected = () =>
   err(domainError("GITHUB_NOT_CONNECTED", "Connect the store to its GitHub repository first"));
 
+/** The app must see exactly one repo, and never the official one (an update would open a PR there). */
+const isStoreRepo = (repos: readonly string[]): repos is [string] =>
+  repos.length === 1 && repos[0]?.toLowerCase() !== OFFICIAL_REPO.toLowerCase();
+
 /** Any GitHub call can fail due to network, permissions or limits: the panel shows the notice, not a 500 error. */
 async function withGithub<T>(f: () => Promise<T>): Promise<Result<T, DomainError>> {
   try {
@@ -35,7 +39,8 @@ async function withGithub<T>(f: () => Promise<T>): Promise<Result<T, DomainError
 
 async function readyConnection(deps: UpdatesDeps): Promise<ReadyConnection | null> {
   const c = await deps.connection.get();
-  return c && isReady(c) ? c : null;
+  // Never touch the official repo, even if an old connection points there.
+  return c && isReady(c) && isStoreRepo([c.repository]) ? c : null;
 }
 
 export const updateStatus =
@@ -44,11 +49,22 @@ export const updateStatus =
     const c = await deps.connection.get();
     if (c === null) return ok({ status: "not-connected" });
     if (!isReady(c)) return ok({ status: "not-installed", slug: c.slug });
-    const newVersion = await withGithub(() => deps.github.officialVersion(c, OFFICIAL_REPO));
-    if (!newVersion.ok) return newVersion;
+    // The repo access can be changed on GitHub at any time: check it again on every visit.
+    const repos = await withGithub(() => deps.github.installationRepositories(c));
+    if (!repos.ok) return repos;
+    if (!isStoreRepo(repos.value)) {
+      return ok({ status: "wrong-repository", installationId: c.installationId, repositories: repos.value });
+    }
+    let ready: ReadyConnection = c;
+    if (repos.value[0] !== c.repository) {
+      ready = { ...c, repository: repos.value[0] };
+      await deps.connection.save(ready, deps.clock.now());
+    }
+    const latest = await withGithub(() => deps.github.officialVersion(ready, OFFICIAL_REPO));
+    if (!latest.ok) return latest;
     return ok(
-      isNewer(newVersion.value, current)
-        ? { status: "update-available", current, newVersion: newVersion.value }
+      isNewer(latest.value.version, current)
+        ? { status: "update-available", current, newVersion: latest.value.version }
         : { status: "up-to-date", current },
     );
   };
@@ -71,14 +87,14 @@ export const registerInstallation =
     if (c === null) return notConnected();
     const repos = await withGithub(() => deps.github.installationRepositories({ ...c, installationId }));
     if (!repos.ok) return repos;
-    const [repository, ...others] = repos.value;
-    if (repository === undefined || others.length > 0) {
+    if (!isStoreRepo(repos.value)) {
       return err(
         domainError("GITHUB_MULTIPLE_REPOSITORIES", "Give the app access only to the store's repository", {
           repositories: repos.value,
         }),
       );
     }
+    const [repository] = repos.value;
     await deps.connection.save({ ...c, installationId, repository }, deps.clock.now());
     return ok({ repository });
   };
@@ -91,21 +107,22 @@ export const prepareUpdate =
   ): Promise<Result<{ number: number; url: string; files: number; version: string }, DomainError>> => {
     const c = await readyConnection(deps);
     if (c === null) return notConnected();
-    const version = await withGithub(() => deps.github.officialVersion(c, OFFICIAL_REPO));
-    if (!version.ok) return version;
+    const latest = await withGithub(() => deps.github.officialVersion(c, OFFICIAL_REPO));
+    if (!latest.ok) return latest;
     const alreadyThere = () =>
       err(domainError("ALREADY_UP_TO_DATE", "The store already has the latest version"));
-    if (!isNewer(version.value, current)) return alreadyThere();
+    if (!isNewer(latest.value.version, current)) return alreadyThere();
     const pr = await withGithub(() =>
       deps.github.prepareUpdate(c, {
         officialRepo: OFFICIAL_REPO,
-        version: version.value,
+        ref: latest.value.ref,
+        version: latest.value.version,
         preserve: PRESERVED_FILES,
       }),
     );
     if (!pr.ok) return pr;
     if (pr.value === null) return alreadyThere();
-    return ok({ ...pr.value, version: version.value });
+    return ok({ ...pr.value, version: latest.value.version });
   };
 
 /** Merges the pull request; the push to the main branch makes Cloudflare redeploy and migrate. */

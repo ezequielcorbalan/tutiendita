@@ -331,6 +331,10 @@ export const es = {
       "La app ya está creada. Ahora instalala solo en el repositorio de tu tienda (el que creó Cloudflare, por ejemplo tiendita).",
     install: "Elegir el repositorio en GitHub",
     connected: (repo: string) => `Conectada con ${repo}.`,
+    wrongRepoTitle: "La app tiene que estar solo en el repo de tu tienda",
+    wrongRepoText: (repos: string) =>
+      `Ahora ve: ${repos}. Dejale acceso solo al repo de tu tienda (el que creó Cloudflare, por ejemplo tiendita), nunca al repo oficial de tutiendita. Después volvé a esta página.`,
+    wrongRepoAction: "Cambiar el acceso en GitHub",
     upToDate: (v: string) => `Tenés la última versión (${v}). Volvé a mirar más adelante.`,
     updateAvailable: (newVersion: string, current: string) =>
       `Hay una versión nueva: ${newVersion} (tenés ${current}).`,

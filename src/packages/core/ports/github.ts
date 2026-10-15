@@ -6,15 +6,18 @@ export interface GithubClient {
   exchangeManifest(code: string): Promise<{ appId: number; slug: string; privateKeyPem: string }>;
   /** `owner/repo` of each repository the installation can access (checks that the installation belongs to the app). */
   installationRepositories(c: GithubConnection & { installationId: number }): Promise<string[]>;
-  /** Version (`package.json`) on the official repo's `main`. */
-  officialVersion(c: ReadyConnection, officialRepo: string): Promise<string>;
+  /**
+   * Latest version of the official repo: its latest GitHub release (`ref` = the release tag), or the
+   * `package.json` version on `main` if there are no releases yet.
+   */
+  officialVersion(c: ReadyConnection, officialRepo: string): Promise<{ version: string; ref: string }>;
   /**
    * Opens a pull request in the store's repo with the official repo's changed files, without touching
    * `preserve`. Returns `null` if there is nothing to change.
    */
   prepareUpdate(
     c: ReadyConnection,
-    p: { officialRepo: string; version: string; preserve: readonly string[] },
+    p: { officialRepo: string; ref: string; version: string; preserve: readonly string[] },
   ): Promise<{ number: number; url: string; files: number } | null>;
   /** Merges the pull request (squash): Cloudflare redeploys on its own with the push to the main branch. */
   applyUpdate(c: ReadyConnection, number: number): Promise<void>;
