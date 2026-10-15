@@ -142,10 +142,11 @@ export const es = {
     tituloPagina: "WhatsApp",
     titulo: "¿A qué WhatsApp te escriben los clientes?",
     intro: "Los pedidos de tu tienda te van a llegar por WhatsApp a este número.",
+    etiquetaPais: "País",
     etiqueta: "Número de WhatsApp",
     placeholder: "11 2233-4455",
     ayuda:
-      "Escribilo con el código de área, como lo marcás siempre (por ejemplo 11 2233-4455 o 351 15 123-4567). Si no es de Argentina, empezá con + y el código del país.",
+      "Elegí el país y escribí el número con el código de área, como lo marcás siempre (por ejemplo 11 2233-4455 o 351 15 123-4567).",
   },
   pasoTransferencia: {
     tituloPagina: "Transferencia",

@@ -140,10 +140,10 @@ export const pt: Textos = {
     tituloPagina: "WhatsApp",
     titulo: "Em qual WhatsApp os clientes falam com você?",
     intro: "Os pedidos da sua loja vão chegar por WhatsApp neste número.",
+    etiquetaPais: "País",
     etiqueta: "Número de WhatsApp",
-    placeholder: "+55 11 91234-5678",
-    ayuda:
-      "Comece com + e o código do país (por exemplo +55 11 91234-5678). Números da Argentina também podem ser digitados do jeito de sempre, como 11 2233-4455.",
+    placeholder: "11 91234-5678",
+    ayuda: "Escolha o país e digite o número com o DDD, do jeito que você sempre disca.",
   },
   pasoTransferencia: {
     tituloPagina: "Transferência",
