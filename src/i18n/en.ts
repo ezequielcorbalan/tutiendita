@@ -110,6 +110,8 @@ export const en: Textos = {
     sinProductos: "You haven't added any products yet. You'll be able to do it from here very soon.",
     publicados: (n: number) => `You have ${n} ${n === 1 ? "published product" : "published products"}.`,
     accesoHtml: '<a href="/panel/acceso">Access</a>: your passkeys and your recovery code.',
+    actualizacionesHtml:
+      '<a href="/panel/actualizaciones">Updates</a>: bring in tutiendita improvements whenever you want.',
     idiomaTitulo: "Language",
     guardarIdioma: "Save language",
     salir: "Sign out",
@@ -184,6 +186,36 @@ export const en: Textos = {
     guardado: "I saved it somewhere safe",
     aviso: "If you lose your device and this code too, you'll have to deploy the store again.",
   },
+  actualizaciones: {
+    titulo: "Updates",
+    intro:
+      "tutiendita keeps getting better. From here you bring the improvements to your store whenever you want: nothing changes until you approve it.",
+    version: (v: string) => `Your store is on version ${v}.`,
+    conectarTitulo: "Connect your store to GitHub",
+    conectarTexto:
+      "Your store lives in a repository on your GitHub. To bring in improvements, the store creates a GitHub app in your name that only you control: nothing goes through us. You do it once; GitHub will ask you to confirm with the green button.",
+    conectar: "Connect to GitHub",
+    instalarTitulo: "One more step: choose the repository",
+    instalarTexto:
+      "The app is created. Now install it only on your store's repository (the one Cloudflare created, for example tiendita).",
+    instalar: "Choose the repository on GitHub",
+    conectada: (repo: string) => `Connected to ${repo}.`,
+    alDia: (v: string) => `You have the latest version (${v}). Check back later.`,
+    hayNueva: (nueva: string, actual: string) => `There's a new version: ${nueva} (you have ${actual}).`,
+    prepararTexto:
+      "First we put together a proposal with the changes on your GitHub (a pull request). Nothing is applied yet.",
+    preparar: "See what changes",
+    preparado: (n: number) => `Done: the proposal changes ${n} ${n === 1 ? "file" : "files"}.`,
+    verEnGithub: "See the changes on GitHub",
+    aviso:
+      "If someone changed your store's code, review the changes first: the update replaces the files that changed in the official version.",
+    aplicar: "Update my store",
+    aplicado: "Done! Cloudflare is publishing the new version. You'll see it on your store in a few minutes.",
+    errorEstado: "We couldn't reach GitHub. Please try again in a little while.",
+    conexionFallida:
+      "The connection didn't work (the link expired or isn't from this store). Try connecting again.",
+    volver: "Back to updates",
+  },
   errores: {
     cancelado: "No worries, try again whenever you're ready.",
     conexion: "Something went wrong. Check your connection and try again.",
@@ -214,6 +246,11 @@ export const en: Textos = {
       TRANSFERENCIA_INVALIDA: "Check the alias or CBU/CVU and the account holder's name.",
       PASO_INVALIDO: "That step isn't available yet. Go back to the previous screen.",
       IDIOMA_INVALIDO: "Choose Spanish, English or Portuguese.",
+      GITHUB_SIN_CONECTAR: "First connect your store to GitHub.",
+      GITHUB_NO_RESPONDE: "GitHub didn't respond. Please try again in a little while.",
+      GITHUB_VARIOS_REPOSITORIOS:
+        "The app has access to more than one repository. On GitHub, give it access only to your store's repository and try again.",
+      YA_ACTUALIZADA: "Your store already has the latest version.",
       ENTRADA_INVALIDA: "Check the details and try again.",
       NO_ENCONTRADO: "We couldn't find what you were looking for.",
       INTERNO: "Something failed on our side. Please try again in a little while.",

@@ -1,0 +1,139 @@
+---
+import { env } from "cloudflare:workers";
+import { armar } from "../../container";
+import { textos } from "../../i18n";
+import Panel from "../../layouts/panel.astro";
+import { nombreDeCookie, opcionesDeCookie } from "../../lib/cookies";
+import {
+  aleatorio,
+  COOKIE_ESTADO_GITHUB,
+  manifiestoDeLaApp,
+  VIGENCIA_DEL_ESTADO_SEGUNDOS,
+} from "../../lib/github-manifiesto";
+import { VERSION_DE_LA_TIENDA } from "../../version";
+
+const contenedor = armar(env);
+const t = textos(Astro.locals.idioma).actualizaciones;
+const [estado, conexion, tienda] = await Promise.all([
+  contenedor.actualizaciones.estado(VERSION_DE_LA_TIENDA),
+  contenedor.actualizaciones.obtenerConexion(),
+  contenedor.obtenerTienda(),
+]);
+
+let manifiesto = "";
+let estadoGithub = "";
+if (estado.ok && estado.valor.estado === "sin-conectar") {
+  estadoGithub = aleatorio(16);
+  Astro.cookies.set(nombreDeCookie(COOKIE_ESTADO_GITHUB, Astro.url), estadoGithub, {
+    ...opcionesDeCookie(Astro.url, VIGENCIA_DEL_ESTADO_SEGUNDOS),
+    sameSite: "lax",
+  });
+  manifiesto = JSON.stringify(
+    manifiestoDeLaApp({
+      origen: Astro.url.origin,
+      nombreDeLaTienda: tienda?.nombre ?? "",
+      sufijo: aleatorio(2),
+    }),
+  );
+}
+---
+
+<Panel titulo={t.titulo}>
+  <h1>{t.titulo}</h1>
+  <p>{t.intro}</p>
+  <p>{t.version(VERSION_DE_LA_TIENDA)}</p>
+  {!estado.ok && <p class="error" role="alert">{t.errorEstado}</p>}
+  {
+    estado.ok && estado.valor.estado === "sin-conectar" && (
+      <section aria-labelledby="conectar">
+        <h2 id="conectar">{t.conectarTitulo}</h2>
+        <p>{t.conectarTexto}</p>
+        <form method="post" action={`https://github.com/settings/apps/new?state=${estadoGithub}`}>
+          <input type="hidden" name="manifest" value={manifiesto} />
+          <button type="submit">{t.conectar}</button>
+        </form>
+      </section>
+    )
+  }
+  {
+    estado.ok && estado.valor.estado === "sin-instalar" && (
+      <section aria-labelledby="instalar">
+        <h2 id="instalar">{t.instalarTitulo}</h2>
+        <p>{t.instalarTexto}</p>
+        <p>
+          <a class="boton" href={`https://github.com/apps/${estado.valor.slug}/installations/new`}>
+            {t.instalar}
+          </a>
+        </p>
+      </section>
+    )
+  }
+  {conexion?.repositorio && <p>{t.conectada(conexion.repositorio)}</p>}
+  {estado.ok && estado.valor.estado === "al-dia" && <p>{t.alDia(estado.valor.actual)}</p>}
+  {
+    estado.ok && estado.valor.estado === "hay-nueva" && (
+      <section aria-labelledby="nueva" data-actualizar>
+        <h2 id="nueva">{t.hayNueva(estado.valor.nueva, estado.valor.actual)}</h2>
+        <p>{t.prepararTexto}</p>
+        <button type="button" data-preparar>
+          {t.preparar}
+        </button>
+        <div data-preparado hidden>
+          <p data-resumen />
+          <p>
+            <a data-pr target="_blank" rel="noopener">
+              {t.verEnGithub}
+            </a>
+          </p>
+          <p>{t.aviso}</p>
+          <button type="button" data-aplicar>
+            {t.aplicar}
+          </button>
+        </div>
+        <p data-aplicado hidden role="status">
+          {t.aplicado}
+        </p>
+        <p class="error" data-error role="alert" />
+      </section>
+    )
+  }
+  <p><a href="/panel">{textos(Astro.locals.idioma).acceso.volverAlPanel}</a></p>
+</Panel>
+
+<script>
+  import { mostrarError, pedir, t } from "../../scripts/panel";
+
+  const seccion = document.querySelector<HTMLElement>("[data-actualizar]");
+  if (seccion) {
+    const error = seccion.querySelector("[data-error]");
+    const preparar = seccion.querySelector<HTMLButtonElement>("[data-preparar]");
+    const aplicar = seccion.querySelector<HTMLButtonElement>("[data-aplicar]");
+    let numero = 0;
+    preparar?.addEventListener("click", async () => {
+      preparar.disabled = true;
+      try {
+        const r = await pedir<{ numero: number; url: string; archivos: number }>("POST", "/api/actualizaciones/preparar");
+        numero = r.numero;
+        const resumen = seccion.querySelector("[data-resumen]");
+        if (resumen) resumen.textContent = t().actualizaciones.preparado(r.archivos);
+        seccion.querySelector<HTMLAnchorElement>("[data-pr]")?.setAttribute("href", r.url);
+        seccion.querySelector<HTMLElement>("[data-preparado]")?.removeAttribute("hidden");
+        preparar.hidden = true;
+      } catch (e) {
+        preparar.disabled = false;
+        mostrarError(error, e);
+      }
+    });
+    aplicar?.addEventListener("click", async () => {
+      aplicar.disabled = true;
+      try {
+        await pedir("POST", "/api/actualizaciones/aplicar", { numero });
+        seccion.querySelector<HTMLElement>("[data-preparado]")?.setAttribute("hidden", "");
+        seccion.querySelector<HTMLElement>("[data-aplicado]")?.removeAttribute("hidden");
+      } catch (e) {
+        aplicar.disabled = false;
+        mostrarError(error, e);
+      }
+    });
+  }
+</script>

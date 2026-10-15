@@ -23,7 +23,11 @@ export type CodigoError =
   | "WHATSAPP_INVALIDO"
   | "TRANSFERENCIA_INVALIDA"
   | "PASO_INVALIDO"
-  | "IDIOMA_INVALIDO";
+  | "IDIOMA_INVALIDO"
+  | "GITHUB_SIN_CONECTAR"
+  | "GITHUB_NO_RESPONDE"
+  | "GITHUB_VARIOS_REPOSITORIOS"
+  | "YA_ACTUALIZADA";
 
 export type ErrorDeDominio = {
   readonly codigo: CodigoError;
