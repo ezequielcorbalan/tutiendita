@@ -128,6 +128,17 @@ export function createGithubClient(options: { fetch?: Fetch; clock?: () => Date 
 
     async officialVersion(c, officialRepo) {
       const token = await installationToken(c);
+      try {
+        const release = await request<{ tag_name: string }>(
+          "GET",
+          `/repos/${officialRepo}/releases/latest`,
+          token,
+        );
+        return { version: release.tag_name.replace(/^v/, ""), ref: release.tag_name };
+      } catch (e) {
+        // No release published yet: fall back to the version on main.
+        if (!(e instanceof GithubError) || e.status !== 404) throw e;
+      }
       const r = await request<{ content: string }>(
         "GET",
         `/repos/${officialRepo}/contents/package.json?ref=main`,
@@ -136,7 +147,7 @@ export function createGithubClient(options: { fetch?: Fetch; clock?: () => Date 
       const json = new TextDecoder().decode(
         Uint8Array.from(atob(r.content.replace(/\s/g, "")), (x) => x.charCodeAt(0)),
       );
-      return String((JSON.parse(json) as { version?: string }).version ?? "0.0.0");
+      return { version: String((JSON.parse(json) as { version?: string }).version ?? "0.0.0"), ref: "main" };
     },
 
     async prepareUpdate(c: ReadyConnection, p) {
@@ -160,7 +171,7 @@ export function createGithubClient(options: { fetch?: Fetch; clock?: () => Date 
       const currentSha = new Map(current.tree.filter((e) => e.type === "blob").map((e) => [e.path, e.sha]));
 
       // A single request for the whole official repo (the free plan allows 50 subrequests per request).
-      const tar = await f(`${API}/repos/${p.officialRepo}/tarball/main`, {
+      const tar = await f(`${API}/repos/${p.officialRepo}/tarball/${encodeURIComponent(p.ref)}`, {
         headers: { authorization: token, "user-agent": "tiendita", accept: "application/vnd.github+json" },
       });
       if (!tar.ok || !tar.body) throw new GithubError(tar.status, "official repo tarball");

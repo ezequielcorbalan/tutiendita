@@ -28,7 +28,13 @@ export type UpdateStatus =
   | { readonly status: "not-connected" }
   | { readonly status: "not-installed"; readonly slug: string }
   | { readonly status: "up-to-date"; readonly current: string }
-  | { readonly status: "update-available"; readonly current: string; readonly newVersion: string };
+  | { readonly status: "update-available"; readonly current: string; readonly newVersion: string }
+  /** The app sees the official repo or several repos: it must see only the store's own repo. */
+  | {
+      readonly status: "wrong-repository";
+      readonly installationId: number;
+      readonly repositories: readonly string[];
+    };
 
 const parts = (v: string) =>
   v

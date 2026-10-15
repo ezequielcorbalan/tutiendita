@@ -320,6 +320,10 @@ export const en: Texts = {
       "The app is created. Now install it only on your store's repository (the one Cloudflare created, for example tiendita).",
     install: "Choose the repository on GitHub",
     connected: (repo: string) => `Connected to ${repo}.`,
+    wrongRepoTitle: "The app must be only on your store's repo",
+    wrongRepoText: (repos: string) =>
+      `It currently sees: ${repos}. Give it access only to your store's repo (the one Cloudflare created, for example tiendita), never to the official tutiendita repo. Then come back to this page.`,
+    wrongRepoAction: "Change the access on GitHub",
     upToDate: (v: string) => `You have the latest version (${v}). Check back later.`,
     updateAvailable: (newVersion: string, current: string) =>
       `There's a new version: ${newVersion} (you have ${current}).`,

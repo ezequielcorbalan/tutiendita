@@ -63,7 +63,21 @@ if (status.ok && status.value.status === "not-connected") {
       </section>
     )
   }
-  {connection?.repository && <p>{t.connected(connection.repository)}</p>}
+  {
+    status.ok && status.value.status === "wrong-repository" ? (
+      <section aria-labelledby="wrong-repo">
+        <h2 id="wrong-repo">{t.wrongRepoTitle}</h2>
+        <p class="error" role="alert">{t.wrongRepoText(status.value.repositories.join(", "))}</p>
+        <p>
+          <a class="button" href={`https://github.com/settings/installations/${status.value.installationId}`}>
+            {t.wrongRepoAction}
+          </a>
+        </p>
+      </section>
+    ) : (
+      connection?.repository && <p>{t.connected(connection.repository)}</p>
+    )
+  }
   {status.ok && status.value.status === "up-to-date" && <p>{t.upToDate(status.value.current)}</p>}
   {
     status.ok && status.value.status === "update-available" && (
