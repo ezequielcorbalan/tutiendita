@@ -17,7 +17,7 @@ const t = textos(Astro.locals.idioma).primerArranque;
   <h2>{t.queSigue}</h2>
   <p set:html={t.reclamoHtml} />
   <DondeEstaElCodigo />
-  <p><a href="/panel/reclamar"><strong>{t.boton}</strong></a></p>
+  <p><a class="boton" href="/panel/reclamar"><strong>{t.boton}</strong></a></p>
   <p>{t.despues}</p>
   <p set:html={t.instruccionesHtml} />
 </Base>

@@ -1,5 +1,6 @@
 ---
 import { LANG_HTML } from "../i18n";
+import "../estilos/tienda.css";
 
 interface Props {
   titulo: string;
@@ -18,6 +19,8 @@ const { titulo, descripcion } = Astro.props;
     <slot name="head" />
   </head>
   <body>
-    <slot />
+    <main>
+      <slot />
+    </main>
   </body>
 </html>
