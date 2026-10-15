@@ -13,6 +13,8 @@ const products = await panelProductsData(env, Astro.locals.language);
 <Panel title={t.title} section="products">
   <h1>{t.title}</h1>
   {Astro.url.searchParams.has("created") && <p role="status">{all.newProduct.created}</p>}
+  {Astro.url.searchParams.has("updated") && <p role="status">{all.editProduct.updated}</p>}
+  {Astro.url.searchParams.has("deleted") && <p role="status">{all.editProduct.deleted}</p>}
   <p><a class="button" href="/panel/productos/nuevo">{all.newProduct.action}</a></p>
   {
     products.length === 0 ? (
@@ -25,6 +27,7 @@ const products = await panelProductsData(env, Astro.locals.language);
             <th scope="col">{t.name}</th>
             <th scope="col">{t.price}</th>
             <th scope="col">{t.status}</th>
+            <th scope="col"><span class="visually-hidden">{all.editProduct.title}</span></th>
           </tr>
         </thead>
         <tbody>
@@ -37,6 +40,11 @@ const products = await panelProductsData(env, Astro.locals.language);
               <th scope="row">{p.status === "publicado" ? <a href={`/p/${p.slug}`}>{p.name}</a> : p.name}</th>
               <td>{p.priceText}</td>
               <td>{t.statuses[p.status]}</td>
+              <td>
+                <a href={`/panel/productos/${p.id}`} aria-label={all.editProduct.editNamed(p.name)}>
+                  {all.editProduct.edit}
+                </a>
+              </td>
             </tr>
           ))}
         </tbody>

@@ -1,0 +1,35 @@
+---
+import { env } from "cloudflare:workers";
+import ProductForm from "../../../components/product-form.astro";
+import { build } from "../../../container";
+import { texts } from "../../../i18n";
+import Panel from "../../../layouts/panel.astro";
+
+const container = build(env);
+const [store, categories, product] = await Promise.all([
+  container.getStore(),
+  container.listCategories(),
+  container.findProductById(Astro.params.id ?? ""),
+]);
+const all = texts(Astro.locals.language);
+if (product === null) Astro.response.status = 404;
+---
+
+<Panel title={product?.name ?? all.editProduct.notFound} section="products">
+  {
+    product ? (
+      <>
+        <h1>{all.editProduct.title}</h1>
+        {product.status === "publicado" && (
+          <p>
+            <a href={`/p/${product.slug}`}>{all.editProduct.viewInStore}</a>
+          </p>
+        )}
+        <ProductForm currency={store?.currency ?? "ARS"} categories={categories} product={product} />
+      </>
+    ) : (
+      <h1>{all.editProduct.notFound}</h1>
+    )
+  }
+  <p><a href="/panel/productos">{all.newProduct.back}</a></p>
+</Panel>

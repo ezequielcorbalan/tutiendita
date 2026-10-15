@@ -1,58 +1,17 @@
 ---
 import { env } from "cloudflare:workers";
+import ProductForm from "../../../components/product-form.astro";
 import { build } from "../../../container";
 import { texts } from "../../../i18n";
 import Panel from "../../../layouts/panel.astro";
 
-const currency = (await build(env).getStore())?.currency ?? "ARS";
+const container = build(env);
+const [store, categories] = await Promise.all([container.getStore(), container.listCategories()]);
 const t = texts(Astro.locals.language).newProduct;
 ---
 
 <Panel title={t.title} section="products">
   <h1>{t.title}</h1>
-  <form data-new-product data-currency={currency}>
-    <label for="name">{t.name}</label>
-    <input id="name" name="name" required maxlength="120" placeholder={t.namePlaceholder} />
-    <label for="description">{t.description}</label>
-    <textarea id="description" name="description" rows="4" maxlength="5000" aria-describedby="description-help"></textarea>
-    <p id="description-help"><small>{t.descriptionHelp}</small></p>
-    <label for="price">{t.price(currency)}</label>
-    <input id="price" name="price" required inputmode="decimal" placeholder="2500" />
-    <label for="image">{t.photo}</label>
-    <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="image-help" />
-    <p id="image-help"><small>{t.photoHelp}</small></p>
-    <label><input type="checkbox" name="publish" checked /> {t.publishNow}</label>
-    <button type="submit">{t.save}</button>
-    <p class="error" data-error role="alert"></p>
-  </form>
+  <ProductForm currency={store?.currency ?? "ARS"} categories={categories} />
   <p><a href="/panel/productos">{t.back}</a></p>
 </Panel>
-
-<script>
-  import { element, request, showError, toMinorUnits } from "../../../scripts/panel";
-
-  const form = element<HTMLFormElement>("[data-new-product]");
-  const error = form.querySelector("[data-error]");
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const data = new FormData(form);
-    const body = new FormData();
-    body.set("name", String(data.get("name") ?? ""));
-    const description = String(data.get("description") ?? "").trim();
-    if (description) body.set("description", description);
-    body.set("price_amount", toMinorUnits(String(data.get("price") ?? "")));
-    body.set("price_currency", form.dataset.currency ?? "ARS");
-    body.set("publish", data.get("publish") ? "true" : "false");
-    const image = data.get("image");
-    if (image instanceof File && image.size > 0) body.set("image", image);
-    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-    if (submit) submit.disabled = true;
-    try {
-      await request("POST", "/api/products", body);
-      location.assign("/panel/productos?created=1");
-    } catch (e) {
-      if (submit) submit.disabled = false;
-      showError(error, e);
-    }
-  });
-</script>
