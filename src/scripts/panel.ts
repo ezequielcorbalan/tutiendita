@@ -170,3 +170,13 @@ export function mostrarCodigoDeRecuperacion(
   agregar(contenedor, titulo, explicacion, valor, acciones, etiqueta, nuevo("br"), seguir, aviso);
   contenedor.hidden = false;
 }
+
+/** Price as people type it ("2.500,50" or "2500.5") → minor units (cents) as text; "x" when invalid (the API rejects it). */
+export function toMinorUnits(text: string): string {
+  const clean = text.trim().replace(/\s/g, "");
+  const normalized = /,\d{1,2}$/.test(clean)
+    ? clean.replace(/\./g, "").replace(",", ".")
+    : clean.replace(/,/g, "");
+  const value = Number(normalized);
+  return Number.isFinite(value) && value >= 0 ? String(Math.round(value * 100)) : "x";
+}

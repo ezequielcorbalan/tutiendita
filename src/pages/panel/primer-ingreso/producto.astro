@@ -26,15 +26,7 @@ const t = textos(Astro.locals.idioma);
 </Panel>
 
 <script>
-  import { avanzar, elemento, mostrarError, pedir } from "../../../scripts/panel";
-
-  /** "2.500,50" o "2500.5" → centavos (entero). */
-  const aCentavos = (texto: string): string => {
-    const limpio = texto.trim().replace(/\s/g, "");
-    const normalizado = /,\d{1,2}$/.test(limpio) ? limpio.replace(/\./g, "").replace(",", ".") : limpio.replace(/,/g, "");
-    const valor = Number(normalizado);
-    return Number.isFinite(valor) && valor >= 0 ? String(Math.round(valor * 100)) : "x";
-  };
+  import { avanzar, elemento, mostrarError, pedir, toMinorUnits } from "../../../scripts/panel";
 
   const formulario = elemento<HTMLFormElement>("[data-formulario]");
   const error = formulario.querySelector("[data-error]");
@@ -43,7 +35,7 @@ const t = textos(Astro.locals.idioma);
     const datos = new FormData(formulario);
     const alta = new FormData();
     alta.set("nombre", String(datos.get("nombre") ?? ""));
-    alta.set("precio_monto", aCentavos(String(datos.get("precio") ?? "")));
+    alta.set("precio_monto", toMinorUnits(String(datos.get("precio") ?? "")));
     alta.set("precio_moneda", formulario.dataset.moneda ?? "ARS");
     alta.set("publicar", "true");
     const imagen = datos.get("imagen");

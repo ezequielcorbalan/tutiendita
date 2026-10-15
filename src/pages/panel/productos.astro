@@ -11,6 +11,8 @@ const productos = await datosProductosDelPanel(env, Astro.locals.idioma);
 
 <Panel titulo={t.titulo} seccion="productos">
   <h1>{t.titulo}</h1>
+  {Astro.url.searchParams.has("created") && <p role="status">{todos.newProduct.created}</p>}
+  <p><a class="boton" href="/panel/productos/nuevo">{todos.newProduct.action}</a></p>
   {
     productos.length === 0 ? (
       <p>{t.sinProductos}</p>
