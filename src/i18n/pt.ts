@@ -9,12 +9,19 @@ export const pt: Textos = {
     sinPasskeys:
       "Este navegador não aceita passkeys. Abra sua loja no celular ou atualize o navegador e tente de novo.",
   },
+  storeLayout: {
+    madeWith: "Feito com",
+  },
   tienda: {
     sinProductos: "Ainda não há produtos.",
     productosDe: (nombre: string) => `Produtos de ${nombre}`,
     noEncontradaTitulo: "Página não encontrada",
     productoNoEncontradoTitulo: "Produto não encontrado",
     productoNoEncontrado: "Não existe um produto publicado neste endereço.",
+    categorias: "Categorias",
+    todos: "Todos",
+    categoriaNoEncontradaTitulo: "Categoria não encontrada",
+    categoriaNoEncontrada: "Não há produtos publicados nessa categoria.",
   },
   preparando: {
     titulo: "Estamos preparando a loja",
@@ -214,6 +221,18 @@ export const pt: Textos = {
     etiquetaFoto: "Foto",
     publicar: "Publicar",
     saltear: "Cadastro depois",
+  },
+  ejemplos: {
+    titulo: "Produtos de exemplo",
+    introPrimerIngreso:
+      "Prefere ver primeiro como fica? Carregue produtos de exemplo de um segmento, com fotos e categorias. Depois você apaga todos de uma vez pelo painel.",
+    introPanel:
+      "Carregue produtos de exemplo de um segmento, com fotos e categorias, para ver como a loja fica. Quando quiser, apague todos de uma vez (seus produtos não são afetados).",
+    etiquetaRubro: "Segmento",
+    cargar: "Carregar produtos de exemplo",
+    cargando: "Carregando…",
+    borrar: "Apagar os produtos de exemplo",
+    confirmarBorrar: "Apagar todos os produtos de exemplo? Seus produtos não são afetados.",
   },
   passkey: {
     crear: "Criar minha passkey",

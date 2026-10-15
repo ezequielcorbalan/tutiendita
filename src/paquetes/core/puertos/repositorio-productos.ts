@@ -9,6 +9,8 @@ export interface RepositorioProductos {
   existeSlug(slug: string): Promise<boolean>;
   /** Inserta o reemplaza por id, incluidas sus imágenes. */
   guardar(p: Producto): Promise<void>;
+  /** Borra el producto y sus imágenes (las filas; los archivos en R2 los borra quien llama). */
+  borrar(id: string): Promise<void>;
 }
 
 /** La lanza `guardar` si otro producto ya ocupa ese slug (p. ej. dos altas concurrentes con el mismo nombre). */

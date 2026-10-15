@@ -2,7 +2,9 @@ import {
   aplicarActualizacion,
   avanzarPrimerIngreso,
   borrarPasskey,
+  borrarProductosDeEjemplo,
   cambiarIdiomaDeLaTienda,
+  cargarProductosDeEjemplo,
   cerrarSesion,
   completarIngreso,
   completarRegistroDePasskey,
@@ -75,6 +77,14 @@ export function armar(env: Env) {
     reloj: relojSistema,
     ids: generadorUlid,
   };
+  const depsProductos = { repo, categorias, imagenes, reloj: relojSistema, ids: generadorUlid };
+  // Sample photos are static Worker assets (public/ejemplos). They are requested with the request's own origin:
+  // in production the host doesn't matter, but `astro dev` (Vite) rejects unknown hosts with 403.
+  const readPhotoFrom = (origin: string) => async (ruta: string) => {
+    const res = await env.ASSETS.fetch(new URL(ruta, origin));
+    if (!res.ok) throw new Error(`Falta la foto de ejemplo ${ruta} (${res.status})`);
+    return new Uint8Array(await res.arrayBuffer());
+  };
   const depsActualizaciones: DepsActualizaciones = {
     conexion: crearRepositorioConexionGithubD1(env.DB),
     github: crearClienteGithub(),
@@ -88,7 +98,13 @@ export function armar(env: Env) {
     listarProductos: listarProductosPublicados({ repo }),
     listarTodosLosProductos: listarTodosLosProductos({ repo }),
     obtenerProducto: obtenerProducto({ repo }),
-    crearProducto: crearProducto({ repo, categorias, imagenes, reloj: relojSistema, ids: generadorUlid }),
+    crearProducto: crearProducto(depsProductos),
+    listarCategorias: () => categorias.listar(),
+    ejemplos: {
+      cargar: (rubro: Parameters<ReturnType<typeof cargarProductosDeEjemplo>>[0], origin: string) =>
+        cargarProductosDeEjemplo({ ...depsProductos, tienda, leerFoto: readPhotoFrom(origin) })(rubro),
+      borrar: borrarProductosDeEjemplo(depsProductos),
+    },
     acceso: {
       validarCodigoDeReclamo: validarCodigoDeReclamo(deps),
       iniciarRegistroDePasskey: iniciarRegistroDePasskey(deps),
