@@ -12,7 +12,7 @@ const fecha = (d: Date | null) =>
   d === null ? t.nunca : d.toLocaleDateString(LOCALES[idioma], { timeZone: "UTC" });
 ---
 
-<Panel titulo={t.titulo}>
+<Panel titulo={t.titulo} seccion="acceso">
   <h1>{t.titulo}</h1>
   <h2>{t.tusPasskeys}</h2>
   <ul>

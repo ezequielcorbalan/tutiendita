@@ -1,20 +1,35 @@
 ---
+import BarraDelPanel, { type SeccionDelPanel } from "../components/barra-del-panel.astro";
 import { textos } from "../i18n";
+import { VERSION_DE_LA_TIENDA } from "../version";
 import Base from "./base.astro";
 
 interface Props {
   titulo: string;
   /** "Paso n de 5" en el primer ingreso. */
   paso?: number;
+  /** Con sesión y la tienda lista: muestra la barra superior con esta sección marcada. */
+  seccion?: SeccionDelPanel;
 }
-const { titulo, paso } = Astro.props;
+const { titulo, paso, seccion } = Astro.props;
 const t = textos(Astro.locals.idioma);
 ---
 
 <Base titulo={`${titulo} · tiendita`}>
   <meta slot="head" name="robots" content="noindex" />
-  <div class="panel">
+  {seccion && <BarraDelPanel slot="arriba" seccion={seccion} />}
+  <div class:list={["panel", { "panel--ancho": seccion }]}>
     {paso !== undefined && <p class="paso" style={`--paso: ${paso / 5}`}>{t.panel.pasoDe(paso)}</p>}
     <slot />
   </div>
+  {
+    seccion && (
+      <footer slot="abajo" class="pie-panel">
+        <p>
+          {t.navPanel.pie(VERSION_DE_LA_TIENDA)} <a href="https://tutiendita.ar">tutiendita.ar</a> ·{" "}
+          <a href="https://github.com/ezequielcorbalan/tutiendita">{t.navPanel.codigo}</a>
+        </p>
+      </footer>
+    )
+  }
 </Base>
