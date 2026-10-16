@@ -9,6 +9,7 @@ export * from "./d1/product-repository-d1";
 export * as schema from "./d1/schema";
 export * from "./d1/session-repository-d1";
 export * from "./d1/store-repository-d1";
+export * from "./dns/domain-inspector";
 export * from "./github/github-client";
 export * from "./r2/image-storage-r2";
 export * from "./system-clock";

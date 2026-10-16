@@ -1,6 +1,5 @@
 ---
 import { env } from "cloudflare:workers";
-import LanguageSelector from "../../components/language-selector.astro";
 import { build } from "../../container";
 import { texts } from "../../i18n";
 import Panel from "../../layouts/panel.astro";
@@ -60,31 +59,10 @@ const t = texts(Astro.locals.language).panelHome;
       }
     </ul>
   </section>
-
-  <section aria-labelledby="settings">
-    <h2 id="settings">{t.languageTitle}</h2>
-    <form data-language>
-      <LanguageSelector current={store?.language ?? "es"} />
-      <button type="submit">{t.saveLanguage}</button>
-      <p class="error" data-error role="alert"></p>
-    </form>
-  </section>
 </Panel>
 
 <script>
-  import { element, showError, request } from "../../scripts/panel";
-
-  const form = element<HTMLFormElement>("[data-language]");
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    try {
-      await request("PUT", "/api/store/language", { language: String(new FormData(form).get("language") ?? "") });
-      // The page is rendered again in the new language.
-      location.reload();
-    } catch (e) {
-      showError(form.querySelector("[data-error]"), e);
-    }
-  });
+  import { element } from "../../scripts/panel";
 
   // Our own same-origin fragment (server-rendered, escaped by Astro). If it fails, the home just shows no alert.
   fetch("/panel/actualizaciones/aviso", { credentials: "same-origin" })

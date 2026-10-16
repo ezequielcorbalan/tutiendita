@@ -40,4 +40,6 @@ export interface AccessRepository {
   saveOnboarding(step: OnboardingStep, completedAt: Date | null): Promise<void>;
   /** Empty if there is no `acceso` row (no owner, even if emergency-plan rows were left over). */
   allowedOrigins(): Promise<AllowedOrigin[]>;
+  /** Replaces every non-primary origin (the custom domain's) with `origins`; the primary one is never touched. */
+  replaceSecondaryOrigins(origins: readonly AllowedOrigin[], now: Date): Promise<void>;
 }

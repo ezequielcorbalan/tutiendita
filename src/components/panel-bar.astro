@@ -5,7 +5,7 @@
  */
 import { texts } from "../i18n";
 
-export type PanelSection = "home" | "products" | "updates" | "access";
+export type PanelSection = "home" | "products" | "updates" | "access" | "settings";
 interface Props {
   section: PanelSection;
 }
@@ -18,12 +18,14 @@ const ICONS: Record<PanelSection, string> = {
   products: "M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8",
   updates: "M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7",
   access: "M7 14a4 4 0 1 1 3.9-5H21v3h-2v3h-3v-3h-5.1A4 4 0 0 1 7 14z",
+  settings: "M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6",
 };
 const sections: { id: PanelSection; href: string; text: string }[] = [
   { id: "home", href: "/panel", text: n.home },
   { id: "products", href: "/panel/productos", text: n.products },
   { id: "updates", href: "/panel/actualizaciones", text: n.updates },
   { id: "access", href: "/panel/acceso", text: n.access },
+  { id: "settings", href: "/panel/configuracion", text: n.settings },
 ];
 ---
 
@@ -62,6 +64,9 @@ const sections: { id: PanelSection; href: string; text: string }[] = [
 
 <script>
   import { request } from "../scripts/panel";
+
+  // On a phone the sections scroll sideways: keep the current one in sight.
+  document.querySelector(".panel-bar nav [aria-current]")?.scrollIntoView({ block: "nearest", inline: "center" });
 
   document.querySelector("[data-sign-out]")?.addEventListener("click", async () => {
     await request("POST", "/api/access/sign-out").catch(() => undefined);

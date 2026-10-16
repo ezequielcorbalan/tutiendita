@@ -1204,3 +1204,8 @@ ul.category-list li + li {
 .release-notes ul:last-child {
   margin-bottom: 0;
 }
+
+/* Panel › Configuración: the domain check result, apart from the form above it. */
+.domain-result > :not([hidden]) {
+  margin-top: 1.5rem;
+}

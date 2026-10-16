@@ -38,8 +38,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
       : null;
   await localDev?.ensureLocalOwner(env, context.url);
   const container = build(env);
-  context.locals.language = (await container.getStore())?.language ?? DEFAULT_LANGUAGE;
-  if (!PANEL_PATH.test(pathname)) return next();
+  const store = await container.getStore();
+  context.locals.language = store?.language ?? DEFAULT_LANGUAGE;
+  if (!PANEL_PATH.test(pathname)) {
+    // Once the store's own domain answers, public pages live only there: one address for customers and search
+    // engines. The panel stays reachable on workers.dev (its passkeys' rpId).
+    if (store?.domain && context.url.hostname !== store.domain && SAFE_METHODS.has(context.request.method)) {
+      return context.redirect(`https://${store.domain}${pathname}${context.url.search}`, 301);
+    }
+    return next();
+  }
 
   if (
     !SAFE_METHODS.has(context.request.method) &&

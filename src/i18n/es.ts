@@ -163,6 +163,7 @@ export const es = {
     products: "Productos",
     updates: "Actualizaciones",
     access: "Acceso",
+    settings: "Configuración",
     viewStore: "Ver mi tienda",
     code: "Código público",
     footer: (v: string) => `tiendita ${v} ·`,
@@ -188,9 +189,45 @@ export const es = {
       { title: "Pedidos por WhatsApp", text: "Cuántas consultas y pedidos te llegan por semana." },
       { title: "Ventas del mes", text: "Lo que vendiste este mes comparado con el anterior." },
     ],
+    exit: "Salir",
+  },
+  settings: {
+    title: "Configuración",
     languageTitle: "Idioma",
     saveLanguage: "Guardar idioma",
-    exit: "Salir",
+    domainTitle: "Tu dominio",
+    domainIntro:
+      "Tu tienda puede estar en una dirección tuya, como tienda.tunegocio.com.ar, en vez de la de workers.dev.",
+    githubNeeded:
+      "Para conectar un dominio, primero conectá tu tienda con GitHub en Actualizaciones: así la tienda guarda el cambio en su propio código y Cloudflare la vuelve a publicar.",
+    goToUpdates: "Ir a Actualizaciones",
+    domainLabel: "¿En qué dirección querés tu tienda?",
+    domainHint:
+      "Por ejemplo tienda.tunegocio.com.ar o tunegocio.com.ar. El dominio tiene que estar en la misma cuenta de Cloudflare que tu tienda.",
+    check: "Revisar",
+    checking: "Revisando…",
+    ready: (zone: string, host: string) => `${zone} está en Cloudflare y ${host} está libre.`,
+    connect: (host: string) => `Conectar ${host}`,
+    notDelegatedTitle: "Ese dominio todavía no está en Cloudflare",
+    notDelegatedSteps: [
+      "Entrá a tu cuenta de Cloudflare y tocá «Agregar un dominio» (Add a domain).",
+      "Escribí tu dominio y elegí el plan Free.",
+      "Cloudflare te da dos servidores de nombres (nameservers): cargalos donde compraste el dominio (en NIC Argentina, en «Delegar»).",
+      "Cuando Cloudflare diga que el dominio está activo (puede tardar unas horas), volvé acá y revisalo de nuevo.",
+    ],
+    currentNameservers: (list: string) => `Hoy usa estos servidores de nombres: ${list}.`,
+    inUse: (host: string, records: string) =>
+      `${host} ya apunta a otro lado (registros ${records}). Elegí otro subdominio o borrá esos registros en el DNS de Cloudflare.`,
+    connecting: (host: string) =>
+      `Estamos conectando ${host}. Cloudflare vuelve a publicar tu tienda y le crea el certificado: suele tardar unos minutos.`,
+    connectingHelp:
+      "Si después de un rato no anda, mirá en Cloudflare, en Workers y tu tienda, que el último despliegue haya salido bien: el dominio tiene que estar en la misma cuenta.",
+    checkAgain: "Revisar de nuevo",
+    active: "Tu tienda está en",
+    activeHelp:
+      "Entrás al panel con la misma passkey desde las dos direcciones. La de workers.dev sigue andando y lleva a tus clientes a tu dominio.",
+    disconnect: "Desconectar el dominio",
+    confirmDisconnect: "¿Desconectar el dominio? Tu tienda vuelve a estar solo en workers.dev.",
   },
   panelProducts: {
     title: "Productos",
@@ -449,6 +486,11 @@ export const es = {
       INVALID_OPTIONS:
         "Revisá las variantes: cada una necesita un nombre y al menos una opción, sin repetir (hasta 5 variantes de 30 opciones).",
       INVALID_SELECTION: "Elegí una opción de cada variante del producto.",
+      INVALID_DOMAIN: "Escribí solo la dirección, por ejemplo tienda.tunegocio.com.ar.",
+      DOMAIN_NOT_DELEGATED: "Ese dominio todavía no está en Cloudflare. Seguí los pasos de arriba.",
+      DOMAIN_IN_USE: "Esa dirección ya apunta a otro lado. Elegí otro subdominio.",
+      ROUTES_ALREADY_SET: "El wrangler.jsonc de tu repositorio ya tiene rutas propias: cambialas a mano.",
+      DNS_NOT_RESPONDING: "No pudimos revisar el dominio. Probá de nuevo en un rato.",
       INVALID_INPUT: "Revisá los datos y probá de nuevo.",
       NOT_FOUND: "No encontramos lo que buscabas.",
       INTERNAL: "Algo falló de nuestro lado. Probá de nuevo en un rato.",

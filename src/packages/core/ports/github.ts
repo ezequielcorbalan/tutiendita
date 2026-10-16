@@ -25,6 +25,13 @@ export interface GithubClient {
   ): Promise<{ number: number; url: string; files: number } | null>;
   /** Merges the pull request (squash): Cloudflare redeploys on its own with the push to the main branch. */
   applyUpdate(c: ReadyConnection, number: number): Promise<void>;
+  /** A text file on the default branch of the store's repo, with the blob `sha` needed to change it; `null` if missing. */
+  readFile(c: ReadyConnection, path: string): Promise<{ text: string; sha: string } | null>;
+  /** Commits `text` to `path` on the default branch (Cloudflare redeploys with the push). `sha`: the one it replaces. */
+  writeFile(
+    c: ReadyConnection,
+    f: { path: string; text: string; sha: string; message: string },
+  ): Promise<void>;
 }
 
 /** A single connection per store. */
