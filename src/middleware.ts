@@ -3,7 +3,7 @@ import { env } from "cloudflare:workers";
 import { DEFAULT_LANGUAGE } from "./packages/core/index";
 import { API_ROUTES, api } from "./api/app";
 import { build } from "./container";
-import { cookieName, cookieOptions, SESSION_COOKIE } from "./lib/cookies";
+import { cookieName, cookieOptions, isLocalDev, SESSION_COOKIE } from "./lib/cookies";
 import { acceptedOrigin, SAFE_METHODS } from "./lib/origin";
 import { decidePanelRoute } from "./lib/panel";
 
@@ -28,6 +28,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (API_ROUTES.test(pathname)) {
     return api.fetch(context.request, env, context.locals.cfContext);
   }
+  // Local development skips the claim and onboarding; the dynamic import keeps it out of the build.
+  const localDev = import.meta.env.DEV && isLocalDev(context.url) ? await import("./dev/local-owner") : null;
+  await localDev?.ensureLocalOwner(env, context.url);
   const container = build(env);
   context.locals.language = (await container.getStore())?.language ?? DEFAULT_LANGUAGE;
   if (!PANEL_PATH.test(pathname)) return next();
@@ -43,10 +46,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const name = cookieName(SESSION_COOKIE, context.url);
   const token = context.cookies.get(name)?.value;
   const validated = token ? await container.access.validateSession(token) : null;
-  const session = validated?.ok ? validated.value.session : null;
+  let session = validated?.ok ? validated.value.session : null;
   if (token && validated?.ok && validated.value.renewed) {
     const o = cookieOptions(context.url, (validated.value.session.expiresAt.getTime() - Date.now()) / 1000);
     context.cookies.set(name, token, { ...o, sameSite: "lax" });
+  }
+  if (localDev && session === null) {
+    const local = await localDev.startLocalSession(env);
+    session = local.session;
+    const o = cookieOptions(context.url, (session.expiresAt.getTime() - Date.now()) / 1000);
+    context.cookies.set(name, local.token, { ...o, sameSite: "lax" });
   }
 
   const decision = decidePanelRoute({ status, session: session?.type ?? null, path: pathname });
