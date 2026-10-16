@@ -402,6 +402,7 @@ export const es = {
     bugfixTitle: "Actualización con arreglos",
     bugfixText: (v: string) => `La versión ${v} corrige errores. Te recomendamos actualizar.`,
     review: "Ver la actualización",
+    releaseNotesTitle: "Qué trae la actualización",
     failedConnection:
       "La conexión no salió bien (el enlace venció o no es de esta tienda). Probá conectar de nuevo.",
     back: "Volver a actualizaciones",

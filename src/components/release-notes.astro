@@ -1,0 +1,48 @@
+---
+/**
+ * What the pending update brings: each release's title (without the panel's markers) and its notes, as text.
+ * Shown on the Updates page after "Ver qué cambia".
+ */
+import { cleanTitle, type OfficialRelease } from "../packages/core/index";
+import { texts } from "../i18n";
+import { parseNotes } from "../lib/release-notes";
+import NotesText from "./notes-text.astro";
+
+interface Props {
+  releases: readonly OfficialRelease[];
+}
+const { releases } = Astro.props;
+const t = texts(Astro.locals.language).updates;
+---
+
+{
+  releases.length > 0 && (
+    <section class="release-notes" aria-labelledby="release-notes">
+      <h3 id="release-notes">{t.releaseNotesTitle}</h3>
+      {releases.map((r) => (
+        <article>
+          <h4>{cleanTitle(r.title) || `v${r.version}`}</h4>
+          {parseNotes(r.notes).map((b) =>
+            b.type === "list" ? (
+              <ul>
+                {b.items.map((parts) => (
+                  <li>
+                    <NotesText parts={parts} />
+                  </li>
+                ))}
+              </ul>
+            ) : b.type === "heading" ? (
+              <h5>
+                <NotesText parts={b.parts} />
+              </h5>
+            ) : (
+              <p>
+                <NotesText parts={b.parts} />
+              </p>
+            ),
+          )}
+        </article>
+      ))}
+    </section>
+  )
+}

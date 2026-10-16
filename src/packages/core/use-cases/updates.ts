@@ -5,6 +5,7 @@ import {
   isReady,
   OFFICIAL_REPO,
   PRESERVED_FILES,
+  pendingReleases,
   type ReadyConnection,
   type UpdateStatus,
   updateKind,
@@ -63,16 +64,16 @@ export const updateStatus =
     }
     const latest = await withGithub(() => deps.github.officialVersion(ready, OFFICIAL_REPO));
     if (!latest.ok) return latest;
-    return ok(
-      isNewer(latest.value.version, current)
-        ? {
-            status: "update-available",
-            current,
-            newVersion: latest.value.version,
-            kind: updateKind(latest.value.releases, current, latest.value.version),
-          }
-        : { status: "up-to-date", current },
-    );
+    const { version, releases } = latest.value;
+    if (!isNewer(version, current)) return ok({ status: "up-to-date", current });
+    const pending = pendingReleases(releases, current, version);
+    return ok({
+      status: "update-available",
+      current,
+      newVersion: version,
+      kind: updateKind(pending),
+      releases: pending,
+    });
   };
 
 /** Step 1: GitHub created the app from the manifest and returned a single-use `code`. */

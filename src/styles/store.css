@@ -1141,3 +1141,45 @@ ul.category-list li + li {
 .update-alert__title {
   font-weight: 700;
 }
+
+/* Updates page: the notes of the releases the update brings, after "Ver qué cambia". */
+.release-notes {
+  margin: 0 0 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.release-notes h3 {
+  margin: 0 0 0.75rem;
+}
+
+.release-notes article + article {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.release-notes h4 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.release-notes h5 {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.95rem;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.release-notes ul {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.release-notes p:last-child,
+.release-notes ul:last-child {
+  margin-bottom: 0;
+}

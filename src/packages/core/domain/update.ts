@@ -27,8 +27,8 @@ export const isReady = (c: GithubConnection): c is ReadyConnection =>
 /** How urgent an update is: the panel alerts on `security` and `bugfix`. */
 export type UpdateKind = "security" | "bugfix" | "feature";
 
-/** A published release of the official repo: its version and its name plus notes. */
-export type OfficialRelease = { readonly version: string; readonly notes: string };
+/** A published release of the official repo: its version, its title and its notes (markdown). */
+export type OfficialRelease = { readonly version: string; readonly title: string; readonly notes: string };
 
 export type UpdateStatus =
   | { readonly status: "not-connected" }
@@ -39,6 +39,8 @@ export type UpdateStatus =
       readonly current: string;
       readonly newVersion: string;
       readonly kind: UpdateKind;
+      /** The releases the update brings, newest first: the panel shows their notes. */
+      readonly releases: readonly OfficialRelease[];
     }
   /** The app sees the official repo or several repos: it must see only the store's own repo. */
   | {
@@ -68,18 +70,22 @@ export function isNewer(candidate: string, current: string): boolean {
 const SECURITY_MARKER = /\[security\]/i;
 const FIX_MARKER = /\[fix\]/i;
 
+/** The releases the store would get: newer than `current`, up to `latest`. */
+export const pendingReleases = (releases: readonly OfficialRelease[], current: string, latest: string) =>
+  releases.filter((r) => isNewer(r.version, current) && !isNewer(r.version, latest));
+
 /**
- * The most urgent kind among the releases the store would get (newer than `current`, up to `latest`):
- * `security` only if one is marked `[security]` (never guessed); `bugfix` if one is marked `[fix]` or is a
- * patch release (x.y.Z with Z > 0); otherwise `feature`.
+ * The most urgent kind among `pending` releases: `security` only if one is marked `[security]` in its title
+ * or notes (never guessed); `bugfix` if one is marked `[fix]` or is a patch release (x.y.Z with Z > 0);
+ * otherwise `feature`.
  */
-export function updateKind(
-  releases: readonly OfficialRelease[],
-  current: string,
-  latest: string,
-): UpdateKind {
-  const pending = releases.filter((r) => isNewer(r.version, current) && !isNewer(r.version, latest));
-  if (pending.some((r) => SECURITY_MARKER.test(r.notes))) return "security";
-  if (pending.some((r) => FIX_MARKER.test(r.notes) || (parts(r.version)[2] ?? 0) > 0)) return "bugfix";
+export function updateKind(pending: readonly OfficialRelease[]): UpdateKind {
+  const text = (r: OfficialRelease) => `${r.title}\n${r.notes}`;
+  if (pending.some((r) => SECURITY_MARKER.test(text(r)))) return "security";
+  if (pending.some((r) => FIX_MARKER.test(text(r)) || (parts(r.version)[2] ?? 0) > 0)) return "bugfix";
   return "feature";
 }
+
+/** A release title without the `[security]` / `[fix]` markers, which are for the panel, not for people. */
+export const cleanTitle = (title: string) =>
+  title.replace(SECURITY_MARKER, "").replace(FIX_MARKER, "").replace(/\s+/g, " ").trim();
