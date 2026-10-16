@@ -6,8 +6,6 @@ Your online store, running on **your own Cloudflare account**, with a single but
 
 **Free, open source e-commerce for small businesses**, self-hosted on Cloudflare Workers, D1 and R2: product catalog with photos, categories and variants, a cart that sends the order by WhatsApp, bank transfer payments, Google-ready pages (sitemap, Open Graph, schema.org Product) and an owner panel with passkeys. No sales fees and your data stays yours.
 
-{{REPO_NOTICE}}
-
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ezequielcorbalan/tutiendita)
 
 ## How to install it
