@@ -68,8 +68,7 @@ Este repo é uma cópia autocontida da loja do monorepo do **tutiendita** (`apps
 
 ```sh
 npm ci                        # dependencias
-npm run db:migrations:local   # crea la base D1 local
-npm run dev                   # Astro + wrangler en http://localhost:4321
+npm run dev                   # migrações locais + Astro + wrangler em http://localhost:4321, loja já pronta
 npm run build                 # build de producción (dist/)
 npm run deploy                # crea la D1 si falta + migraciones remotas + wrangler deploy (lo que corre Cloudflare)
 ```
@@ -77,7 +76,7 @@ npm run deploy                # crea la D1 si falta + migraciones remotas + wran
 - O Astro monta as páginas e o Hono atende `/api`, `/img`, `/feed`, `/.well-known` e `/mcp`, tudo em um único Worker.
 - O domínio e os casos de uso ficam em `src/packages/core`; os adaptadores de D1 e R2 em `src/packages/infra-cloudflare`.
 - O banco D1 e o bucket R2 têm o nome do Worker mais `-db` e `-imagenes` (`wrangler.jsonc`). Se você mudar o nome do Worker à mão, mude também esses dois: assim duas lojas na mesma conta nunca compartilham dados.
-- Toda escrita exige uma sessão do dono (passkey) e o `Origin` da loja: sem sessão, `POST /api/products` responde 401. Com `npm run dev` o código de reivindicação aparece no terminal; com a variável de build `CODIGO_DE_RECLAMO` você pode fixá-lo (não é necessário em produção).
+- Toda escrita exige uma sessão do dono (passkey) e o `Origin` da loja: sem sessão, `POST /api/products` responde 401. Com `npm run dev` em `localhost` a loja já sobe reivindicada, com o primeiro acesso feito e os produtos de exemplo, e o painel abre sem passkey (`src/dev/local-owner.ts`, nunca no build). Para testar a reivindicação de verdade, apague `.wrangler/state` e use `npm run build && npm run preview`; com a variável de build `CODIGO_DE_RECLAMO` você pode fixar o código (não é necessário em produção).
 - O código de reivindicação é gerado por `integrations/claim-code.mjs` a cada `astro build`: ele o imprime e deixa no Worker só o SHA-256 dele.
 
 ## Licença

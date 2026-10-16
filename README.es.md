@@ -68,8 +68,7 @@ Este repo es una copia autocontenida de la tienda del monorepo de **tutiendita**
 
 ```sh
 npm ci                        # dependencias
-npm run db:migrations:local   # crea la base D1 local
-npm run dev                   # Astro + wrangler en http://localhost:4321
+npm run dev                   # migraciones locales + Astro + wrangler en http://localhost:4321, tienda ya lista
 npm run build                 # build de producción (dist/)
 npm run deploy                # crea la D1 si falta + migraciones remotas + wrangler deploy (lo que corre Cloudflare)
 ```
@@ -77,7 +76,7 @@ npm run deploy                # crea la D1 si falta + migraciones remotas + wran
 - Astro arma las páginas y Hono atiende `/api`, `/img`, `/feed`, `/.well-known` y `/mcp`, todo en un solo Worker.
 - El dominio y los casos de uso están en `src/packages/core`; los adaptadores de D1 y R2 en `src/packages/infra-cloudflare`.
 - La base D1 y el bucket R2 se llaman como el Worker más `-db` e `-imagenes` (`wrangler.jsonc`). Si le cambiás el nombre al Worker a mano, cambiá también esos dos: así dos tiendas en la misma cuenta nunca comparten datos.
-- Toda escritura exige una sesión del dueño (passkey) y el `Origin` de la tienda: sin sesión, `POST /api/products` responde 401. En `npm run dev` el código de reclamo aparece en la terminal; con la variable de build `CODIGO_DE_RECLAMO` podés fijarlo (no hace falta en producción).
+- Toda escritura exige una sesión del dueño (passkey) y el `Origin` de la tienda: sin sesión, `POST /api/products` responde 401. Con `npm run dev` en `localhost` la tienda arranca reclamada, con el primer ingreso hecho y los productos de ejemplo, y el panel abre sin passkey (`src/dev/local-owner.ts`, nunca en el build). Para probar el reclamo de verdad, borrá `.wrangler/state` y usá `npm run build && npm run preview`; con la variable de build `CODIGO_DE_RECLAMO` podés fijar el código (no hace falta en producción).
 - El código de reclamo lo genera `integrations/claim-code.mjs` en cada `astro build`: lo imprime y deja en el Worker solo su SHA-256.
 
 ## Licencia
