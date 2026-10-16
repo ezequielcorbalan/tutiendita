@@ -1,7 +1,7 @@
 import { currencyDecimals, DEFAULT_LANGUAGE, type Language } from "../packages/core/index";
 import { build } from "../container";
 import { LOCALES, texts } from "../i18n";
-import { decimalAmount, jsonLdList, jsonLdProduct, serializeJsonLd } from "./json-ld";
+import { decimalAmount, jsonLdList, jsonLdProduct, productUrl, serializeJsonLd } from "./json-ld";
 import { type ProductJson, priceRange, toProductJson } from "./product-json";
 
 /** Page logic, outside the .astro files so it can be tested without the Astro build. */
@@ -105,4 +105,15 @@ export async function productData(
     product: toView(language)(product),
     jsonLd: serializeJsonLd(jsonLdProduct(product, baseUrl)),
   };
+}
+
+/** What the sitemap lists: the home page, the categories and the published products (nothing until it's ready). */
+export async function sitemapUrls(env: Env, baseUrl: string): Promise<string[]> {
+  const data = await homeData(env, baseUrl);
+  if (data.status !== "ready") return [];
+  return [
+    new URL("/", baseUrl).href,
+    ...data.categories.map((c) => new URL(`/c/${c.slug}`, baseUrl).href),
+    ...data.products.map((p) => productUrl(p.slug, baseUrl)),
+  ];
 }

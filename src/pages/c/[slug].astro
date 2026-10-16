@@ -18,7 +18,7 @@ if (!found) Astro.response.status = 404;
       <Catalog data={data} />
     </Store>
   ) : (
-    <Store title={t.store.categoryNotFoundTitle}>
+    <Store title={t.store.categoryNotFoundTitle} index={false}>
       <h1>{t.store.categoryNotFoundTitle}</h1>
       <p>{t.store.categoryNotFound} <a href="/">{t.common.backToStore}</a></p>
     </Store>

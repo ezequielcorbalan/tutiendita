@@ -6,7 +6,7 @@ import Base from "../layouts/base.astro";
 const t = texts(Astro.locals.language).preparing;
 ---
 
-<Base title={t.title} description={t.description}>
+<Base title={t.title} description={t.description} index={false}>
   <h1>{t.title}</h1>
   <p>{t.text}</p>
   <p><small set:html={t.isYourStoreHtml} /></p>

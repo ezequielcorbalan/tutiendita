@@ -8,15 +8,20 @@ import Base from "./base.astro";
 interface Props {
   /** Page title without the store name (it's appended). Omit it for the home page. */
   title?: string;
-  description?: string;
+  description?: string | undefined;
+  /** false on pages search engines must not index (cart, not found). */
+  index?: boolean | undefined;
+  /** Absolute URL of the image shown when the page is shared. */
+  image?: string | undefined;
 }
-const { title, description } = Astro.props;
+const { title, description, index, image } = Astro.props;
 const storeName = (await build(env).getStore())?.name ?? "tiendita";
 const all = texts(Astro.locals.language);
 const t = all.storeLayout;
 ---
 
-<Base title={title ? `${title} · ${storeName}` : storeName} {...(description ? { description } : {})}>
+<Base title={title ? `${title} · ${storeName}` : storeName} {description} {index} {image}>
+  <meta slot="head" property="og:site_name" content={storeName} />
   <slot name="head" slot="head" />
   <header class="store-bar" slot="top">
     <div class="store-bar__content">
@@ -29,7 +34,7 @@ const t = all.storeLayout;
   <slot />
   <footer class="store-footer" slot="bottom">
     <p>
-      © {new Date().getUTCFullYear()} {storeName} · {t.madeWith} <a href="https://tutiendita.ar">tiendita</a>
+      © {new Date().getUTCFullYear()} {storeName} · {t.madeWith} <a href={t.landingUrl}>tutiendita</a>
     </p>
   </footer>
 </Base>
