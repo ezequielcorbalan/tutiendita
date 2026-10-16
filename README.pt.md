@@ -6,8 +6,6 @@ Sua loja online, funcionando na **sua própria conta da Cloudflare**, com um ún
 
 **Loja online grátis e de código aberto para pequenos negócios**, na sua própria conta da Cloudflare (Workers, D1 e R2): catálogo com fotos, categorias e variações, carrinho que envia o pedido pelo WhatsApp, pagamento por transferência, páginas prontas para o Google (sitemap, Open Graph, schema.org Product) e um painel com passkeys. Sem comissão nas vendas e seus dados são seus.
 
-{{REPO_NOTICE}}
-
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ezequielcorbalan/tutiendita)
 
 ## Como instalar
