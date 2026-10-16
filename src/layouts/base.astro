@@ -1,21 +1,45 @@
 ---
-import { HTML_LANG } from "../i18n";
+import { HTML_LANG, LOCALES } from "../i18n";
 import "../styles/store.css";
 
 interface Props {
   title: string;
-  description?: string;
+  description?: string | undefined;
+  /** false on pages search engines must not index (panel, cart, first boot, not found). */
+  index?: boolean | undefined;
+  /** Absolute URL of the image shown when the page is shared (a product's first photo). */
+  image?: string | undefined;
 }
-const { title, description } = Astro.props;
+const { title, index = true, image } = Astro.props;
+// One line of at most ~160 characters, cut between words: what search results show.
+const full = Astro.props.description?.replace(/\s+/g, " ").trim();
+const description = full && full.length > 160 ? `${full.slice(0, 157).replace(/\s+\S*$/, "")}…` : full;
+const language = Astro.locals.language ?? "es";
+// Canonical without the query string: ?utm_… or any other parameter is the same page.
+const canonical = new URL(Astro.url.pathname, Astro.url.origin).href;
 ---
 
 <!doctype html>
-<html lang={HTML_LANG[Astro.locals.language ?? "es"]}>
+<html lang={HTML_LANG[language]}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
+    {index ? <link rel="canonical" href={canonical} /> : <meta name="robots" content="noindex" />}
+    {
+      index && (
+        <>
+          <meta property="og:type" content="website" />
+          <meta property="og:title" content={title} />
+          {description && <meta property="og:description" content={description} />}
+          <meta property="og:url" content={canonical} />
+          <meta property="og:locale" content={LOCALES[language].replace("-", "_")} />
+          {image && <meta property="og:image" content={image} />}
+          <meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+        </>
+      )
+    }
     <slot name="head" />
   </head>
   <body>

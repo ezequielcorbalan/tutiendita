@@ -5,7 +5,7 @@ import Store from "../layouts/store.astro";
 const t = texts(Astro.locals.language);
 ---
 
-<Store title={t.store.notFoundTitle}>
+<Store title={t.store.notFoundTitle} index={false}>
   <h1>{t.store.notFoundTitle}</h1>
   <p><a href="/">{t.common.backToStore}</a></p>
 </Store>

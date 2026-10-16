@@ -18,7 +18,11 @@ const valueText = (label: string, delta: number, currency: string) =>
 
 {
   data.found ? (
-    <Store title={data.product.name} description={data.product.description}>
+    <Store
+      title={data.product.name}
+      description={data.product.description || undefined}
+      image={data.product.images[0] && new URL(data.product.images[0].url, Astro.url.origin).href}
+    >
       <script slot="head" type="application/ld+json" is:inline set:html={data.jsonLd} />
       <p><a href="/">← {t.common.backToStore}</a></p>
       <div class="product-page">
@@ -71,7 +75,7 @@ const valueText = (label: string, delta: number, currency: string) =>
       </div>
     </Store>
   ) : (
-    <Store title={t.store.productNotFoundTitle}>
+    <Store title={t.store.productNotFoundTitle} index={false}>
       <h1>{t.store.productNotFoundTitle}</h1>
       <p>{t.store.productNotFound} <a href="/">{t.common.backToStore}</a></p>
     </Store>

@@ -15,8 +15,7 @@ const { title, step, section } = Astro.props;
 const t = texts(Astro.locals.language);
 ---
 
-<Base title={`${title} · tiendita`}>
-  <meta slot="head" name="robots" content="noindex" />
+<Base title={`${title} · tiendita`} index={false}>
   {section && <PanelBar slot="top" section={section} />}
   <div class:list={["panel", { "panel--wide": section }]}>
     {step !== undefined && <p class="step" style={`--step: ${step / 5}`}>{t.panel.stepOf(step)}</p>}

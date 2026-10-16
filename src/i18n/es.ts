@@ -54,6 +54,8 @@ export const es = {
     msgAgree: "lo arreglamos por acá",
   },
   storeLayout: {
+    /** The tutiendita.ar landing in this language: the footer links back to it. */
+    landingUrl: "https://tutiendita.ar/",
     madeWith: "Hecho con",
   },
   store: {

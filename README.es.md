@@ -4,6 +4,10 @@
 
 Tu tienda online, funcionando en **tu propia cuenta de Cloudflare**, con un solo botón. Sin saber programar, sin pagar hosting y sin pegar claves ni contraseñas. Sitio del proyecto: [tutiendita.ar](https://tutiendita.ar).
 
+**Tienda online gratis y de código abierto para emprendedores y pymes**, en tu propia cuenta de Cloudflare (Workers, D1 y R2): catálogo con fotos, categorías y variantes, carrito que manda el pedido por WhatsApp, pago por transferencia, páginas listas para Google (sitemap, Open Graph, schema.org Product) y un panel con passkeys. Sin comisiones por venta y tus datos son tuyos.
+
+{{REPO_NOTICE}}
+
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ezequielcorbalan/tutiendita)
 
 ## Cómo se instala

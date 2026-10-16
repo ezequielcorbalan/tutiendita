@@ -19,7 +19,7 @@ const tr = transfer?.type === "transferencia" && transfer.active ? transfer.conf
 const greeting = !wa || wa.template === WHATSAPP_TEMPLATE ? t.msgGreeting : wa.template;
 ---
 
-<Store title={t.title}>
+<Store title={t.title} index={false}>
   <h1>{t.title}</h1>
   <div
     data-cart

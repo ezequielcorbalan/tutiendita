@@ -8,7 +8,7 @@ import WhereIsTheCode from "./where-is-the-code.astro";
 const t = texts(Astro.locals.language).firstBoot;
 ---
 
-<Base title={t.title} description={t.description}>
+<Base title={t.title} description={t.description} index={false}>
   <h1>{t.title}</h1>
   <p>{t.intro}</p>
   <ul>

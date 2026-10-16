@@ -50,6 +50,8 @@ export const pt: Texts = {
     msgAgree: "combinamos por aqui",
   },
   storeLayout: {
+    /** The tutiendita.ar landing in this language: the footer links back to it. */
+    landingUrl: "https://tutiendita.ar/pt/",
     madeWith: "Feito com",
   },
   store: {
