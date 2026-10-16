@@ -21,6 +21,9 @@ const t = texts(Astro.locals.language).panelHome;
     </p>
   </section>
 
+  <!-- Filled after load from /panel/actualizaciones/aviso: only security or bugfix updates. -->
+  <div data-update-alert></div>
+
   <section aria-labelledby="summary">
     <h2 id="summary">{t.summary}</h2>
     <ul class="dashboard__figures">
@@ -82,4 +85,12 @@ const t = texts(Astro.locals.language).panelHome;
       showError(form.querySelector("[data-error]"), e);
     }
   });
+
+  // Our own same-origin fragment (server-rendered, escaped by Astro). If it fails, the home just shows no alert.
+  fetch("/panel/actualizaciones/aviso", { credentials: "same-origin" })
+    .then((r) => (r.ok ? r.text() : ""))
+    .then((html) => {
+      element("[data-update-alert]").innerHTML = html;
+    })
+    .catch(() => {});
 </script>

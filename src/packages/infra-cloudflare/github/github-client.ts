@@ -128,17 +128,23 @@ export function createGithubClient(options: { fetch?: Fetch; clock?: () => Date 
 
     async officialVersion(c, officialRepo) {
       const token = await installationToken(c);
-      try {
-        const release = await request<{ tag_name: string }>(
-          "GET",
-          `/repos/${officialRepo}/releases/latest`,
-          token,
-        );
-        return { version: release.tag_name.replace(/^v/, ""), ref: release.tag_name };
-      } catch (e) {
-        // No release published yet: fall back to the version on main.
-        if (!(e instanceof GithubError) || e.status !== 404) throw e;
+      // Newest first. shortcut: only the last 100 releases are classified, page through if a store falls further behind.
+      const list = await request<
+        { tag_name: string; name: string | null; body: string | null; draft: boolean; prerelease: boolean }[]
+      >("GET", `/repos/${officialRepo}/releases?per_page=100`, token);
+      const published = list.filter((r) => !r.draft && !r.prerelease);
+      const latest = published[0];
+      if (latest) {
+        return {
+          version: latest.tag_name.replace(/^v/, ""),
+          ref: latest.tag_name,
+          releases: published.map((r) => ({
+            version: r.tag_name.replace(/^v/, ""),
+            notes: `${r.name ?? ""}\n${r.body ?? ""}`,
+          })),
+        };
       }
+      // No release published yet: fall back to the version on main.
       const r = await request<{ content: string }>(
         "GET",
         `/repos/${officialRepo}/contents/package.json?ref=main`,
@@ -147,7 +153,11 @@ export function createGithubClient(options: { fetch?: Fetch; clock?: () => Date 
       const json = new TextDecoder().decode(
         Uint8Array.from(atob(r.content.replace(/\s/g, "")), (x) => x.charCodeAt(0)),
       );
-      return { version: String((JSON.parse(json) as { version?: string }).version ?? "0.0.0"), ref: "main" };
+      return {
+        version: String((JSON.parse(json) as { version?: string }).version ?? "0.0.0"),
+        ref: "main",
+        releases: [],
+      };
     },
 
     async prepareUpdate(c: ReadyConnection, p) {

@@ -385,6 +385,12 @@ export const en: Texts = {
     apply: "Update my store",
     applied: "Done! Cloudflare is publishing the new version. You'll see it on your store in a few minutes.",
     errorStatus: "We couldn't reach GitHub. Please try again in a little while.",
+    securityTitle: "Security update",
+    securityText: (v: string) =>
+      `Version ${v} fixes a security problem. Update your store as soon as you can.`,
+    bugfixTitle: "Update with fixes",
+    bugfixText: (v: string) => `Version ${v} fixes bugs. We recommend updating.`,
+    review: "See the update",
     failedConnection:
       "The connection didn't work (the link expired or isn't from this store). Try connecting again.",
     back: "Back to updates",

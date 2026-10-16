@@ -1,0 +1,17 @@
+---
+/**
+ * HTML fragment the panel home loads after rendering: asking GitHub takes a few calls and the home shouldn't
+ * wait for them. Empty when there is no security or bugfix update, or GitHub doesn't answer.
+ */
+import { env } from "cloudflare:workers";
+import UpdateAlert from "../../../components/update-alert.astro";
+import { build } from "../../../container";
+import { STORE_VERSION } from "../../../version";
+
+export const partial = true;
+
+const status = await build(env).updates.status(STORE_VERSION);
+const update = status.ok && status.value.status === "update-available" ? status.value : null;
+---
+
+{update && <UpdateAlert kind={update.kind} version={update.newVersion} link />}
