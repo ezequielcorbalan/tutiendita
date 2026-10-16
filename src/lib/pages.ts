@@ -1,23 +1,33 @@
 import { currencyDecimals, DEFAULT_LANGUAGE, type Language } from "../packages/core/index";
 import { build } from "../container";
-import { LOCALES } from "../i18n";
+import { LOCALES, texts } from "../i18n";
 import { decimalAmount, jsonLdList, jsonLdProduct, serializeJsonLd } from "./json-ld";
-import { type ProductJson, toProductJson } from "./product-json";
+import { type ProductJson, priceRange, toProductJson } from "./product-json";
 
 /** Page logic, outside the .astro files so it can be tested without the Astro build. */
-export type ProductView = ProductJson & { priceText: string };
+export type ProductView = ProductJson & {
+  /** The price, or "Desde $X" (the cheapest variant) when the variants change it. */
+  priceText: string;
+};
 
-/** The price in the store's currency, formatted for the language (es-AR, en-US or pt-BR). */
-export function priceText(p: ProductJson, language: Language = DEFAULT_LANGUAGE): string {
-  const value = Number(decimalAmount(p.price.amount, p.price.currency));
+/** An amount in the store's currency, formatted for the language (es-AR, en-US or pt-BR). */
+export function formatPrice(amount: number, currency: string, language: Language = DEFAULT_LANGUAGE): string {
+  const value = Number(decimalAmount(amount, currency));
   // Decimals come from ISO 4217 (core), not CLDR: Intl would round, for example, IQD to 0 decimals.
-  const decimals = currencyDecimals(p.price.currency);
+  const decimals = currencyDecimals(currency);
   return new Intl.NumberFormat(LOCALES[language], {
     style: "currency",
-    currency: p.price.currency,
+    currency,
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(value);
+}
+
+/** The product's price; with variants that change it, "Desde" the cheapest one. */
+export function priceText(p: ProductJson, language: Language = DEFAULT_LANGUAGE): string {
+  const { min, max } = priceRange(p);
+  const text = formatPrice(min, p.price.currency, language);
+  return min === max ? text : texts(language).store.priceFrom(text);
 }
 
 const toView =

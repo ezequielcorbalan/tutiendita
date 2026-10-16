@@ -1,5 +1,6 @@
 import { type DomainError, domainError } from "./errors";
 import { isPositive, type Money } from "./money";
+import { minimumPrice, type ProductOption, validateOptions } from "./options";
 import { err, ok, type Result } from "./result";
 import { isValidSlug } from "./slug";
 
@@ -18,6 +19,8 @@ export type Product = {
   readonly description: string;
   readonly price: Money;
   readonly images: readonly ProductImage[];
+  /** Variants: the buyer picks one value per option (see options.ts). */
+  readonly options: readonly ProductOption[];
   readonly stock: number | null;
   readonly status: ProductStatus;
   readonly categoryId: string | null;
@@ -32,6 +35,7 @@ export type ProductInput = {
   description?: string;
   price: Money;
   images?: ProductImage[];
+  options?: readonly ProductOption[];
   stock?: number | null;
   categoryId?: string | null;
   federate?: boolean;
@@ -55,6 +59,8 @@ export function newProduct(e: ProductInput, ctx: CreationContext): Result<Produc
     return err(domainError("INVALID_SLUG", "The slug format is not valid", { slug: ctx.slug }));
   }
   const images = (e.images ?? []).map((img, i) => ({ key: img.key, position: i }));
+  const options = validateOptions(e.options ?? []);
+  if (!options.ok) return options;
   return ok(
     freeze({
       id: ctx.id,
@@ -63,6 +69,7 @@ export function newProduct(e: ProductInput, ctx: CreationContext): Result<Produc
       description: e.description ?? "",
       price: e.price,
       images,
+      options: options.value,
       stock: e.stock ?? null,
       status: "borrador",
       categoryId: e.categoryId ?? null,
@@ -74,9 +81,9 @@ export function newProduct(e: ProductInput, ctx: CreationContext): Result<Produc
   );
 }
 
-/** A published product has a price greater than zero and at least one image. */
+/** A published product costs more than zero in its cheapest combination and has at least one image. */
 export function canBePublished(p: Product): Result<true, DomainError> {
-  if (!isPositive(p.price)) {
+  if (!isPositive(minimumPrice(p.price, p.options))) {
     return err(domainError("INVALID_PRICE", "A published product needs a price greater than zero"));
   }
   if (p.images.length === 0) {
@@ -111,12 +118,15 @@ export type ProductChanges = {
   description?: string;
   price?: Money;
   categoryId?: string | null;
+  options?: readonly ProductOption[];
 };
 
 /** Edits the product's data. The slug never changes, so links already shared keep working. */
 export function edit(p: Product, changes: ProductChanges, now: Date): Result<Product, DomainError> {
   const name = changes.name === undefined ? p.name : changes.name.trim();
   if (name === "") return err(domainError("EMPTY_NAME", "The product needs a name"));
+  const options = changes.options === undefined ? ok(p.options) : validateOptions(changes.options);
+  if (!options.ok) return options;
   const next = nextVersion(
     p,
     {
@@ -124,6 +134,7 @@ export function edit(p: Product, changes: ProductChanges, now: Date): Result<Pro
       ...(changes.description !== undefined ? { description: changes.description } : {}),
       ...(changes.price !== undefined ? { price: changes.price } : {}),
       ...(changes.categoryId !== undefined ? { categoryId: changes.categoryId } : {}),
+      options: options.value,
     },
     now,
   );

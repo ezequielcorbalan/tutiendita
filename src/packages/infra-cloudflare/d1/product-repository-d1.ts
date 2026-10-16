@@ -1,14 +1,23 @@
-import { DuplicateSlugError, type Product, type ProductImage, type ProductRepository } from "../../core/index";
-import { asc, desc, eq, type SQL } from "drizzle-orm";
+import {
+  DuplicateSlugError,
+  type Product,
+  type ProductImage,
+  type ProductOption,
+  type ProductRepository,
+} from "../../core/index";
+import { asc, desc, eq, inArray, type SQL } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
 import { drizzle } from "drizzle-orm/d1";
-import { productImages, products } from "./schema";
+import { optionValues, productImages, productOptions, products } from "./schema";
 
 type ProductRow = typeof products.$inferSelect;
 type ImageRow = typeof productImages.$inferSelect;
+type OptionRow = typeof productOptions.$inferSelect;
+type ValueRow = typeof optionValues.$inferSelect;
 // Drizzle keys join results by SQL table name.
 type JoinedRow = { productos: ProductRow; imagenes_producto: ImageRow | null };
 
-const toProduct = (row: ProductRow, images: ProductImage[]): Product =>
+const toProduct = (row: ProductRow, images: ProductImage[], options: ProductOption[]): Product =>
   Object.freeze({
     id: row.id,
     name: row.name,
@@ -16,6 +25,7 @@ const toProduct = (row: ProductRow, images: ProductImage[]): Product =>
     description: row.description,
     price: { amount: row.priceAmount, currency: row.priceCurrency },
     images,
+    options,
     stock: row.stock,
     status: row.status,
     categoryId: row.categoryId,
@@ -26,7 +36,7 @@ const toProduct = (row: ProductRow, images: ProductImage[]): Product =>
   });
 
 /** Groups product⟕image rows, keeping the order in which products arrive. */
-const group = (rows: JoinedRow[]): Product[] => {
+const group = (rows: JoinedRow[], optionsByProduct: Map<string, ProductOption[]>): Product[] => {
   const byId = new Map<string, { row: ProductRow; images: ProductImage[] }>();
   for (const { productos: p, imagenes_producto: img } of rows) {
     let input = byId.get(p.id);
@@ -36,7 +46,26 @@ const group = (rows: JoinedRow[]): Product[] => {
     }
     if (img) input.images.push({ key: img.key, position: img.position });
   }
-  return [...byId.values()].map(({ row, images }) => toProduct(row, images));
+  return [...byId.values()].map(({ row, images }) =>
+    toProduct(row, images, optionsByProduct.get(row.id) ?? []),
+  );
+};
+
+/** Option rows with their value rows (both already ordered by position), grouped by product. */
+const groupOptions = (options: OptionRow[], values: ValueRow[]): Map<string, ProductOption[]> => {
+  const byProduct = new Map<string, ProductOption[]>();
+  for (const o of options) {
+    const list = byProduct.get(o.productId) ?? [];
+    list.push({
+      id: o.id,
+      name: o.name,
+      values: values
+        .filter((v) => v.optionId === o.id)
+        .map((v) => ({ id: v.id, label: v.label, priceDelta: v.priceDelta })),
+    });
+    byProduct.set(o.productId, list);
+  }
+  return byProduct;
 };
 
 const toRow = (p: Product): ProductRow => ({
@@ -66,45 +95,100 @@ const isDuplicateSlug = (error: unknown): boolean => {
 export function createD1ProductRepository(db: D1Database): ProductRepository {
   const orm = drizzle(db);
 
-  const query = (where: SQL | undefined, orderBy: SQL[] = []): Promise<JoinedRow[]> =>
-    orm
+  /**
+   * Products matching `where` with their images (one join) and options (two more queries, filtered by
+   * subquery so the number of bound parameters never grows with the catalog).
+   */
+  async function load(where: SQL | undefined, orderBy: SQL[] = []): Promise<Product[]> {
+    const rows = await orm
       .select()
       .from(products)
       .leftJoin(productImages, eq(productImages.productId, products.id))
       .where(where)
       .orderBy(...orderBy, asc(productImages.position));
+    if (rows.length === 0) return [];
+    const ids = orm.select({ id: products.id }).from(products).where(where);
+    const options = await orm
+      .select()
+      .from(productOptions)
+      .where(inArray(productOptions.productId, ids))
+      .orderBy(asc(productOptions.position));
+    const values =
+      options.length === 0
+        ? []
+        : await orm
+            .select()
+            .from(optionValues)
+            .where(
+              inArray(
+                optionValues.optionId,
+                orm
+                  .select({ id: productOptions.id })
+                  .from(productOptions)
+                  .where(inArray(productOptions.productId, ids)),
+              ),
+            )
+            .orderBy(asc(optionValues.position));
+    return group(rows, groupOptions(options, values));
+  }
 
-  const findOne = async (where: SQL): Promise<Product | null> => group(await query(where))[0] ?? null;
+  const findOne = async (where: SQL): Promise<Product | null> => (await load(where))[0] ?? null;
 
-  /** Upserts the product and replaces its images, all in one batch (a transaction in D1). */
+  const optionIdsOf = (productId: string) =>
+    orm.select({ id: productOptions.id }).from(productOptions).where(eq(productOptions.productId, productId));
+
+  /** Upserts the product and replaces its images and options, all in one batch (a transaction in D1). */
   const saveInBatch = async (p: Product): Promise<void> => {
     const { id, ...rest } = toRow(p);
-    const upsert = orm
-      .insert(products)
-      .values({ id, ...rest })
-      .onConflictDoUpdate({ target: products.id, set: rest });
-    const deleteImages = orm.delete(productImages).where(eq(productImages.productId, p.id));
-    if (p.images.length === 0) {
-      await orm.batch([upsert, deleteImages]);
-      return;
+    const statements: BatchItem<"sqlite">[] = [
+      orm
+        .insert(products)
+        .values({ id, ...rest })
+        .onConflictDoUpdate({ target: products.id, set: rest }),
+      orm.delete(productImages).where(eq(productImages.productId, p.id)),
+      orm.delete(optionValues).where(inArray(optionValues.optionId, optionIdsOf(p.id))),
+      orm.delete(productOptions).where(eq(productOptions.productId, p.id)),
+    ];
+    if (p.images.length > 0) {
+      statements.push(
+        orm.insert(productImages).values(
+          p.images.map((img) => ({
+            id: `${p.id}:${img.position}`,
+            productId: p.id,
+            key: img.key,
+            position: img.position,
+          })),
+        ),
+      );
     }
-    const insertImages = orm.insert(productImages).values(
-      p.images.map((img) => ({
-        id: `${p.id}:${img.position}`,
-        productId: p.id,
-        key: img.key,
-        position: img.position,
-      })),
-    );
-    await orm.batch([upsert, deleteImages, insertImages]);
+    if (p.options.length > 0) {
+      statements.push(
+        orm
+          .insert(productOptions)
+          .values(p.options.map((o, position) => ({ id: o.id, productId: p.id, name: o.name, position }))),
+      );
+      const values = p.options.flatMap((o) =>
+        o.values.map((v, position) => ({
+          id: v.id,
+          optionId: o.id,
+          label: v.label,
+          priceDelta: v.priceDelta,
+          position,
+        })),
+      );
+      if (values.length > 0) statements.push(orm.insert(optionValues).values(values));
+    }
+    const [first, ...others] = statements;
+    if (first === undefined) return;
+    await orm.batch([first, ...others]);
   };
 
   const newestFirst = [desc(products.createdAt), asc(products.id)];
 
   return {
-    listPublished: async () => group(await query(eq(products.status, "publicado"), newestFirst)),
+    listPublished: () => load(eq(products.status, "publicado"), newestFirst),
 
-    listAll: async () => group(await query(undefined, newestFirst)),
+    listAll: () => load(undefined, newestFirst),
 
     findBySlug: (slug) => findOne(eq(products.slug, slug)),
 
@@ -129,9 +213,11 @@ export function createD1ProductRepository(db: D1Database): ProductRepository {
       }
     },
 
-    /** With its image rows, in one batch (one transaction in D1). */
+    /** With its image, option and value rows, in one batch (one transaction in D1). */
     async remove(id) {
       await orm.batch([
+        orm.delete(optionValues).where(inArray(optionValues.optionId, optionIdsOf(id))),
+        orm.delete(productOptions).where(eq(productOptions.productId, id)),
         orm.delete(productImages).where(eq(productImages.productId, id)),
         orm.delete(products).where(eq(products.id, id)),
       ]);

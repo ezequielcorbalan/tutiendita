@@ -12,7 +12,18 @@ export type CartItem = {
   currency: string;
   image: string | null;
   quantity: number;
+  /** Variants chosen: option id → value id (absent if the product has none). */
+  selection?: Record<string, string>;
+  /** What the buyer sees: "Relleno: Chocolate · Tamaño: Grande". */
+  variant?: string;
 };
+
+/** Same product with another selection is another cart line. */
+export const lineKey = (i: Pick<CartItem, "productId" | "selection">): string =>
+  `${i.productId}|${Object.entries(i.selection ?? {})
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([o, v]) => `${o}=${v}`)
+    .join(",")}`;
 
 const KEY = "tiendita-cart";
 export const MAX_QUANTITY = 99;
@@ -38,7 +49,7 @@ export function writeCart(items: CartItem[]): void {
 
 export function addToCart(item: Omit<CartItem, "quantity">, quantity = 1): void {
   const items = readCart();
-  const current = items.find((i) => i.productId === item.productId);
+  const current = items.find((i) => lineKey(i) === lineKey(item));
   if (current) current.quantity = Math.min(MAX_QUANTITY, current.quantity + quantity);
   else items.push({ ...item, quantity: Math.min(MAX_QUANTITY, quantity) });
   writeCart(items);

@@ -1,6 +1,7 @@
 import { type DomainError, domainError } from "../domain/errors";
 import { bytesMatchMime } from "../domain/image";
 import type { Money } from "../domain/money";
+import { optionsFromTemplates, type ProductOption, withIds } from "../domain/options";
 import {
   canBePublished,
   newProduct as newProductEntity,
@@ -22,6 +23,8 @@ export type CreateProductInput = {
   price: Money;
   image?: { bytes: Uint8Array; mimeType: string };
   categoryId?: string | null;
+  /** Variants. If omitted, the category's templates are copied (none without a category). */
+  options?: readonly ProductOption[];
   stock?: number | null;
   publish?: boolean;
 };
@@ -104,9 +107,10 @@ export const createProduct =
       const v = validateImage(e.image);
       if (!v.ok) return v;
     }
+    let category = null;
     if (e.categoryId !== undefined && e.categoryId !== null) {
-      const cat = await deps.categories.findById(e.categoryId);
-      if (cat === null) {
+      category = await deps.categories.findById(e.categoryId);
+      if (category === null) {
         return err(
           domainError("CATEGORY_NOT_FOUND", "The category does not exist", { categoryId: e.categoryId }),
         );
@@ -123,6 +127,10 @@ export const createProduct =
         ...(e.description !== undefined ? { description: e.description } : {}),
         ...(e.categoryId !== undefined ? { categoryId: e.categoryId } : {}),
         ...(e.stock !== undefined ? { stock: e.stock } : {}),
+        options:
+          e.options !== undefined
+            ? withIds(e.options, () => deps.ids.newId())
+            : optionsFromTemplates(category?.optionTemplates ?? [], () => deps.ids.newId()),
       },
       { id: deps.ids.newId(), slug: slug.value.slug, now },
     );

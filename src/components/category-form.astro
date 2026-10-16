@@ -1,0 +1,92 @@
+---
+/** Category form: "Nueva categoría" (POST) and "Editar categoría" (PUT, with delete). */
+import type { Category } from "../packages/core/index";
+import { texts } from "../i18n";
+import OptionsEditor from "./options-editor.astro";
+
+interface Props {
+  currency: string;
+  /** Present when editing, with how many products it has. */
+  category?: Category;
+  productCount?: number;
+}
+const { currency, category, productCount = 0 } = Astro.props;
+const t = texts(Astro.locals.language).panelCategories;
+---
+
+<form data-category-form data-category-id={category?.id} data-confirm={t.confirmDelete}>
+  <label for="category-name">{t.name}</label>
+  <input
+    id="category-name"
+    name="name"
+    required
+    maxlength="80"
+    placeholder={t.namePlaceholder}
+    value={category?.name ?? ""}
+  />
+  <OptionsEditor
+    id="category-options"
+    currency={currency}
+    options={category?.optionTemplates ?? []}
+    legend={t.templatesTitle}
+    help={t.templatesHelp}
+  />
+  <button type="submit">{category ? t.saveChanges : t.save}</button>
+  <p class="error" data-error role="alert"></p>
+  {
+    category &&
+      (productCount === 0 ? (
+        <button type="button" class="secondary danger" data-delete>
+          {t.delete}
+        </button>
+      ) : (
+        <p class="form-note"><small>{t.cantDelete}</small></p>
+      ))
+  }
+</form>
+
+<script>
+  import { mountOptionsEditor } from "../scripts/options-editor";
+  import { element, request, showError } from "../scripts/panel";
+
+  const form = element<HTMLFormElement>("[data-category-form]");
+  const error = form.querySelector("[data-error]");
+  const id = form.dataset.categoryId;
+  const editor = mountOptionsEditor(element("#category-options"));
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    let templates: ReturnType<typeof editor.read>;
+    try {
+      templates = editor.read();
+    } catch (e) {
+      if (error) error.textContent = (e as Error).message;
+      return;
+    }
+    const body = {
+      name: String(new FormData(form).get("name") ?? "").trim(),
+      // Templates have no ids: they are copied into each new product.
+      option_templates: templates.map((o) => ({
+        name: o.name,
+        values: o.values.map((v) => ({ label: v.label, price_delta: v.price_delta })),
+      })),
+    };
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (submit) submit.disabled = true;
+    try {
+      await request(id ? "PUT" : "POST", id ? `/api/categories/${id}` : "/api/categories", body);
+      location.assign(`/panel/categorias?${id ? "updated" : "created"}=1`);
+    } catch (e) {
+      if (submit) submit.disabled = false;
+      showError(error, e);
+    }
+  });
+  form.querySelector("[data-delete]")?.addEventListener("click", async () => {
+    if (!id || !confirm(form.dataset.confirm ?? "")) return;
+    try {
+      await request("DELETE", `/api/categories/${id}`);
+      location.assign("/panel/categorias?deleted=1");
+    } catch (e) {
+      showError(error, e);
+    }
+  });
+</script>

@@ -1,0 +1,34 @@
+---
+import { env } from "cloudflare:workers";
+import CategoryForm from "../../../components/category-form.astro";
+import { build } from "../../../container";
+import { texts } from "../../../i18n";
+import Panel from "../../../layouts/panel.astro";
+
+const container = build(env);
+const [store, category, products] = await Promise.all([
+  container.getStore(),
+  container.categories.findById(Astro.params.id ?? ""),
+  container.listAllProducts(),
+]);
+const t = texts(Astro.locals.language).panelCategories;
+if (category === null) Astro.response.status = 404;
+---
+
+<Panel title={category?.name ?? t.notFound} section="products">
+  {
+    category ? (
+      <>
+        <h1>{t.editTitle}</h1>
+        <CategoryForm
+          currency={store?.currency ?? "ARS"}
+          category={category}
+          productCount={products.filter((p) => p.categoryId === category.id).length}
+        />
+      </>
+    ) : (
+      <h1>{t.notFound}</h1>
+    )
+  }
+  <p><a href="/panel/categorias">{t.back}</a></p>
+</Panel>

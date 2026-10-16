@@ -29,7 +29,9 @@ export type ErrorCode =
   | "GITHUB_MULTIPLE_REPOSITORIES"
   | "ALREADY_UP_TO_DATE"
   | "INVALID_CART"
-  | "PRODUCT_UNAVAILABLE";
+  | "PRODUCT_UNAVAILABLE"
+  | "INVALID_OPTIONS"
+  | "INVALID_SELECTION";
 
 export type DomainError = {
   readonly code: ErrorCode;

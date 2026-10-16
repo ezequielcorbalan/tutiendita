@@ -8,7 +8,9 @@ export type OrderStatus = "nuevo" | "contactado" | "pagado" | "entregado" | "can
 export type OrderItem = {
   readonly productId: string;
   readonly name: string;
-  /** Price frozen at order time. */
+  /** The chosen variant ("Relleno: Dulce de leche · Talle: M"), if the product has options. */
+  readonly variant?: string;
+  /** Price frozen at order time, with the variant's adjustments. */
   readonly unitPrice: Money;
   readonly quantity: number;
 };

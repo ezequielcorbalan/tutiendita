@@ -64,6 +64,52 @@ export const productImages = sqliteTable(
   (t) => [index("imagenes_producto_producto_idx").on(t.productId)],
 );
 
+// --- Variants: product options with their values, and the category's templates ---
+
+/** Variant templates of a category, copied into the products created there (see core options.ts). */
+export const optionTemplates = sqliteTable(
+  "plantillas_opcion",
+  {
+    id: text("id").primaryKey(),
+    categoryId: text("categoria_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+    name: text("nombre").notNull(),
+    /** JSON `[{"etiqueta","ajuste"}]`: they are defaults, never queried on their own. */
+    valuesJson: text("valores_json").notNull(),
+    position: integer("orden").notNull(),
+  },
+  (t) => [index("plantillas_opcion_categoria_idx").on(t.categoryId)],
+);
+
+export const productOptions = sqliteTable(
+  "opciones_producto",
+  {
+    id: text("id").primaryKey(),
+    productId: text("producto_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    name: text("nombre").notNull(),
+    position: integer("orden").notNull(),
+  },
+  (t) => [index("opciones_producto_producto_idx").on(t.productId)],
+);
+
+export const optionValues = sqliteTable(
+  "valores_opcion",
+  {
+    id: text("id").primaryKey(),
+    optionId: text("opcion_id")
+      .notNull()
+      .references(() => productOptions.id, { onDelete: "cascade" }),
+    label: text("etiqueta").notNull(),
+    /** In the product currency's minor unit; may be negative. */
+    priceDelta: integer("ajuste_precio").notNull().default(0),
+    position: integer("orden").notNull(),
+  },
+  (t) => [index("valores_opcion_opcion_idx").on(t.optionId)],
+);
+
 // --- Access and onboarding ---
 
 // Stored in D1: values stay in Spanish.

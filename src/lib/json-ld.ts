@@ -1,5 +1,5 @@
 import { currencyDecimals } from "../packages/core/index";
-import type { ProductJson } from "./product-json";
+import { type ProductJson, priceRange } from "./product-json";
 
 /** Integer amount in the minor unit → decimal string without floats: (4500, "ARS") → "45.00". */
 export function decimalAmount(amount: number, currency: string): string {
@@ -27,13 +27,30 @@ export function jsonLdProduct(p: ProductJson, baseUrl: string) {
     sku: p.id,
     url,
     image: p.images.map((img) => absolute(img.url, baseUrl)),
-    offers: {
+    offers: offers(p, url),
+  };
+}
+
+/** One Offer, or an AggregateOffer from the cheapest to the most expensive variant. */
+function offers(p: ProductJson, url: string) {
+  const availability = p.stock === null || p.stock > 0 ? AVAILABLE : SOLD_OUT;
+  const { min, max } = priceRange(p);
+  if (min === max) {
+    return {
       "@type": "Offer",
       url,
-      price: decimalAmount(p.price.amount, p.price.currency),
+      price: decimalAmount(min, p.price.currency),
       priceCurrency: p.price.currency,
-      availability: p.stock === null || p.stock > 0 ? AVAILABLE : SOLD_OUT,
-    },
+      availability,
+    };
+  }
+  return {
+    "@type": "AggregateOffer",
+    url,
+    lowPrice: decimalAmount(min, p.price.currency),
+    highPrice: decimalAmount(max, p.price.currency),
+    priceCurrency: p.price.currency,
+    availability,
   };
 }
 

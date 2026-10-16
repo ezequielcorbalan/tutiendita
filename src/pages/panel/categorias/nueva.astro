@@ -1,0 +1,16 @@
+---
+import { env } from "cloudflare:workers";
+import CategoryForm from "../../../components/category-form.astro";
+import { build } from "../../../container";
+import { texts } from "../../../i18n";
+import Panel from "../../../layouts/panel.astro";
+
+const store = await build(env).getStore();
+const t = texts(Astro.locals.language).panelCategories;
+---
+
+<Panel title={t.newTitle} section="products">
+  <h1>{t.newTitle}</h1>
+  <CategoryForm currency={store?.currency ?? "ARS"} />
+  <p><a href="/panel/categorias">{t.back}</a></p>
+</Panel>

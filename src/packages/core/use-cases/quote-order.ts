@@ -1,5 +1,6 @@
 import { type DomainError, domainError } from "../domain/errors";
 import type { Money } from "../domain/money";
+import { resolveSelection, type Selection, selectionLabel } from "../domain/options";
 import { calculateTotal, type OrderItem } from "../domain/order";
 import { err, ok, type Result } from "../domain/result";
 import type { ProductRepository } from "../ports/product-repository";
@@ -7,11 +8,11 @@ import type { ProductRepository } from "../ports/product-repository";
 export const MAX_CART_LINES = 50;
 export const MAX_QUANTITY = 99;
 
-export type CartLine = { productId: string; quantity: number };
+export type CartLine = { productId: string; quantity: number; selection?: Selection };
 
 /**
- * Prices the browser's cart on the server: current prices, only published products, total calculated here
- * (the browser is never trusted). Nothing is stored yet.
+ * Prices the browser's cart on the server: current prices, only published products, one value per option
+ * of each product, total calculated here (the browser is never trusted). Nothing is stored yet.
  */
 export const quoteOrder =
   (deps: { repo: ProductRepository }) =>
@@ -34,10 +35,14 @@ export const quoteOrder =
           }),
         );
       }
+      const resolved = resolveSelection(product, line.selection ?? {});
+      if (!resolved.ok) return resolved;
+      const variant = selectionLabel(resolved.value);
       items.push({
         productId: product.id,
         name: product.name,
-        unitPrice: product.price,
+        ...(variant ? { variant } : {}),
+        unitPrice: resolved.value.price,
         quantity: line.quantity,
       });
     }
