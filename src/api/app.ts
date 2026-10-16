@@ -4,6 +4,7 @@ import { requireAllowedOrigin } from "./middlewares/origin";
 import { loadSession } from "./middlewares/session";
 import { accessRoutes } from "./routes/access";
 import { categoryRoutes } from "./routes/categories";
+import { domainRoutes, wellKnownRoutes } from "./routes/domain";
 import { imgRoutes } from "./routes/img";
 import { onboardingRoutes, paymentMethodRoutes, storeRoutes } from "./routes/onboarding";
 import { orderRoutes } from "./routes/orders";
@@ -26,6 +27,8 @@ export const api = new Hono<ApiEnv>()
   .route("/api/onboarding", onboardingRoutes)
   .route("/api/samples", sampleRoutes)
   .route("/api/updates", updatesRoutes)
+  .route("/api/domain", domainRoutes)
+  .route("/.well-known", wellKnownRoutes)
   .route("/img", imgRoutes)
   .notFound(notFound)
   .onError((cause, c) => internalError(c, cause));

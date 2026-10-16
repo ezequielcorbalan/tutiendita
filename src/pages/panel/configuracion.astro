@@ -1,0 +1,195 @@
+---
+// Public URL stays in Spanish (/panel/configuracion), like the rest of the panel's URLs.
+import { env } from "cloudflare:workers";
+import LanguageSelector from "../../components/language-selector.astro";
+import { build } from "../../container";
+import { texts } from "../../i18n";
+import Panel from "../../layouts/panel.astro";
+
+const container = build(env);
+const [store, domain] = await Promise.all([container.getStore(), container.domain.status()]);
+const t = texts(Astro.locals.language).settings;
+---
+
+<Panel title={t.title} section="settings">
+  <h1>{t.title}</h1>
+
+  <section aria-labelledby="domain">
+    <h2 id="domain">{t.domainTitle}</h2>
+    {
+      domain.status === "active" ? (
+        <>
+          <p>
+            {t.active} <a href={`https://${domain.hostname}`}>{domain.hostname}</a>.
+          </p>
+          <p>{t.activeHelp}</p>
+        </>
+      ) : domain.status === "connecting" ? (
+        <>
+          <p role="status">{t.connecting(domain.hostname)}</p>
+          <p>{t.connectingHelp}</p>
+          <p>
+            <a class="button" href="/panel/configuracion">
+              {t.checkAgain}
+            </a>
+          </p>
+        </>
+      ) : domain.status === "github-needed" ? (
+        <>
+          <p>{t.domainIntro}</p>
+          <p>{t.githubNeeded}</p>
+          <p>
+            <a class="button" href="/panel/actualizaciones">
+              {t.goToUpdates}
+            </a>
+          </p>
+        </>
+      ) : (
+        <>
+          <p>{t.domainIntro}</p>
+          <form data-domain-check novalidate>
+            <label for="hostname">{t.domainLabel}</label>
+            <input
+              id="hostname"
+              name="hostname"
+              type="text"
+              inputmode="url"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              placeholder="tienda.tunegocio.com.ar"
+              aria-describedby="hostname-hint"
+              required
+            />
+            <p id="hostname-hint"><small>{t.domainHint}</small></p>
+            <button type="submit" data-checking={t.checking}>
+              {t.check}
+            </button>
+          </form>
+          <div class="domain-result" data-domain-result aria-live="polite">
+            <div data-ready hidden>
+              <p data-ready-text />
+              <button type="button" data-connect />
+            </div>
+            <div data-not-delegated hidden>
+              <h3>{t.notDelegatedTitle}</h3>
+              <ol>
+                {t.notDelegatedSteps.map((step) => (
+                  <li>{step}</li>
+                ))}
+              </ol>
+              <p data-nameservers />
+            </div>
+            <p data-in-use hidden />
+          </div>
+        </>
+      )
+    }
+    {
+      (domain.status === "active" || domain.status === "connecting") && (
+        <p>
+          <button type="button" class="secondary" data-disconnect data-confirm={t.confirmDisconnect}>
+            {t.disconnect}
+          </button>
+        </p>
+      )
+    }
+    <p class="error" data-domain-error role="alert"></p>
+  </section>
+
+  <section aria-labelledby="language">
+    <h2 id="language">{t.languageTitle}</h2>
+    <form data-language>
+      <LanguageSelector current={store?.language ?? "es"} />
+      <button type="submit">{t.saveLanguage}</button>
+      <p class="error" data-error role="alert"></p>
+    </form>
+  </section>
+</Panel>
+
+<script>
+  import { element, request, showError, t } from "../../scripts/panel";
+
+  type Check = { hostname: string; zone: string | null; delegated: boolean; nameservers: string[]; records: string[] };
+
+  const language = element<HTMLFormElement>("[data-language]");
+  language.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+      await request("PUT", "/api/store/language", { language: String(new FormData(language).get("language") ?? "") });
+      // The page is rendered again in the new language.
+      location.reload();
+    } catch (e) {
+      showError(language.querySelector("[data-error]"), e);
+    }
+  });
+
+  const error = document.querySelector("[data-domain-error]");
+  const show = (selector: string, visible: boolean) =>
+    document.querySelector<HTMLElement>(selector)?.toggleAttribute("hidden", !visible);
+
+  const check = document.querySelector<HTMLFormElement>("[data-domain-check]");
+  const connect = document.querySelector<HTMLButtonElement>("[data-connect]");
+  check?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = check.querySelector<HTMLButtonElement>("button");
+    const label = button?.textContent ?? "";
+    if (button) {
+      button.disabled = true;
+      button.textContent = button.dataset.checking ?? label;
+    }
+    if (error) error.textContent = "";
+    for (const s of ["[data-ready]", "[data-not-delegated]", "[data-in-use]"]) show(s, false);
+    try {
+      const r = await request<Check>("POST", "/api/domain/check", {
+        hostname: String(new FormData(check).get("hostname") ?? ""),
+      });
+      const s = t().settings;
+      if (!r.delegated) {
+        element("[data-nameservers]").textContent =
+          r.nameservers.length > 0 ? s.currentNameservers(r.nameservers.join(", ")) : "";
+        show("[data-not-delegated]", true);
+      } else if (r.records.length > 0) {
+        element("[data-in-use]").textContent = s.inUse(r.hostname, r.records.join(", "));
+        show("[data-in-use]", true);
+      } else if (connect) {
+        element("[data-ready-text]").textContent = s.ready(r.zone ?? r.hostname, r.hostname);
+        connect.textContent = s.connect(r.hostname);
+        connect.dataset.hostname = r.hostname;
+        show("[data-ready]", true);
+        connect.focus();
+      }
+    } catch (e) {
+      showError(error, e);
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = label;
+      }
+    }
+  });
+
+  connect?.addEventListener("click", async () => {
+    connect.disabled = true;
+    try {
+      await request("POST", "/api/domain/connect", { hostname: connect.dataset.hostname ?? "" });
+      location.reload();
+    } catch (e) {
+      connect.disabled = false;
+      showError(error, e);
+    }
+  });
+
+  const disconnect = document.querySelector<HTMLButtonElement>("[data-disconnect]");
+  disconnect?.addEventListener("click", async () => {
+    if (!confirm(disconnect.dataset.confirm ?? "")) return;
+    disconnect.disabled = true;
+    try {
+      await request("POST", "/api/domain/disconnect");
+      location.reload();
+    } catch (e) {
+      disconnect.disabled = false;
+      showError(error, e);
+    }
+  });
+</script>

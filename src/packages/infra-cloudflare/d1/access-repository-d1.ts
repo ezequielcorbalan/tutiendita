@@ -149,5 +149,18 @@ export function createD1AccessRepository(db: D1Database): AccessRepository {
         .all<OriginRow>();
       return results.map((r) => ({ origin: r.origen, rpId: r.rp_id, primary: r.principal === 1 }));
     },
+
+    async replaceSecondaryOrigins(origins, now) {
+      await db.batch([
+        db.prepare("DELETE FROM origenes_permitidos WHERE principal = 0"),
+        ...origins.map((o) =>
+          db
+            .prepare(
+              "INSERT OR REPLACE INTO origenes_permitidos (origen, rp_id, principal, agregado_en) VALUES (?, ?, 0, ?)",
+            )
+            .bind(o.origin, o.rpId, iso(now)),
+        ),
+      ]);
+    },
   };
 }

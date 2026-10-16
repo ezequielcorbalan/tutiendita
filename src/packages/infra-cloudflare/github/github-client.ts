@@ -269,5 +269,33 @@ export function createGithubClient(options: { fetch?: Fetch; clock?: () => Date 
       const token = await installationToken(c);
       await request("PUT", `/repos/${c.repository}/pulls/${number}/merge`, token, { merge_method: "squash" });
     },
+
+    async readFile(c, path) {
+      const token = await installationToken(c);
+      try {
+        const r = await request<{ content: string; sha: string }>(
+          "GET",
+          `/repos/${c.repository}/contents/${path}`,
+          token,
+        );
+        const bytes = Uint8Array.from(atob(r.content.replace(/\s/g, "")), (x) => x.charCodeAt(0));
+        return { text: new TextDecoder().decode(bytes), sha: r.sha };
+      } catch (e) {
+        if (e instanceof GithubError && e.status === 404) return null;
+        throw e;
+      }
+    },
+
+    async writeFile(c, f) {
+      const token = await installationToken(c);
+      let binary = "";
+      for (const b of new TextEncoder().encode(f.text)) binary += String.fromCharCode(b);
+      // Without `branch`, GitHub commits to the default branch, which is the one Cloudflare deploys.
+      await request("PUT", `/repos/${c.repository}/contents/${f.path}`, token, {
+        message: f.message,
+        content: btoa(binary),
+        sha: f.sha,
+      });
+    },
   };
 }

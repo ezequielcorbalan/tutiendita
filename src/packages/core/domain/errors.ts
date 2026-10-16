@@ -31,7 +31,12 @@ export type ErrorCode =
   | "INVALID_CART"
   | "PRODUCT_UNAVAILABLE"
   | "INVALID_OPTIONS"
-  | "INVALID_SELECTION";
+  | "INVALID_SELECTION"
+  | "INVALID_DOMAIN"
+  | "DOMAIN_NOT_DELEGATED"
+  | "DOMAIN_IN_USE"
+  | "ROUTES_ALREADY_SET"
+  | "DNS_NOT_RESPONDING";
 
 export type DomainError = {
   readonly code: ErrorCode;

@@ -158,6 +158,7 @@ export const en: Texts = {
     products: "Products",
     updates: "Updates",
     access: "Access",
+    settings: "Settings",
     viewStore: "View my store",
     code: "Public code",
     footer: (v: string) => `tiendita ${v} ·`,
@@ -183,9 +184,45 @@ export const en: Texts = {
       { title: "WhatsApp orders", text: "How many questions and orders you get each week." },
       { title: "Monthly sales", text: "What you sold this month compared with last month." },
     ],
+    exit: "Sign out",
+  },
+  settings: {
+    title: "Settings",
     languageTitle: "Language",
     saveLanguage: "Save language",
-    exit: "Sign out",
+    domainTitle: "Your domain",
+    domainIntro:
+      "Your store can live at an address of your own, like shop.yourbusiness.com, instead of the workers.dev one.",
+    githubNeeded:
+      "To connect a domain, first connect your store to GitHub in Updates: that's how the store saves the change in its own code and Cloudflare publishes it again.",
+    goToUpdates: "Go to Updates",
+    domainLabel: "Which address do you want for your store?",
+    domainHint:
+      "For example shop.yourbusiness.com or yourbusiness.com. The domain has to be in the same Cloudflare account as your store.",
+    check: "Check",
+    checking: "Checking…",
+    ready: (zone: string, host: string) => `${zone} is on Cloudflare and ${host} is free.`,
+    connect: (host: string) => `Connect ${host}`,
+    notDelegatedTitle: "That domain isn't on Cloudflare yet",
+    notDelegatedSteps: [
+      "Go to your Cloudflare account and click Add a domain.",
+      "Type your domain and choose the Free plan.",
+      "Cloudflare gives you two nameservers: set them where you bought the domain.",
+      "When Cloudflare says the domain is active (it can take a few hours), come back here and check it again.",
+    ],
+    currentNameservers: (list: string) => `Right now it uses these nameservers: ${list}.`,
+    inUse: (host: string, records: string) =>
+      `${host} already points somewhere else (${records} records). Pick another subdomain or delete those records in Cloudflare's DNS.`,
+    connecting: (host: string) =>
+      `We're connecting ${host}. Cloudflare publishes your store again and creates its certificate: it usually takes a few minutes.`,
+    connectingHelp:
+      "If it doesn't work after a while, check in Cloudflare, under Workers and your store, that the last deployment succeeded: the domain must be in the same account.",
+    checkAgain: "Check again",
+    active: "Your store is at",
+    activeHelp:
+      "You sign in to the panel with the same passkey from both addresses. The workers.dev one keeps working and sends your customers to your domain.",
+    disconnect: "Disconnect the domain",
+    confirmDisconnect: "Disconnect the domain? Your store goes back to workers.dev only.",
   },
   panelProducts: {
     title: "Products",
@@ -438,6 +475,11 @@ export const en: Texts = {
       INVALID_OPTIONS:
         "Check the variants: each one needs a name and at least one option, with no repeats (up to 5 variants of 30 options).",
       INVALID_SELECTION: "Choose one option of each variant of the product.",
+      INVALID_DOMAIN: "Type just the address, for example shop.yourbusiness.com.",
+      DOMAIN_NOT_DELEGATED: "That domain isn't on Cloudflare yet. Follow the steps above.",
+      DOMAIN_IN_USE: "That address already points somewhere else. Pick another subdomain.",
+      ROUTES_ALREADY_SET: "Your repository's wrangler.jsonc already has its own routes: change them by hand.",
+      DNS_NOT_RESPONDING: "We couldn't check the domain. Try again in a while.",
       INVALID_INPUT: "Check the details and try again.",
       NOT_FOUND: "We couldn't find what you were looking for.",
       INTERNAL: "Something failed on our side. Please try again in a little while.",
