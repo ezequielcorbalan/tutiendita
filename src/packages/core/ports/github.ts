@@ -1,4 +1,4 @@
-import type { GithubConnection, ReadyConnection } from "../domain/update";
+import type { GithubConnection, OfficialRelease, ReadyConnection } from "../domain/update";
 
 /** Talks to the GitHub API on behalf of the store's own app. Network or GitHub errors are thrown. */
 export interface GithubClient {
@@ -8,9 +8,13 @@ export interface GithubClient {
   installationRepositories(c: GithubConnection & { installationId: number }): Promise<string[]>;
   /**
    * Latest version of the official repo: its latest GitHub release (`ref` = the release tag), or the
-   * `package.json` version on `main` if there are no releases yet.
+   * `package.json` version on `main` if there are no releases yet. `releases`: the published ones (no drafts
+   * or pre-releases), to tell how urgent the update is.
    */
-  officialVersion(c: ReadyConnection, officialRepo: string): Promise<{ version: string; ref: string }>;
+  officialVersion(
+    c: ReadyConnection,
+    officialRepo: string,
+  ): Promise<{ version: string; ref: string; releases: readonly OfficialRelease[] }>;
   /**
    * Opens a pull request in the store's repo with the official repo's changed files, without touching
    * `preserve`. Returns `null` if there is nothing to change.

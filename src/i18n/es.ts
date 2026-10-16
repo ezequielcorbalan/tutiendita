@@ -396,6 +396,12 @@ export const es = {
     applied:
       "¡Listo! Cloudflare está publicando la versión nueva. En unos minutos la vas a ver en tu tienda.",
     errorStatus: "No pudimos hablar con GitHub. Probá de nuevo en un rato.",
+    securityTitle: "Actualización de seguridad",
+    securityText: (v: string) =>
+      `La versión ${v} corrige un problema de seguridad. Actualizá tu tienda cuanto antes.`,
+    bugfixTitle: "Actualización con arreglos",
+    bugfixText: (v: string) => `La versión ${v} corrige errores. Te recomendamos actualizar.`,
+    review: "Ver la actualización",
     failedConnection:
       "La conexión no salió bien (el enlace venció o no es de esta tienda). Probá conectar de nuevo.",
     back: "Volver a actualizaciones",

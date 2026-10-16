@@ -7,6 +7,7 @@ import {
   PRESERVED_FILES,
   type ReadyConnection,
   type UpdateStatus,
+  updateKind,
 } from "../domain/update";
 import type { Clock } from "../ports/clock";
 import type { GithubClient, GithubConnectionRepository } from "../ports/github";
@@ -64,7 +65,12 @@ export const updateStatus =
     if (!latest.ok) return latest;
     return ok(
       isNewer(latest.value.version, current)
-        ? { status: "update-available", current, newVersion: latest.value.version }
+        ? {
+            status: "update-available",
+            current,
+            newVersion: latest.value.version,
+            kind: updateKind(latest.value.releases, current, latest.value.version),
+          }
         : { status: "up-to-date", current },
     );
   };

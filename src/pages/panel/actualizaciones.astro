@@ -1,5 +1,6 @@
 ---
 import { env } from "cloudflare:workers";
+import UpdateAlert from "../../components/update-alert.astro";
 import { build } from "../../container";
 import { texts } from "../../i18n";
 import Panel from "../../layouts/panel.astro";
@@ -83,6 +84,7 @@ if (status.ok && status.value.status === "not-connected") {
     status.ok && status.value.status === "update-available" && (
       <section aria-labelledby="new-version" data-update>
         <h2 id="new-version">{t.updateAvailable(status.value.newVersion, status.value.current)}</h2>
+        <UpdateAlert kind={status.value.kind} version={status.value.newVersion} />
         <p>{t.prepareText}</p>
         <button type="button" data-prepare>
           {t.prepare}
