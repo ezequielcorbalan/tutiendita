@@ -1,0 +1,47 @@
+---
+// Panel URLs stay in Spanish (/panel/categorias), like the rest.
+import { env } from "cloudflare:workers";
+import { build } from "../../container";
+import { texts } from "../../i18n";
+import Panel from "../../layouts/panel.astro";
+
+const container = build(env);
+const [categories, products] = await Promise.all([container.listCategories(), container.listAllProducts()]);
+const all = texts(Astro.locals.language);
+const t = all.panelCategories;
+const count = (id: string) => products.filter((p) => p.categoryId === id).length;
+---
+
+<Panel title={t.title} section="products">
+  <p><a href="/panel/productos">← {all.newProduct.back}</a></p>
+  <h1>{t.title}</h1>
+  {Astro.url.searchParams.has("created") && <p role="status">{t.created}</p>}
+  {Astro.url.searchParams.has("updated") && <p role="status">{t.updated}</p>}
+  {Astro.url.searchParams.has("deleted") && <p role="status">{t.deleted}</p>}
+  <p>{t.intro}</p>
+  <p><a class="button" href="/panel/categorias/nueva">{t.action}</a></p>
+  {
+    categories.length === 0 ? (
+      <p>{t.none}</p>
+    ) : (
+      <ul class="category-list">
+        {categories.map((c) => (
+          <li class="card">
+            <div>
+              <h2>{c.name}</h2>
+              <p>
+                <small>
+                  {t.products(count(c.id))} ·{" "}
+                  {c.optionTemplates.length === 0 ? t.noVariants : c.optionTemplates.map((o) => o.name).join(", ")}
+                </small>
+              </p>
+            </div>
+            <a class="button secondary" href={`/panel/categorias/${c.id}`} aria-label={t.editNamed(c.name)}>
+              {t.edit}
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Panel>

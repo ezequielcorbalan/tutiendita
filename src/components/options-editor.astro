@@ -1,0 +1,63 @@
+---
+/**
+ * Variants editor (options with their values and price difference), shared by the product form and the
+ * category form. The rows are built in the browser from the <template>s (scripts/options-editor.ts).
+ */
+import { MAX_OPTION_LABEL_LENGTH, MAX_OPTION_VALUES, MAX_OPTIONS } from "../packages/core/index";
+import { texts } from "../i18n";
+import type { InitialOption } from "../scripts/options-editor";
+
+interface Props {
+  id: string;
+  currency: string;
+  options: readonly InitialOption[];
+  legend: string;
+  help: string;
+}
+const { id, currency, options, legend, help } = Astro.props;
+const t = texts(Astro.locals.language).variants;
+---
+
+<fieldset
+  class="options-editor"
+  id={id}
+  data-options-editor
+  data-initial={JSON.stringify(options)}
+  data-max-options={MAX_OPTIONS}
+  data-max-values={MAX_OPTION_VALUES}
+  data-invalid-delta={t.invalidDelta}
+  aria-describedby={`${id}-help`}
+>
+  <legend>{legend}</legend>
+  <p id={`${id}-help`}><small>{help}</small></p>
+  <div class="options-editor__list" data-option-list></div>
+  <slot />
+  <button type="button" class="secondary" data-add-option>+ {t.addOption}</button>
+
+  <template data-option-template>
+    <div class="option-card" data-option>
+      <label data-for="name">{t.optionName}</label>
+      <input data-field="name" maxlength={MAX_OPTION_LABEL_LENGTH} placeholder={t.optionNamePlaceholder} />
+      <div class="option-card__values" data-values></div>
+      <div class="option-card__actions">
+        <button type="button" class="secondary small" data-add-value>+ {t.addValue}</button>
+        <button type="button" class="secondary small danger-text" data-remove-option>{t.removeOption}</button>
+      </div>
+    </div>
+  </template>
+  <template data-value-template>
+    <div class="value-row" data-value>
+      <div class="value-row__label">
+        <label data-for="label">{t.valueLabel}</label>
+        <input data-field="label" maxlength={MAX_OPTION_LABEL_LENGTH} placeholder={t.valuePlaceholder} />
+      </div>
+      <div class="value-row__delta">
+        <label data-for="delta">{t.priceDelta(currency)}</label>
+        <input data-field="delta" inputmode="decimal" placeholder="0" />
+      </div>
+      <button type="button" class="secondary icon" data-remove-value aria-label={t.removeValue}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+  </template>
+</fieldset>

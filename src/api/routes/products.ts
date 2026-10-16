@@ -6,6 +6,7 @@ import { build } from "../../container";
 import { toProductJson } from "../../lib/product-json";
 import { type ErrorBody, respondDomainError } from "../errors";
 import { requireSession } from "../middlewares/session";
+import { optionsField } from "../options-schema";
 import type { ApiEnv } from "../types";
 import { validate } from "../validation";
 import { verifyImage } from "../verify-image";
@@ -43,6 +44,8 @@ const creationSchema = z.object({
     .max(64)
     .optional()
     .transform((v) => (v ? v : null)),
+  // Variants as JSON. Omitted on creation: the category's templates; omitted on update: unchanged.
+  options: optionsField.optional(),
 });
 
 /** Multipart fields of PUT /api/products/:id: the whole product (the panel sends the full form). */
@@ -103,6 +106,7 @@ export const productRoutes = new Hono<ApiEnv>()
         price: price.value,
         publish: data.publish,
         categoryId: data.category_id,
+        ...(data.options !== undefined ? { options: data.options } : {}),
         ...(data.description !== undefined ? { description: data.description } : {}),
         ...(read.image !== undefined ? { image: read.image } : {}),
       });
@@ -127,6 +131,7 @@ export const productRoutes = new Hono<ApiEnv>()
         price: price.value,
         categoryId: data.category_id,
         status: data.status,
+        ...(data.options !== undefined ? { options: data.options } : {}),
         ...(read.image !== undefined ? { image: read.image } : {}),
       });
       if (!r.ok) return respondDomainError(c, r.error);

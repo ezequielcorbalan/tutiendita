@@ -91,13 +91,19 @@ const greeting = !wa || wa.template === WHATSAPP_TEMPLATE ? t.msgGreeting : wa.t
 <script>
   import { currencyDecimals } from "../packages/core/index";
   import { languageFromLang, texts } from "../i18n";
-  import { type CartItem, formatMoney, MAX_QUANTITY, readCart, writeCart } from "../scripts/cart";
+  import { type CartItem, formatMoney, lineKey, MAX_QUANTITY, readCart, writeCart } from "../scripts/cart";
   import { add, request, showError } from "../scripts/panel";
 
   const t = texts(languageFromLang(document.documentElement.lang)).cart;
   const root = document.querySelector<HTMLElement>("[data-cart]");
   type Quote = {
-    items: { product_id: string; name: string; quantity: number; unit_price: { amount: number; currency: string } }[];
+    items: {
+      product_id: string;
+      name: string;
+      variant: string | null;
+      quantity: number;
+      unit_price: { amount: number; currency: string };
+    }[];
     total: { amount: number; currency: string };
   };
 
@@ -108,24 +114,34 @@ const greeting = !wa || wa.template === WHATSAPP_TEMPLATE ? t.msgGreeting : wa.t
     const form = $<HTMLFormElement>("[data-checkout]");
     let quote: Quote | null = null;
 
-    /** Prices the cart on the server and drops what is no longer for sale (one product at a time). */
+    const toLine = (i: CartItem) => ({
+      product_id: i.productId,
+      quantity: i.quantity,
+      ...(i.selection ? { selection: i.selection } : {}),
+    });
+
+    /**
+     * Prices the cart on the server and drops what can no longer be bought as it is: a product that's not for
+     * sale, or a variant the owner changed (one line at a time).
+     */
     async function priceCart(): Promise<void> {
       let items = readCart();
       quote = null;
       while (items.length > 0) {
         try {
           quote = await request<Quote>("POST", "/api/orders/quote", {
-            items: items.map((i) => ({ product_id: i.productId, quantity: i.quantity })),
+            items: items.map(toLine),
           });
           break;
         } catch (e) {
-          const gone = (e as { code?: string }).code === "PRODUCT_UNAVAILABLE";
+          const code = (e as { code?: string }).code;
+          const gone = code === "PRODUCT_UNAVAILABLE" || code === "INVALID_SELECTION";
           if (!gone) throw e;
           // shortcut: drops the whole cart line by line via a fresh quote; fine for small carts.
           const valid: CartItem[] = [];
           for (const item of items) {
             const one = await request<Quote>("POST", "/api/orders/quote", {
-              items: [{ product_id: item.productId, quantity: item.quantity }],
+              items: [toLine(item)],
             }).catch(() => null);
             if (one) valid.push(item);
           }
@@ -135,9 +151,15 @@ const greeting = !wa || wa.template === WHATSAPP_TEMPLATE ? t.msgGreeting : wa.t
         }
       }
       if (quote) {
-        // The server's prices win: refresh what the cart shows.
-        const prices = new Map(quote.items.map((i) => [i.product_id, i.unit_price.amount]));
-        writeCart(items.map((i) => ({ ...i, amount: prices.get(i.productId) ?? i.amount })));
+        // The server's prices and names win (same order as sent): refresh what the cart shows.
+        const lines = quote.items;
+        writeCart(
+          items.map((i, n) => {
+            const line = lines[n];
+            if (!line) return i;
+            return { ...i, amount: line.unit_price.amount, ...(line.variant ? { variant: line.variant } : {}) };
+          }),
+        );
       }
       render();
     }
@@ -167,25 +189,33 @@ const greeting = !wa || wa.template === WHATSAPP_TEMPLATE ? t.msgGreeting : wa.t
           const price = document.createElement("span");
           price.className = "price";
           price.textContent = money(item.amount * item.quantity, item.currency);
-          add(info, link, document.createElement("br"), price);
+          add(info, link);
+          if (item.variant) {
+            const variant = document.createElement("span");
+            variant.className = "cart-line__variant";
+            variant.textContent = item.variant;
+            add(info, variant);
+          } else add(info, document.createElement("br"));
+          add(info, price);
           const qty = document.createElement("input");
           qty.type = "number";
           qty.min = "1";
           qty.max = String(MAX_QUANTITY);
           qty.value = String(item.quantity);
-          qty.setAttribute("aria-label", `${t.quantity}: ${item.name}`);
+          const fullName = item.variant ? `${item.name} (${item.variant})` : item.name;
+          qty.setAttribute("aria-label", `${t.quantity}: ${fullName}`);
           qty.addEventListener("change", () => {
             const n = Math.max(1, Math.min(MAX_QUANTITY, Math.round(Number(qty.value)) || 1));
-            writeCart(readCart().map((i) => (i.productId === item.productId ? { ...i, quantity: n } : i)));
+            writeCart(readCart().map((i) => (lineKey(i) === lineKey(item) ? { ...i, quantity: n } : i)));
             void priceCart();
           });
           const remove = document.createElement("button");
           remove.type = "button";
           remove.className = "secondary";
           remove.textContent = t.remove;
-          remove.setAttribute("aria-label", `${t.remove}: ${item.name}`);
+          remove.setAttribute("aria-label", `${t.remove}: ${fullName}`);
           remove.addEventListener("click", () => {
-            writeCart(readCart().filter((i) => i.productId !== item.productId));
+            writeCart(readCart().filter((i) => lineKey(i) !== lineKey(item)));
             void priceCart();
           });
           add(li, info, qty, remove);
@@ -204,7 +234,8 @@ const greeting = !wa || wa.template === WHATSAPP_TEMPLATE ? t.msgGreeting : wa.t
       const lines = q.items.map((i) => {
         const each = money(i.unit_price.amount, i.unit_price.currency);
         const subtotal = money(i.unit_price.amount * i.quantity, i.unit_price.currency);
-        return `• ${i.quantity} x ${i.name} (${each} ${t.msgEach}) = ${subtotal}`;
+        const name = i.variant ? `${i.name} (${i.variant})` : i.name;
+        return `• ${i.quantity} x ${name} (${each} ${t.msgEach}) = ${subtotal}`;
       });
       const note = String(data.get("note") ?? "").trim();
       return [

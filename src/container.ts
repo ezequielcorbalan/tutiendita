@@ -1,10 +1,12 @@
 import {
   type AccessDeps,
+  addCategory,
   advanceOnboarding,
   applyUpdate,
   changeStoreLanguage,
   connectGithub,
   createProduct,
+  deleteCategory,
   deletePasskey,
   deleteProduct,
   deleteSampleProducts,
@@ -29,6 +31,7 @@ import {
   startPasskeyRegistration,
   startSignIn,
   type UpdatesDeps,
+  updateCategory,
   updateProduct,
   updateStatus,
   validateClaimCode,
@@ -107,6 +110,12 @@ export function build(env: Env) {
     findProductById: (id: string) => repo.findById(id),
     quoteOrder: quoteOrder({ repo }),
     listCategories: () => categories.list(),
+    categories: {
+      create: addCategory({ categories, ids: ulidGenerator }),
+      update: updateCategory({ categories }),
+      remove: deleteCategory({ categories }),
+      findById: (id: string) => categories.findById(id),
+    },
     samples: {
       load: (industry: Parameters<ReturnType<typeof loadSampleProducts>>[0], origin: string) =>
         loadSampleProducts({ ...productDeps, store, readPhoto: readPhotoFrom(origin) })(industry),

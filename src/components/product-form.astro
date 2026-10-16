@@ -4,6 +4,7 @@
  */
 import type { Category, Product } from "../packages/core/index";
 import { texts } from "../i18n";
+import OptionsEditor from "./options-editor.astro";
 
 interface Props {
   currency: string;
@@ -22,9 +23,19 @@ const priceValue = product
     : (product.price.amount / 100).toFixed(2)
   : "";
 const firstImage = product?.images[0];
+const v = all.variants;
+// Category id → its variant templates, for "Usar las variantes de la categoría".
+const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTemplates]));
 ---
 
-<form data-product-form data-currency={currency} data-product-id={product?.id} data-confirm={e.confirmDelete}>
+<form
+  data-product-form
+  data-currency={currency}
+  data-product-id={product?.id}
+  data-confirm={e.confirmDelete}
+  data-confirm-replace={v.confirmReplace}
+  data-templates={JSON.stringify(templates)}
+>
   <label for="name">{t.name}</label>
   <input id="name" name="name" required maxlength="120" placeholder={t.namePlaceholder} value={product?.name ?? ""} />
   <label for="description">{t.description}</label>
@@ -40,6 +51,9 @@ const firstImage = product?.images[0];
     {categories.map((c) => <option value={c.id} selected={c.id === product?.categoryId}>{c.name}</option>)}
   </select>
   {categories.length === 0 && <p id="category-help"><small>{t.categoryHelp}</small></p>}
+  <OptionsEditor id="product-options" currency={currency} options={product?.options ?? []} legend={v.title} help={v.help}>
+    <button type="button" class="secondary small" data-from-category hidden>{v.fromCategory}</button>
+  </OptionsEditor>
   {
     firstImage && (
       <p>
@@ -80,15 +94,41 @@ const firstImage = product?.images[0];
 </form>
 
 <script>
+  import { type InitialOption, mountOptionsEditor } from "../scripts/options-editor";
   import { element, request, showError, toMinorUnits } from "../scripts/panel";
 
   const form = element<HTMLFormElement>("[data-product-form]");
   const error = form.querySelector("[data-error]");
   const id = form.dataset.productId;
+  const editor = mountOptionsEditor(element("#product-options"));
+  const templates = JSON.parse(form.dataset.templates ?? "{}") as Record<string, InitialOption[]>;
+  // The Workers types in this project hide HTMLSelectElement: only what is used here.
+  const category = element<HTMLElement & { value: string }>("#category");
+  const fromCategory = element<HTMLButtonElement>("[data-from-category]");
+  const categoryTemplates = () => templates[category.value] ?? [];
+  const syncFromCategory = () => {
+    fromCategory.hidden = categoryTemplates().length === 0;
+  };
+  syncFromCategory();
+  category.addEventListener("change", () => {
+    syncFromCategory();
+    // A new product starts with its category's variants (only if the owner hasn't written any yet).
+    if (!id && editor.isEmpty()) editor.set(categoryTemplates(), false);
+  });
+  fromCategory.addEventListener("click", () => {
+    if (!editor.isEmpty() && !confirm(form.dataset.confirmReplace ?? "")) return;
+    editor.set(categoryTemplates(), false);
+  });
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const data = new FormData(form);
     const body = new FormData();
+    try {
+      body.set("options", JSON.stringify(editor.read()));
+    } catch (e) {
+      if (error) error.textContent = (e as Error).message;
+      return;
+    }
     body.set("name", String(data.get("name") ?? ""));
     body.set("description", String(data.get("description") ?? "").trim());
     body.set("price_amount", toMinorUnits(String(data.get("price") ?? "")));

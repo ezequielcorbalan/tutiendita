@@ -1,12 +1,19 @@
 ---
 import { env } from "cloudflare:workers";
-import { texts } from "../../i18n";
+import { LOCALES, texts } from "../../i18n";
 import Store from "../../layouts/store.astro";
-import { productData } from "../../lib/pages";
+import { formatPrice, productData } from "../../lib/pages";
 
 const t = texts(Astro.locals.language);
 const data = await productData(env, Astro.params.slug ?? "", Astro.url.origin, Astro.locals.language);
 if (!data.found) Astro.response.status = 404;
+const language = Astro.locals.language ?? "es";
+const v = t.variants;
+/** "Chocolate (+ $500)", or just the label when it doesn't change the price. */
+const valueText = (label: string, delta: number, currency: string) =>
+  delta === 0
+    ? label
+    : `${label} (${delta > 0 ? "+" : "−"} ${formatPrice(Math.abs(delta), currency, language)})`;
 ---
 
 {
@@ -18,7 +25,25 @@ if (!data.found) Astro.response.status = 404;
       {data.product.images.map((img) => (
         <img src={img.url} alt={data.product.name} width="480" height="480" />
       ))}
-      <p class="price">{data.product.priceText}</p>
+      <p class="price" data-price>{data.product.priceText}</p>
+      {data.product.options.length > 0 && (
+        <div class="variant-picker" data-variants>
+          {data.product.options.map((o) => (
+            <div>
+              <label for={`option-${o.id}`}>{o.name}</label>
+              <select id={`option-${o.id}`} data-option-id={o.id} data-option-name={o.name} required>
+                <option value="">{v.choose}</option>
+                {o.values.map((val) => (
+                  <option value={val.id} data-delta={val.priceDelta} data-label={val.label}>
+                    {valueText(val.label, val.priceDelta, data.product.price.currency)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+      )}
+      <p class="error" data-choose-all hidden role="alert">{v.chooseAll}</p>
       <p>
         <button
           type="button"
@@ -29,6 +54,7 @@ if (!data.found) Astro.response.status = 404;
           data-amount={data.product.price.amount}
           data-currency={data.product.price.currency}
           data-image={data.product.images[0]?.url ?? ""}
+          data-locale={LOCALES[language]}
         >
           {t.cart.add}
         </button>
@@ -36,7 +62,7 @@ if (!data.found) Astro.response.status = 404;
       <p data-added hidden role="status">
         {t.cart.added} <a href="/carrito">{t.cart.viewCart}</a>
       </p>
-      {data.product.description && <p>{data.product.description}</p>}
+      {data.product.description && <p class="description">{data.product.description}</p>}
     </Store>
   ) : (
     <Store title={t.store.productNotFoundTitle}>
@@ -47,18 +73,57 @@ if (!data.found) Astro.response.status = 404;
 }
 
 <script>
-  import { addToCart } from "../../scripts/cart";
+  import { addToCart, formatMoney } from "../../scripts/cart";
 
   const button = document.querySelector<HTMLButtonElement>("[data-add-to-cart]");
+  // The Workers types in this project hide HTMLSelectElement: only what is used here.
+  type Picker = HTMLElement & { value: string; selectedOptions: ArrayLike<HTMLElement> };
+  const selects = Array.from(document.querySelectorAll<HTMLElement>("[data-variants] select")) as Picker[];
+  const price = document.querySelector<HTMLElement>("[data-price]");
+  const chooseAll = document.querySelector<HTMLElement>("[data-choose-all]");
+  const initialPrice = price?.textContent ?? "";
+
+  const chosen = () => selects.map((s) => ({ select: s, option: s.selectedOptions[0], ok: s.value !== "" }));
+  const amountOf = (all: ReturnType<typeof chosen>, base: number) =>
+    all.reduce((sum, c) => sum + Number(c.option?.dataset.delta ?? 0), base);
+
+  /** With every variant chosen, the exact price; otherwise the "Desde" one the server rendered. */
+  function updatePrice(): void {
+    if (!button || !price) return;
+    const all = chosen();
+    if (all.some((c) => !c.ok)) {
+      price.textContent = initialPrice;
+      return;
+    }
+    const d = button.dataset;
+    price.textContent = formatMoney(amountOf(all, Number(d.amount)), d.currency ?? "ARS", d.locale ?? "es-AR");
+    chooseAll?.setAttribute("hidden", "");
+  }
+  for (const s of selects) s.addEventListener("change", updatePrice);
+
   button?.addEventListener("click", () => {
     const d = button.dataset;
+    const all = chosen();
+    const missing = all.find((c) => !c.ok);
+    if (missing) {
+      chooseAll?.removeAttribute("hidden");
+      missing.select.focus();
+      return;
+    }
     addToCart({
       productId: d.productId ?? "",
       slug: d.slug ?? "",
       name: d.name ?? "",
-      amount: Number(d.amount),
+      // Preview only: the cart is priced again on the server.
+      amount: amountOf(all, Number(d.amount)),
       currency: d.currency ?? "ARS",
       image: d.image || null,
+      ...(all.length > 0
+        ? {
+            selection: Object.fromEntries(all.map((c) => [c.select.dataset.optionId ?? "", c.select.value])),
+            variant: all.map((c) => `${c.select.dataset.optionName}: ${c.option?.dataset.label}`).join(" · "),
+          }
+        : {}),
     });
     document.querySelector<HTMLElement>("[data-added]")?.removeAttribute("hidden");
   });

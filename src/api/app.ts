@@ -3,6 +3,7 @@ import { internalError, notFound } from "./errors";
 import { requireAllowedOrigin } from "./middlewares/origin";
 import { loadSession } from "./middlewares/session";
 import { accessRoutes } from "./routes/access";
+import { categoryRoutes } from "./routes/categories";
 import { imgRoutes } from "./routes/img";
 import { onboardingRoutes, paymentMethodRoutes, storeRoutes } from "./routes/onboarding";
 import { orderRoutes } from "./routes/orders";
@@ -18,6 +19,7 @@ export const api = new Hono<ApiEnv>()
   .use("/api/*", loadSession)
   .route("/api/access", accessRoutes)
   .route("/api/products", productRoutes)
+  .route("/api/categories", categoryRoutes)
   .route("/api/orders", orderRoutes)
   .route("/api/store", storeRoutes)
   .route("/api/payment-methods", paymentMethodRoutes)

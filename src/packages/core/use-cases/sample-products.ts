@@ -1,5 +1,6 @@
 import { createCategory } from "../domain/category";
 import type { DomainError } from "../domain/errors";
+import { optionsFromTemplates } from "../domain/options";
 import { ok, type Result } from "../domain/result";
 import {
   SAMPLE_CATALOG,
@@ -8,6 +9,7 @@ import {
   type SampleIndustry,
   sampleCategoryId,
   sampleDescription,
+  sampleOptions,
   samplePhotoPath,
   sampleProductId,
 } from "../domain/samples";
@@ -38,23 +40,36 @@ export const loadSampleProducts =
     for (const cat of SAMPLE_CATALOG[industry].categories) {
       const id = sampleCategoryId(industry, cat.key);
       const slug = generateSlug(cat.name[language]);
-      let categoryId = (existing.find((c) => c.id === id) ?? existing.find((c) => c.slug === slug))?.id;
-      if (categoryId === undefined) {
-        const category = createCategory({ name: cat.name[language] }, { id, slug });
-        if (!category.ok) return category;
-        await deps.categories.save(category.value);
-        categoryId = id;
+      let category = existing.find((c) => c.id === id) ?? existing.find((c) => c.slug === slug);
+      if (category === undefined) {
+        const created = createCategory(
+          { name: cat.name[language], optionTemplates: sampleOptions(cat.options ?? [], language) },
+          { id, slug },
+        );
+        if (!created.ok) return created;
+        await deps.categories.save(created.value);
+        category = created.value;
       }
       for (const p of cat.products) {
         const productId = sampleProductId(industry, p.key);
         if ((await deps.repo.findById(productId)) !== null) continue;
         const bytes = await deps.readPhoto(samplePhotoPath(industry, p.key));
+        // Its own variants or the category's (an own category with the same slug too), with ids derived from
+        // the product's fixed id: the generator below only knows that one.
+        const templates =
+          p.options !== undefined ? sampleOptions(p.options, language) : category.optionTemplates;
+        let n = 0;
+        const options = optionsFromTemplates(templates, () => {
+          n += 1;
+          return `${productId}:${n}`;
+        });
         const r = await createProduct({ ...deps, ids: { newId: () => productId } })({
           name: p.name[language],
           description: sampleDescription(p, language),
           price: { amount: p.price, currency: SAMPLE_CURRENCY },
           image: { bytes, mimeType: "image/webp" },
-          categoryId,
+          categoryId: category.id,
+          options,
           publish: true,
         });
         if (!r.ok) return r;

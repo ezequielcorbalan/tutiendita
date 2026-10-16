@@ -1,5 +1,6 @@
 import { type DomainError, domainError } from "../domain/errors";
 import type { Money } from "../domain/money";
+import { type ProductOption, withIds } from "../domain/options";
 import {
   edit,
   type Product,
@@ -12,6 +13,7 @@ import {
 import { err, ok, type Result } from "../domain/result";
 import type { CategoryRepository } from "../ports/category-repository";
 import type { Clock } from "../ports/clock";
+import type { IdGenerator } from "../ports/id-generator";
 import type { ImageStorage } from "../ports/image-storage";
 import type { ProductRepository } from "../ports/product-repository";
 import { validateImage } from "./create-product";
@@ -21,6 +23,7 @@ export type ManageProductDeps = {
   categories: CategoryRepository;
   images: ImageStorage;
   clock: Clock;
+  ids: IdGenerator;
 };
 
 export type UpdateProductInput = {
@@ -29,6 +32,8 @@ export type UpdateProductInput = {
   price: Money;
   categoryId: string | null;
   status: ProductStatus;
+  /** Variants, complete: replace the current ones (new options and values come without id). Omitted: unchanged. */
+  options?: readonly ProductOption[];
   /** New photo: replaces the current one. */
   image?: { bytes: Uint8Array; mimeType: string };
 };
@@ -64,7 +69,13 @@ export const updateProduct =
     // Status last: publishing needs the new price and photo. A virtual photo checks it before uploading.
     const edited = edit(
       current,
-      { name: e.name, description: e.description, price: e.price, categoryId: e.categoryId },
+      {
+        name: e.name,
+        description: e.description,
+        price: e.price,
+        categoryId: e.categoryId,
+        ...(e.options !== undefined ? { options: withIds(e.options, () => deps.ids.newId()) } : {}),
+      },
       now,
     );
     if (!edited.ok) return edited;

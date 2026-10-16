@@ -15,7 +15,10 @@ const products = await panelProductsData(env, Astro.locals.language);
   {Astro.url.searchParams.has("created") && <p role="status">{all.newProduct.created}</p>}
   {Astro.url.searchParams.has("updated") && <p role="status">{all.editProduct.updated}</p>}
   {Astro.url.searchParams.has("deleted") && <p role="status">{all.editProduct.deleted}</p>}
-  <p><a class="button" href="/panel/productos/nuevo">{all.newProduct.action}</a></p>
+  <p class="actions">
+    <a class="button" href="/panel/productos/nuevo">{all.newProduct.action}</a>
+    <a class="button secondary" href="/panel/categorias">{all.panelCategories.title}</a>
+  </p>
   {
     products.length === 0 ? (
       <p>{t.noProducts}</p>

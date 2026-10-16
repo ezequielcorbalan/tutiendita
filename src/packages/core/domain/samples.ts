@@ -1,3 +1,4 @@
+import type { OptionTemplate } from "./options";
 import type { Language } from "./store";
 
 /**
@@ -20,10 +21,18 @@ export type SampleProduct = {
   /** In ARS cents. */
   readonly price: number;
   readonly photo: SamplePhoto;
+  /** Its own variants instead of the category's (empty: none). */
+  readonly options?: readonly SampleOption[];
+};
+export type SampleOption = {
+  readonly name: LocalizedText;
+  readonly values: readonly { readonly label: LocalizedText; readonly priceDelta: number }[];
 };
 export type SampleCategory = {
   readonly key: string;
   readonly name: LocalizedText;
+  /** Variant templates of the category: its products are created with them. */
+  readonly options?: readonly SampleOption[];
   readonly products: readonly SampleProduct[];
 };
 export type Industry = { readonly name: LocalizedText; readonly categories: readonly SampleCategory[] };
@@ -35,6 +44,13 @@ export const sampleCategoryId = (industry: SampleIndustry, key: string) => `${PR
 export const sampleProductId = (industry: SampleIndustry, key: string) => `${PREFIX}${industry}-${key}`;
 /** Path of the photo's static asset (the app serves it from `public/`). */
 export const samplePhotoPath = (industry: SampleIndustry, key: string) => `/samples/${industry}/${key}.webp`;
+
+/** Variants in the store's language (templates: without ids). */
+export const sampleOptions = (options: readonly SampleOption[], language: Language): OptionTemplate[] =>
+  options.map((o) => ({
+    name: o.name[language],
+    values: o.values.map((v) => ({ label: v.label[language], priceDelta: v.priceDelta })),
+  }));
 
 const PHOTO_LABEL: LocalizedText = { es: "Foto", en: "Photo", pt: "Foto" };
 
@@ -49,6 +65,30 @@ export const SAMPLE_CATALOG: Readonly<Record<SampleIndustry, Industry>> = {
       {
         key: "tortas",
         name: { es: "Tortas", en: "Cakes", pt: "Bolos" },
+        options: [
+          {
+            name: { es: "Relleno", en: "Filling", pt: "Recheio" },
+            values: [
+              { label: { es: "Dulce de leche", en: "Dulce de leche", pt: "Doce de leite" }, priceDelta: 0 },
+              { label: { es: "Chocolate", en: "Chocolate", pt: "Chocolate" }, priceDelta: 0 },
+              {
+                label: { es: "Crema y frutillas", en: "Cream and strawberries", pt: "Creme e morangos" },
+                priceDelta: 300000,
+              },
+            ],
+          },
+          {
+            name: { es: "Cobertura", en: "Frosting", pt: "Cobertura" },
+            values: [
+              { label: { es: "Ganache", en: "Ganache", pt: "Ganache" }, priceDelta: 0 },
+              {
+                label: { es: "Merengue italiano", en: "Italian meringue", pt: "Merengue italiano" },
+                priceDelta: 0,
+              },
+              { label: { es: "Crema chantilly", en: "Whipped cream", pt: "Chantilly" }, priceDelta: 0 },
+            ],
+          },
+        ],
         products: [
           {
             key: "torta-de-chocolate",
@@ -67,6 +107,19 @@ export const SAMPLE_CATALOG: Readonly<Record<SampleIndustry, Industry>> = {
           },
           {
             key: "cheesecake",
+            options: [
+              {
+                name: { es: "Cobertura", en: "Topping", pt: "Cobertura" },
+                values: [
+                  { label: { es: "Frutos rojos", en: "Berries", pt: "Frutas vermelhas" }, priceDelta: 0 },
+                  { label: { es: "Maracuyá", en: "Passion fruit", pt: "Maracujá" }, priceDelta: 0 },
+                  {
+                    label: { es: "Dulce de leche", en: "Dulce de leche", pt: "Doce de leite" },
+                    priceDelta: 0,
+                  },
+                ],
+              },
+            ],
             name: {
               es: "Cheesecake de frutos rojos",
               en: "Berry cheesecake",
@@ -86,6 +139,7 @@ export const SAMPLE_CATALOG: Readonly<Record<SampleIndustry, Industry>> = {
           },
           {
             key: "lemon-pie",
+            options: [],
             name: { es: "Lemon pie", en: "Lemon meringue pie", pt: "Torta de limão" },
             description: {
               es: "Masa sablée, crema de limón y merengue italiano dorado.",
@@ -129,6 +183,19 @@ export const SAMPLE_CATALOG: Readonly<Record<SampleIndustry, Industry>> = {
       {
         key: "galletitas",
         name: { es: "Alfajores y galletitas", en: "Cookies and alfajores", pt: "Alfajores e biscoitos" },
+        options: [
+          {
+            name: { es: "Cobertura", en: "Coating", pt: "Cobertura" },
+            values: [
+              { label: { es: "Clásica", en: "Classic", pt: "Clássica" }, priceDelta: 0 },
+              {
+                label: { es: "Bañada en chocolate", en: "Chocolate-dipped", pt: "Banhada no chocolate" },
+                priceDelta: 100000,
+              },
+              { label: { es: "Glaseada", en: "Glazed", pt: "Glaçada" }, priceDelta: 0 },
+            ],
+          },
+        ],
         products: [
           {
             key: "alfajores",
@@ -178,6 +245,25 @@ export const SAMPLE_CATALOG: Readonly<Record<SampleIndustry, Industry>> = {
       {
         key: "remeras-y-buzos",
         name: { es: "Remeras y buzos", en: "Tees and sweatshirts", pt: "Camisetas e moletons" },
+        options: [
+          {
+            name: { es: "Talle", en: "Size", pt: "Tamanho" },
+            values: [
+              { label: { es: "S", en: "S", pt: "P" }, priceDelta: 0 },
+              { label: { es: "M", en: "M", pt: "M" }, priceDelta: 0 },
+              { label: { es: "L", en: "L", pt: "G" }, priceDelta: 0 },
+              { label: { es: "XL", en: "XL", pt: "GG" }, priceDelta: 0 },
+            ],
+          },
+          {
+            name: { es: "Color", en: "Color", pt: "Cor" },
+            values: [
+              { label: { es: "Blanco", en: "White", pt: "Branco" }, priceDelta: 0 },
+              { label: { es: "Negro", en: "Black", pt: "Preto" }, priceDelta: 0 },
+              { label: { es: "Gris melange", en: "Heather gray", pt: "Cinza mescla" }, priceDelta: 0 },
+            ],
+          },
+        ],
         products: [
           {
             key: "remera",
@@ -216,6 +302,18 @@ export const SAMPLE_CATALOG: Readonly<Record<SampleIndustry, Industry>> = {
       {
         key: "pantalones",
         name: { es: "Pantalones", en: "Pants", pt: "Calças" },
+        options: [
+          {
+            name: { es: "Talle", en: "Size", pt: "Tamanho" },
+            values: [
+              { label: { es: "38", en: "28", pt: "38" }, priceDelta: 0 },
+              { label: { es: "40", en: "30", pt: "40" }, priceDelta: 0 },
+              { label: { es: "42", en: "32", pt: "42" }, priceDelta: 0 },
+              { label: { es: "44", en: "34", pt: "44" }, priceDelta: 0 },
+              { label: { es: "46", en: "36", pt: "46" }, priceDelta: 0 },
+            ],
+          },
+        ],
         products: [
           {
             key: "jean",
@@ -425,6 +523,16 @@ export const SAMPLE_CATALOG: Readonly<Record<SampleIndustry, Industry>> = {
       {
         key: "ceramica",
         name: { es: "Cerámica", en: "Ceramics", pt: "Cerâmica" },
+        options: [
+          {
+            name: { es: "Esmalte", en: "Glaze", pt: "Esmalte" },
+            values: [
+              { label: { es: "Natural", en: "Natural", pt: "Natural" }, priceDelta: 0 },
+              { label: { es: "Blanco", en: "White", pt: "Branco" }, priceDelta: 0 },
+              { label: { es: "Verde agua", en: "Seafoam", pt: "Verde-água" }, priceDelta: 0 },
+            ],
+          },
+        ],
         products: [
           {
             key: "taza-de-ceramica",
@@ -443,6 +551,25 @@ export const SAMPLE_CATALOG: Readonly<Record<SampleIndustry, Industry>> = {
           },
           {
             key: "maceta-de-barro",
+            options: [
+              {
+                name: { es: "Tamaño", en: "Size", pt: "Tamanho" },
+                values: [
+                  {
+                    label: { es: "Chica (12 cm)", en: "Small (12 cm)", pt: "Pequeno (12 cm)" },
+                    priceDelta: -500000,
+                  },
+                  {
+                    label: { es: "Mediana (16 cm)", en: "Medium (16 cm)", pt: "Médio (16 cm)" },
+                    priceDelta: 0,
+                  },
+                  {
+                    label: { es: "Grande (22 cm)", en: "Large (22 cm)", pt: "Grande (22 cm)" },
+                    priceDelta: 700000,
+                  },
+                ],
+              },
+            ],
             name: { es: "Maceta de barro", en: "Clay pot", pt: "Vaso de barro" },
             description: {
               es: "Terracota cocida, con orificio de drenaje.",
