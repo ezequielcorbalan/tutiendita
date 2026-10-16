@@ -645,6 +645,8 @@ p.price {
   border-bottom: 1px solid var(--border);
   text-align: left;
   vertical-align: middle;
+  /* main's `anywhere` would let the table squeeze columns down to one letter. */
+  overflow-wrap: normal;
 }
 
 .panel th {
@@ -652,11 +654,23 @@ p.price {
   font-size: 0.9rem;
 }
 
+/* Short values (price, status, edit) stay on one line; the name (the row header) wraps between words. */
+.panel td,
+.panel thead th {
+  white-space: nowrap;
+}
+
+.panel tbody th {
+  overflow-wrap: break-word;
+}
+
 .panel tr:last-child td {
   border-bottom: none;
 }
 
 .panel td img {
+  /* Fixed size: with the global max-width the cell would squeeze the photo. */
+  max-width: none;
   width: 3.5rem;
   height: 3.5rem;
   object-fit: cover;
@@ -780,6 +794,13 @@ nav.categories a[aria-current="page"] {
   .panel table {
     display: block;
     overflow-x: auto;
+    /* Contains the visually hidden header text: otherwise it sits past the edge and scrolls the page. */
+    position: relative;
+  }
+
+  /* The name keeps a readable width; the table scrolls inside instead. */
+  .panel tbody th {
+    min-width: 10rem;
   }
 }
 
