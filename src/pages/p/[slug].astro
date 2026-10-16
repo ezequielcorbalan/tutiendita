@@ -21,48 +21,54 @@ const valueText = (label: string, delta: number, currency: string) =>
     <Store title={data.product.name} description={data.product.description}>
       <script slot="head" type="application/ld+json" is:inline set:html={data.jsonLd} />
       <p><a href="/">← {t.common.backToStore}</a></p>
-      <h1>{data.product.name}</h1>
-      {data.product.images.map((img) => (
-        <img src={img.url} alt={data.product.name} width="480" height="480" />
-      ))}
-      <p class="price" data-price>{data.product.priceText}</p>
-      {data.product.options.length > 0 && (
-        <div class="variant-picker" data-variants>
-          {data.product.options.map((o) => (
-            <div>
-              <label for={`option-${o.id}`}>{o.name}</label>
-              <select id={`option-${o.id}`} data-option-id={o.id} data-option-name={o.name} required>
-                <option value="">{v.choose}</option>
-                {o.values.map((val) => (
-                  <option value={val.id} data-delta={val.priceDelta} data-label={val.label}>
-                    {valueText(val.label, val.priceDelta, data.product.price.currency)}
-                  </option>
-                ))}
-              </select>
-            </div>
+      <div class="product-page">
+        <div class="product-page__gallery">
+          {data.product.images.map((img) => (
+            <img src={img.url} alt={data.product.name} width="480" height="480" />
           ))}
         </div>
-      )}
-      <p class="error" data-choose-all hidden role="alert">{v.chooseAll}</p>
-      <p>
-        <button
-          type="button"
-          data-add-to-cart
-          data-product-id={data.product.id}
-          data-slug={data.product.slug}
-          data-name={data.product.name}
-          data-amount={data.product.price.amount}
-          data-currency={data.product.price.currency}
-          data-image={data.product.images[0]?.url ?? ""}
-          data-locale={LOCALES[language]}
-        >
-          {t.cart.add}
-        </button>
-      </p>
-      <p data-added hidden role="status">
-        {t.cart.added} <a href="/carrito">{t.cart.viewCart}</a>
-      </p>
-      {data.product.description && <p class="description">{data.product.description}</p>}
+        <div class="product-page__info">
+          <h1>{data.product.name}</h1>
+          <p class="price" data-price>{data.product.priceText}</p>
+          {data.product.options.length > 0 && (
+            <div class="variant-picker" data-variants>
+              {data.product.options.map((o) => (
+                <div>
+                  <label for={`option-${o.id}`}>{o.name}</label>
+                  <select id={`option-${o.id}`} data-option-id={o.id} data-option-name={o.name} required>
+                    <option value="">{v.choose}</option>
+                    {o.values.map((val) => (
+                      <option value={val.id} data-delta={val.priceDelta} data-label={val.label}>
+                        {valueText(val.label, val.priceDelta, data.product.price.currency)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ))}
+            </div>
+          )}
+          <p class="error" data-choose-all hidden role="alert">{v.chooseAll}</p>
+          <p>
+            <button
+              type="button"
+              data-add-to-cart
+              data-product-id={data.product.id}
+              data-slug={data.product.slug}
+              data-name={data.product.name}
+              data-amount={data.product.price.amount}
+              data-currency={data.product.price.currency}
+              data-image={data.product.images[0]?.url ?? ""}
+              data-locale={LOCALES[language]}
+            >
+              {t.cart.add}
+            </button>
+          </p>
+          <p data-added hidden role="status">
+            {t.cart.added} <a href="/carrito">{t.cart.viewCart}</a>
+          </p>
+          {data.product.description && <p class="description">{data.product.description}</p>}
+        </div>
+      </div>
     </Store>
   ) : (
     <Store title={t.store.productNotFoundTitle}>
