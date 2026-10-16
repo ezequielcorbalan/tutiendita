@@ -1,5 +1,6 @@
 ---
 import { env } from "cloudflare:workers";
+import ReleaseNotes from "../../components/release-notes.astro";
 import UpdateAlert from "../../components/update-alert.astro";
 import { build } from "../../container";
 import { texts } from "../../i18n";
@@ -90,6 +91,7 @@ if (status.ok && status.value.status === "not-connected") {
           {t.prepare}
         </button>
         <div data-prepared hidden>
+          <ReleaseNotes releases={status.value.releases} />
           <p data-summary />
           <p>
             <a data-pr target="_blank" rel="noopener">

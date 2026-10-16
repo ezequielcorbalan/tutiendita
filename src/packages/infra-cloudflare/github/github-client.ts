@@ -140,7 +140,8 @@ export function createGithubClient(options: { fetch?: Fetch; clock?: () => Date 
           ref: latest.tag_name,
           releases: published.map((r) => ({
             version: r.tag_name.replace(/^v/, ""),
-            notes: `${r.name ?? ""}\n${r.body ?? ""}`,
+            title: r.name || r.tag_name,
+            notes: r.body ?? "",
           })),
         };
       }
