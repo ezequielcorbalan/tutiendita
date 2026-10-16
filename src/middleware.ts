@@ -28,8 +28,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (API_ROUTES.test(pathname)) {
     return api.fetch(context.request, env, context.locals.cfContext);
   }
-  // Local development skips the claim and onboarding; the dynamic import keeps it out of the build.
-  const localDev = import.meta.env.DEV && isLocalDev(context.url) ? await import("./dev/local-owner") : null;
+  // Local development skips the claim and onboarding; the dynamic import keeps it out of the build. The host
+  // comes from the Host header: only the dev server's socket check (integrations/loopback.mjs) is trusted.
+  const localDev =
+    import.meta.env.DEV &&
+    isLocalDev(context.url) &&
+    context.request.headers.get("x-tiendita-loopback") === "1"
+      ? await import("./dev/local-owner")
+      : null;
   await localDev?.ensureLocalOwner(env, context.url);
   const container = build(env);
   context.locals.language = (await container.getStore())?.language ?? DEFAULT_LANGUAGE;
