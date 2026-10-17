@@ -3,7 +3,12 @@ import { add, type Money, multiply } from "./money";
 import { err, ok, type Result } from "./result";
 
 // Stored in D1: values stay in Spanish (new, contacted, paid, delivered, cancelled).
-export type OrderStatus = "nuevo" | "contactado" | "pagado" | "entregado" | "cancelado";
+export const ORDER_STATUSES = ["nuevo", "contactado", "pagado", "entregado", "cancelado"] as const; // tuple: zod's z.enum needs it
+export type OrderStatus = (typeof ORDER_STATUSES)[number];
+/** Stored literals, same as medios_de_pago.tipo. */
+export type OrderPaymentMethod = "transferencia" | "whatsapp";
+
+export const isOpen = (s: OrderStatus): boolean => s === "nuevo" || s === "contactado" || s === "pagado";
 
 export type OrderItem = {
   readonly productId: string;
@@ -19,16 +24,14 @@ export type OrderItem = {
 export type Order = {
   readonly id: string;
   readonly items: readonly OrderItem[];
-  readonly buyer: {
-    readonly name: string;
-    readonly phone: string;
-    readonly email: string | null;
-  };
-  readonly paymentMethod: string;
+  readonly buyer: { readonly name: string };
+  readonly paymentMethod: OrderPaymentMethod;
+  readonly total: Money;
   readonly status: OrderStatus;
   readonly note: string;
   readonly createdByAgent: boolean;
   readonly createdAt: Date;
+  readonly updatedAt: Date;
 };
 
 /** The total is always calculated on the server; the browser is never trusted. */

@@ -5,6 +5,7 @@ export * from "./d1/challenge-repository-d1";
 export * from "./d1/credential-repository-d1";
 export * from "./d1/github-connection-repository-d1";
 export * from "./d1/image-storage-d1";
+export * from "./d1/order-repository-d1";
 export * from "./d1/payment-method-repository-d1";
 export * from "./d1/product-repository-d1";
 export * as schema from "./d1/schema";

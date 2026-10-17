@@ -1,0 +1,111 @@
+---
+import { env } from "cloudflare:workers";
+// Panel URLs stay in Spanish (/panel/ventas), like the rest.
+import { transitions } from "../../packages/core/index";
+import { build } from "../../container";
+import { LOCALES, texts } from "../../i18n";
+import Panel from "../../layouts/panel.astro";
+import { formatMoney } from "../../scripts/cart";
+
+const container = build(env);
+// shortcut: loads every order to list them; add pagination when stores have hundreds of sales
+const orders = await container.orders.list();
+const language = Astro.locals.language ?? "es";
+const locale = LOCALES[language];
+const t = texts(language).panelSales;
+const day = (d: Date) => d.toLocaleDateString(locale, { timeZone: "UTC" });
+---
+
+<Panel title={t.title} section="sales">
+  <h1>{t.title}</h1>
+  {Astro.url.searchParams.has("updated") && <p role="status">{t.updated}</p>}
+  <p>{t.intro}</p>
+  {
+    orders.length === 0 ? (
+      <p>{t.none}</p>
+    ) : (
+      <ul class="order-list" data-locale={locale}>
+        {orders.map((o) => (
+          <li class="card" data-order-id={o.id}>
+            <h2>{o.buyer.name}</h2>
+            <p>
+              <time datetime={o.createdAt.toISOString()}>{day(o.createdAt)}</time>{" "}
+              <span class="badge">
+                {t.statusNames[o.status]}
+              </span>
+            </p>
+            <ul>
+              {o.items.map((i) => (
+                <li>
+                  {i.quantity} x {i.name}
+                  {i.variant ? ` (${i.variant})` : ""}
+                </li>
+              ))}
+            </ul>
+            <p>
+              <strong>{t.total}:</strong> {formatMoney(o.total.amount, o.total.currency, locale)}
+              <br />
+              <strong>{t.payment}:</strong> {t.paymentNames[o.paymentMethod]}
+              {o.note && (
+                <>
+                  <br />
+                  <strong>{t.note}:</strong> {o.note}
+                </>
+              )}
+              <br />
+              <small>
+                {t.updatedAt}: <time datetime={o.updatedAt.toISOString()}>{day(o.updatedAt)}</time>
+              </small>
+            </p>
+            {transitions[o.status].length > 0 && (
+              <div class="actions">
+                {[...transitions[o.status]]
+                  .sort((a, b) => Number(a === "cancelado") - Number(b === "cancelado"))
+                  .map((to) => (
+                    <button type="button" class={to === "cancelado" || to === "contactado" ? "secondary" : undefined} data-status={to}>
+                      {t.markAs[to as keyof typeof t.markAs]}
+                    </button>
+                  ))}
+              </div>
+            )}
+            <p role="alert" data-error></p>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</Panel>
+
+<script>
+  import { request, showError, t } from "../../scripts/panel";
+
+  // Dates arrive in UTC from the server; show them in the browser's time zone.
+  const locale = document.querySelector<HTMLElement>("[data-locale]")?.dataset.locale;
+  for (const time of document.querySelectorAll<HTMLTimeElement>("time[datetime]")) {
+    const date = new Date(time.dateTime);
+    if (Number.isNaN(date.getTime())) continue;
+    time.textContent = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(date);
+  }
+
+  for (const button of document.querySelectorAll<HTMLButtonElement>("button[data-status]")) {
+    button.addEventListener("click", async () => {
+      const card = button.closest<HTMLElement>("[data-order-id]");
+      const to = button.dataset.status;
+      if (!card || !to) return;
+      if (to === "cancelado" && !confirm(t().panelSales.confirmCancel)) return;
+      const buttons = card.querySelectorAll<HTMLButtonElement>("button[data-status]");
+      const busy = (on: boolean) => {
+        card.setAttribute("aria-busy", String(on));
+        for (const b of buttons) b.disabled = on;
+      };
+      busy(true);
+      try {
+        await request("PUT", `/api/orders/${card.dataset.orderId}/status`, { status: to });
+        location.assign("/panel/ventas?updated");
+      } catch (e) {
+        busy(false);
+        showError(card.querySelector("[data-error]"), e);
+      }
+    });
+  }
+</script>

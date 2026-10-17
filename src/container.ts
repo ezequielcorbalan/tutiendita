@@ -4,6 +4,7 @@ import {
   advanceOnboarding,
   applyUpdate,
   type CustomDomainDeps,
+  changeOrderStatus,
   changeStoreLanguage,
   checkDomain,
   connectDomain,
@@ -21,6 +22,7 @@ import {
   getProduct,
   getStoreStatus,
   listAllProducts,
+  listOrders,
   listPasskeys,
   listPublishedProducts,
   loadSampleProducts,
@@ -29,6 +31,7 @@ import {
   type OnboardingDeps,
   type PhotoStorageDeps,
   photoStorageStatus,
+  placeOrder,
   prepareUpdate,
   quoteOrder,
   regenerateRecoveryCode,
@@ -59,6 +62,7 @@ import {
   createD1CredentialRepository,
   createD1GithubConnectionRepository,
   createD1ImageStorage,
+  createD1OrderRepository,
   createD1PaymentMethodRepository,
   createD1ProductRepository,
   createD1SessionRepository,
@@ -142,6 +146,7 @@ export function build(env: Env) {
     clock: systemClock,
     hasBucket,
   };
+  const orderRepo = createD1OrderRepository(env.DB);
   const registryUrl = env.REGISTRY_URL ?? DEFAULT_REGISTRY_URL;
   const registry: StoreRegistry =
     registryUrl === "" ? { async announce() {} } : createRegistryClient(registryUrl);
@@ -159,6 +164,12 @@ export function build(env: Env) {
     deleteProduct: deleteProduct(productDeps),
     findProductById: (id: string) => repo.findById(id),
     quoteOrder: quoteOrder({ repo }),
+    orders: {
+      place: placeOrder({ repo, orders: orderRepo, ids: ulidGenerator, clock: systemClock }),
+      list: listOrders({ orders: orderRepo }),
+      changeStatus: changeOrderStatus({ orders: orderRepo, clock: systemClock }),
+      limiter: deps.limiter,
+    },
     listCategories: () => categories.list(),
     categories: {
       create: addCategory({ categories, ids: ulidGenerator }),

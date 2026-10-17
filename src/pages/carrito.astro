@@ -113,6 +113,9 @@ const greeting = !wa || wa.template === WHATSAPP_TEMPLATE ? t.msgGreeting : wa.t
     const $ = <T extends HTMLElement>(s: string) => root.querySelector<T>(s);
     const form = $<HTMLFormElement>("[data-checkout]");
     let quote: Quote | null = null;
+    // What is recorded when the buyer sends: the lines (with their selection), name, note and payment of the last submit.
+    let lastOrder: { items: ReturnType<typeof toLine>[]; name: string; note: string; payment: string } | null = null;
+    let sent = false;
 
     const toLine = (i: CartItem) => ({
       product_id: i.productId,
@@ -256,6 +259,14 @@ const greeting = !wa || wa.template === WHATSAPP_TEMPLATE ? t.msgGreeting : wa.t
         if (!quote) return;
         const data = new FormData(form);
         const transfer = data.get("payment") === "transfer";
+        // Only a real new priced submit re-arms sending (a re-tap with an empty cart must not resend).
+        sent = false;
+        lastOrder = {
+          items: readCart().map(toLine),
+          name: String(data.get("name") ?? "").trim(),
+          note: String(data.get("note") ?? "").trim(),
+          payment: transfer ? "transfer" : "agree",
+        };
         const text = message(quote, data, transfer);
         const send = $<HTMLAnchorElement>("[data-send]");
         if (send) send.href = `https://wa.me/${root.dataset.whatsapp}?text=${encodeURIComponent(text)}`;
@@ -277,7 +288,20 @@ const greeting = !wa || wa.template === WHATSAPP_TEMPLATE ? t.msgGreeting : wa.t
     });
 
     // Sending opens WhatsApp in another tab; the order is in the message, so the cart can be emptied.
-    $("[data-send]")?.addEventListener("click", () => writeCart([]));
+    // The order is recorded here, when the buyer actually sends it; keepalive lets the POST finish while WhatsApp opens.
+    // A failure to record never blocks WhatsApp.
+    $("[data-send]")?.addEventListener("click", () => {
+      if (!sent && lastOrder) {
+        sent = true;
+        fetch("/api/orders", {
+          method: "POST",
+          keepalive: true,
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(lastOrder),
+        }).catch(() => undefined);
+      }
+      writeCart([]);
+    });
 
     root.addEventListener("click", async (event) => {
       const button = (event.target as HTMLElement).closest<HTMLButtonElement>("[data-copy]");

@@ -25,6 +25,7 @@ const STATUSES: Partial<Record<ErrorCode, ContentfulStatusCode>> = {
   TOO_MANY_ATTEMPTS: 429,
   IMAGE_QUOTA_REACHED: 409,
   R2_ALREADY_SET: 409,
+  ORDER_NOT_FOUND: 404,
 };
 
 export const statusFor = (e: DomainError): ContentfulStatusCode => STATUSES[e.code] ?? 422;
