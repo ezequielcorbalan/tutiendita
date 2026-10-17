@@ -231,3 +231,18 @@ export const githubConnection = sqliteTable(
   },
   (t) => [check("conexion_github_una_fila", sql`${t.id} = 1`)],
 );
+
+/** Photos stored in D1 (basic mode, no R2). `key` is `${ulid}.${ext}`, like the R2 keys. */
+export const imageBlobs = sqliteTable("imagenes_blob", {
+  key: text("key").primaryKey(),
+  mime: text("mime").notNull(),
+  bytes: blob("bytes", { mode: "buffer" }).notNull(),
+  createdAt: text("creado_en").notNull(),
+});
+
+/** Store settings as key/value (keys in core `SettingKey`). */
+export const settings = sqliteTable("configuracion", {
+  key: text("clave").primaryKey(),
+  value: text("valor").notNull(),
+  updatedAt: text("actualizado_en").notNull(),
+});

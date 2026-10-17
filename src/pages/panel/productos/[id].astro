@@ -25,7 +25,7 @@ if (product === null) Astro.response.status = 404;
             <a href={`/p/${product.slug}`}>{all.editProduct.viewInStore}</a>
           </p>
         )}
-        <ProductForm currency={store?.currency ?? "ARS"} categories={categories} product={product} />
+        <ProductForm currency={store?.currency ?? "ARS"} photoMode={container.hasBucket ? "professional" : "basic"} categories={categories} product={product} />
       </>
     ) : (
       <h1>{all.editProduct.notFound}</h1>

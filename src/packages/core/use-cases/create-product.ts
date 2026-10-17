@@ -14,7 +14,7 @@ import { generateSlug, isValidSlug, MAX_SLUG_LENGTH } from "../domain/slug";
 import type { CategoryRepository } from "../ports/category-repository";
 import type { Clock } from "../ports/clock";
 import type { IdGenerator } from "../ports/id-generator";
-import { ALLOWED_MIMES, type ImageStorage, MAX_IMAGE_SIZE } from "../ports/image-storage";
+import { ALLOWED_MIMES, ImageQuotaError, type ImageStorage, MAX_IMAGE_SIZE } from "../ports/image-storage";
 import { DuplicateSlugError, type ProductRepository } from "../ports/product-repository";
 
 export type CreateProductInput = {
@@ -35,6 +35,8 @@ export type CreateProductDeps = {
   images: ImageStorage;
   clock: Clock;
   ids: IdGenerator;
+  /** Largest photo accepted, in bytes. Default `MAX_IMAGE_SIZE`; basic mode (photos in D1) passes less. */
+  maxImageSize?: number;
 };
 
 const MAX_SLUG_ATTEMPTS = 50;
@@ -42,7 +44,10 @@ const MAX_SLUG_ATTEMPTS = 50;
 const MAX_SAVE_ATTEMPTS = 3;
 
 /** Allowed MIME type, maximum size, and the bytes carry the declared MIME type's signature. */
-export function validateImage(img: { bytes: Uint8Array; mimeType: string }): Result<true, DomainError> {
+export function validateImage(
+  img: { bytes: Uint8Array; mimeType: string },
+  maxSize = MAX_IMAGE_SIZE,
+): Result<true, DomainError> {
   if (!(ALLOWED_MIMES as readonly string[]).includes(img.mimeType)) {
     return err(
       domainError("INVALID_IMAGE", "Image format not allowed", {
@@ -51,11 +56,11 @@ export function validateImage(img: { bytes: Uint8Array; mimeType: string }): Res
       }),
     );
   }
-  if (img.bytes.byteLength > MAX_IMAGE_SIZE) {
+  if (img.bytes.byteLength > maxSize) {
     return err(
       domainError("INVALID_IMAGE", "The image exceeds the maximum size", {
         bytes: img.bytes.byteLength,
-        max: MAX_IMAGE_SIZE,
+        max: maxSize,
       }),
     );
   }
@@ -68,6 +73,12 @@ export function validateImage(img: { bytes: Uint8Array; mimeType: string }): Res
   }
   return ok(true);
 }
+
+/** The basic-mode photo quota is full: nothing has been saved yet. */
+export const imageQuotaReached = (error: unknown): DomainError | null =>
+  error instanceof ImageQuotaError
+    ? domainError("IMAGE_QUOTA_REACHED", "The basic photo storage is full", { max: error.max })
+    : null;
 
 /** `base` with suffix `-n` (n > 1), trimming the base so it does not exceed the maximum slug length. */
 const slugCandidate = (base: string, n: number): string => {
@@ -104,7 +115,7 @@ export const createProduct =
   (deps: CreateProductDeps) =>
   async (e: CreateProductInput): Promise<Result<Product, DomainError>> => {
     if (e.image !== undefined) {
-      const v = validateImage(e.image);
+      const v = validateImage(e.image, deps.maxImageSize);
       if (!v.ok) return v;
     }
     let category = null;
@@ -147,9 +158,14 @@ export const createProduct =
     let product = base.value;
     let uploadedKey: string | null = null;
     if (e.image !== undefined) {
-      const { key } = await deps.images.save(e.image.bytes, e.image.mimeType);
-      uploadedKey = key;
-      product = withImage(product, { key, position: 0 }, now);
+      try {
+        uploadedKey = (await deps.images.save(e.image.bytes, e.image.mimeType)).key;
+      } catch (error) {
+        const quota = imageQuotaReached(error);
+        if (quota !== null) return err(quota);
+        throw error;
+      }
+      product = withImage(product, { key: uploadedKey, position: 0 }, now);
     }
     if (e.publish === true) {
       const pub = publish(product, now);

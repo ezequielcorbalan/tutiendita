@@ -12,6 +12,6 @@ const t = texts(Astro.locals.language).newProduct;
 
 <Panel title={t.title} section="products">
   <h1>{t.title}</h1>
-  <ProductForm currency={store?.currency ?? "ARS"} categories={categories} />
+  <ProductForm currency={store?.currency ?? "ARS"} photoMode={container.hasBucket ? "professional" : "basic"} categories={categories} />
   <p><a href="/panel/productos">{t.back}</a></p>
 </Panel>

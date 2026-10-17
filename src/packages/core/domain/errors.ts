@@ -36,7 +36,9 @@ export type ErrorCode =
   | "DOMAIN_NOT_DELEGATED"
   | "DOMAIN_IN_USE"
   | "ROUTES_ALREADY_SET"
-  | "DNS_NOT_RESPONDING";
+  | "DNS_NOT_RESPONDING"
+  | "IMAGE_QUOTA_REACHED"
+  | "R2_ALREADY_SET";
 
 export type DomainError = {
   readonly code: ErrorCode;

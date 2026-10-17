@@ -8,11 +8,12 @@ import OptionsEditor from "./options-editor.astro";
 
 interface Props {
   currency: string;
+  photoMode: "basic" | "professional";
   categories: Category[];
   /** Present when editing. */
   product?: Product;
 }
-const { currency, categories, product } = Astro.props;
+const { currency, photoMode, categories, product } = Astro.props;
 const all = texts(Astro.locals.language);
 const t = all.newProduct;
 const e = all.editProduct;
@@ -31,6 +32,7 @@ const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTempla
 <form
   data-product-form
   data-currency={currency}
+  data-photo-mode={photoMode}
   data-product-id={product?.id}
   data-confirm={e.confirmDelete}
   data-confirm-replace={v.confirmReplace}
@@ -95,6 +97,7 @@ const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTempla
 
 <script>
   import { type InitialOption, mountOptionsEditor } from "../scripts/options-editor";
+  import { shrinkImage } from "../lib/shrink-image";
   import { element, request, showError, toMinorUnits } from "../scripts/panel";
 
   const form = element<HTMLFormElement>("[data-product-form]");
@@ -129,6 +132,8 @@ const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTempla
       if (error) error.textContent = (e as Error).message;
       return;
     }
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (submit) submit.disabled = true;
     body.set("name", String(data.get("name") ?? ""));
     body.set("description", String(data.get("description") ?? "").trim());
     body.set("price_amount", toMinorUnits(String(data.get("price") ?? "")));
@@ -137,9 +142,10 @@ const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTempla
     if (id) body.set("status", String(data.get("status") ?? "borrador"));
     else body.set("publish", data.get("publish") ? "true" : "false");
     const image = data.get("image");
-    if (image instanceof File && image.size > 0) body.set("image", image);
-    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-    if (submit) submit.disabled = true;
+    if (image instanceof File && image.size > 0) body.set(
+        "image",
+        await shrinkImage(image, form.dataset.photoMode === "professional" ? "professional" : "basic"),
+      );
     try {
       await request(id ? "PUT" : "POST", id ? `/api/products/${id}` : "/api/products", body);
       location.assign(`/panel/productos?${id ? "updated" : "created"}=1`);

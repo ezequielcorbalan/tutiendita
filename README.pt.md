@@ -4,7 +4,7 @@
 
 Sua loja online, funcionando na **sua própria conta da Cloudflare**, com um único botão. Sem saber programar, sem pagar hospedagem e sem colar chaves nem senhas. Site do projeto: [tutiendita.ar](https://tutiendita.ar).
 
-**Loja online grátis e de código aberto para pequenos negócios**, na sua própria conta da Cloudflare (Workers, D1 e R2): catálogo com fotos, categorias e variações, carrinho que envia o pedido pelo WhatsApp, pagamento por transferência, páginas prontas para o Google (sitemap, Open Graph, schema.org Product) e um painel com passkeys. Sem comissão nas vendas e seus dados são seus.
+**Loja online grátis e de código aberto para pequenos negócios**, na sua própria conta da Cloudflare (Workers e D1): catálogo com fotos, categorias e variações, carrinho que envia o pedido pelo WhatsApp, pagamento por transferência, páginas prontas para o Google (sitemap, Open Graph, schema.org Product) e um painel com passkeys. Sem comissão nas vendas e seus dados são seus.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ezequielcorbalan/tutiendita)
 
@@ -27,13 +27,14 @@ Tudo fica no seu nome; ninguém mais tem acesso.
 | O quê | Para quê |
 |---|---|
 | Um **Worker** com o nome da sua loja | É a loja: as páginas que seus clientes veem e a API. |
-| Um banco de dados **D1** com o nome da sua loja | Guarda seus produtos, categorias e pedidos. |
-| Um espaço de imagens **R2** com o nome da sua loja | Guarda as fotos dos seus produtos. |
+| Um banco de dados **D1** com o nome da sua loja | Guarda seus produtos, categorias, pedidos e as fotos dos seus produtos (até 200). |
 | Um repositório no seu GitHub ou GitLab | A sua cópia do código. Cada mudança que você enviar para lá é publicada sozinha. |
+
+**Não precisa de cartão de crédito.** As fotos ficam no banco de dados. Se quiser mais, você pode ativar **"Fotos profissionais e sem limite"** depois, em Configurações no painel: usa R2, a Cloudflare pede um cartão para ativar e é grátis até 10 GB.
 
 ## Quanto custa
 
-Para uma loja pequena, **nada**: cabe no plano gratuito da Cloudflare (Workers, D1 e R2 têm cotas gratuitas diárias e mensais). Se um dia a sua loja crescer muito, a Cloudflare avisa antes de cobrar; um plano pago nunca é ativado sozinho.
+Para uma loja pequena, **nada**: cabe no plano gratuito da Cloudflare (Workers e D1 têm cotas gratuitas diárias e mensais). Se um dia a sua loja crescer muito, a Cloudflare avisa antes de cobrar; um plano pago nunca é ativado sozinho.
 
 ## Reivindique a sua loja
 
@@ -81,7 +82,7 @@ npm run deploy                # crea la D1 si falta + migraciones remotas + wran
 
 - O Astro monta as páginas e o Hono atende `/api`, `/img`, `/feed`, `/.well-known` e `/mcp`, tudo em um único Worker.
 - O domínio e os casos de uso ficam em `src/packages/core`; os adaptadores de D1 e R2 em `src/packages/infra-cloudflare`.
-- O banco D1 e o bucket R2 têm o nome do Worker mais `-db` e `-imagenes` (`wrangler.jsonc`). Se você mudar o nome do Worker à mão, mude também esses dois: assim duas lojas na mesma conta nunca compartilham dados.
+- O banco D1 tem o nome do Worker mais `-db` (`wrangler.jsonc`). Se você mudar o nome do Worker à mão, mude também o banco: assim duas lojas na mesma conta nunca compartilham dados. Não há bucket R2 até o dono ativar "Fotos profissionais e sem limite" em Configurações, que adiciona a linha `r2_buckets` ao seu `wrangler.jsonc`.
 - Toda escrita exige uma sessão do dono (passkey) e o `Origin` da loja: sem sessão, `POST /api/products` responde 401. Com `npm run dev` em `localhost` a loja já sobe reivindicada, com o primeiro acesso feito e os produtos de exemplo, e o painel abre sem passkey (`src/dev/local-owner.ts`, nunca no build). Para testar a reivindicação de verdade, apague `.wrangler/state` e use `npm run build && npm run preview`; com a variável de build `CODIGO_DE_RECLAMO` você pode fixar o código (não é necessário em produção).
 - O código de reivindicação é gerado por `integrations/claim-code.mjs` a cada `astro build`: ele o imprime e deixa no Worker só o SHA-256 dele.
 

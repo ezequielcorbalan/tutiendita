@@ -16,7 +16,7 @@ import type { Clock } from "../ports/clock";
 import type { IdGenerator } from "../ports/id-generator";
 import type { ImageStorage } from "../ports/image-storage";
 import type { ProductRepository } from "../ports/product-repository";
-import { validateImage } from "./create-product";
+import { imageQuotaReached, validateImage } from "./create-product";
 
 export type ManageProductDeps = {
   repo: ProductRepository;
@@ -24,6 +24,8 @@ export type ManageProductDeps = {
   images: ImageStorage;
   clock: Clock;
   ids: IdGenerator;
+  /** Largest photo accepted, in bytes. Default `MAX_IMAGE_SIZE`. */
+  maxImageSize?: number;
 };
 
 export type UpdateProductInput = {
@@ -57,7 +59,7 @@ export const updateProduct =
     const current = await deps.repo.findById(id);
     if (current === null) return notFound(id);
     if (e.image !== undefined) {
-      const v = validateImage(e.image);
+      const v = validateImage(e.image, deps.maxImageSize);
       if (!v.ok) return v;
     }
     if (e.categoryId !== null && (await deps.categories.findById(e.categoryId)) === null) {
@@ -86,7 +88,13 @@ export const updateProduct =
     let product = edited.value;
     let uploadedKey: string | null = null;
     if (e.image !== undefined) {
-      uploadedKey = (await deps.images.save(e.image.bytes, e.image.mimeType)).key;
+      try {
+        uploadedKey = (await deps.images.save(e.image.bytes, e.image.mimeType)).key;
+      } catch (error) {
+        const quota = imageQuotaReached(error);
+        if (quota !== null) return err(quota);
+        throw error;
+      }
       product = withOnlyImage(product, uploadedKey, now);
     }
     const final = applyStatus(product, e.status, now);

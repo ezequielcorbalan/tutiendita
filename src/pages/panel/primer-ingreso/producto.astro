@@ -5,14 +5,16 @@ import { build } from "../../../container";
 import { texts } from "../../../i18n";
 import Panel from "../../../layouts/panel.astro";
 
-const currency = (await build(env).getStore())?.currency ?? "ARS";
+const container = build(env);
+const currency = (await container.getStore())?.currency ?? "ARS";
+const photoMode = container.hasBucket ? "professional" : "basic";
 const t = texts(Astro.locals.language);
 ---
 
 <Panel title={t.productStep.pageTitle} step={5}>
   <h1>{t.productStep.title}</h1>
   <p>{t.productStep.intro}</p>
-  <form data-form data-currency={currency}>
+  <form data-form data-currency={currency} data-photo-mode={photoMode}>
     <label for="name">{t.productStep.nameLabel}</label>
     <input id="name" name="name" required maxlength="120" placeholder={t.productStep.namePlaceholder} />
     <label for="price">{t.productStep.priceLabel(currency)}</label>
@@ -28,12 +30,16 @@ const t = texts(Astro.locals.language);
 </Panel>
 
 <script>
+  import { shrinkImage } from "../../../lib/shrink-image";
   import { advance, element, request, showError, toMinorUnits } from "../../../scripts/panel";
 
   const form = element<HTMLFormElement>("[data-form]");
   const error = form.querySelector("[data-error]");
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    // Disabled before the first await: shrinking takes a moment and a second click must not send twice.
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (submit) submit.disabled = true;
     const data = new FormData(form);
     const creation = new FormData();
     creation.set("name", String(data.get("name") ?? ""));
@@ -41,11 +47,15 @@ const t = texts(Astro.locals.language);
     creation.set("price_currency", form.dataset.currency ?? "ARS");
     creation.set("publish", "true");
     const image = data.get("image");
-    if (image instanceof File && image.size > 0) creation.set("image", image);
+    if (image instanceof File && image.size > 0) creation.set(
+        "image",
+        await shrinkImage(image, form.dataset.photoMode === "professional" ? "professional" : "basic"),
+      );
     try {
       await request("POST", "/api/products", creation);
       await advance("producto");
     } catch (e) {
+      if (submit) submit.disabled = false;
       showError(error, e);
     }
   });

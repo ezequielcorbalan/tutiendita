@@ -84,7 +84,7 @@ export const es = {
     resourcesHtml: [
       "<strong>La tiendita</strong>: un Worker de Cloudflare que atiende esta dirección.",
       "<strong>La base de datos</strong>: una base D1 a nombre de tu tienda, donde van a vivir tus productos y pedidos.",
-      "<strong>El lugar para las fotos</strong>: un espacio de imágenes R2 a nombre de tu tienda, con las fotos de tus productos.",
+      "<strong>Las fotos</strong>: las fotos de tus productos se guardan en la base de datos de tu tienda. Si después querés más calidad y sin límite, las nuevas van a R2 desde Configuración.",
       "<strong>Tu copia del código</strong>: un repositorio en tu cuenta de GitHub o GitLab. Cada cambio que se suba ahí se publica solo.",
     ],
     whatsNext: "¿Qué sigue? Reclamá tu tienda",
@@ -233,6 +233,32 @@ export const es = {
       "Entrás al panel con la misma passkey desde las dos direcciones. La de workers.dev sigue andando y lleva a tus clientes a tu dominio.",
     disconnect: "Desconectar el dominio",
     confirmDisconnect: "¿Desconectar el dominio? Tu tienda vuelve a estar solo en workers.dev.",
+    photosTitle: "Fotos",
+    photosBasicTitle: "Fotos básicas",
+    photosUsed: (used: number, max: number) => `${used} de ${max} fotos usadas`,
+    photosBasicHelp: "Las fotos se guardan en la base de datos de tu tienda, a tamaño normal.",
+    photosProTitle: "Fotos profesionales y sin límite",
+    photosProIntroHtml:
+      "Más calidad y sin tope de 200 fotos: las fotos nuevas van a un almacenamiento propio de Cloudflare (R2); las actuales quedan en tu base de datos. Es gratis hasta 10 GB, pero <strong>Cloudflare pide cargar una tarjeta</strong> para habilitarlo; esta tienda no la ve ni la usa.",
+    photosStep1:
+      "En tu panel de Cloudflare, entrá a R2, habilitalo cargando la tarjeta y creá un bucket llamado exactamente",
+    photosCopy: "Copiar el nombre",
+    photosCopied: "Copiado",
+    photosOpenR2: "Abrir R2 en Cloudflare",
+    photosReady: "Ya habilité R2 y creé el bucket",
+    photosEnable: "Activar fotos profesionales",
+    photosGithubNote: "Necesita la tienda conectada a GitHub (como el dominio propio).",
+    photosActivating:
+      "Cloudflare está desplegando el almacenamiento de fotos; suele tardar unos minutos. Esta página se actualiza sola.",
+    photosFailed:
+      "Cloudflare no pudo conectar el almacenamiento de fotos. Lo más probable es que R2 no esté habilitado en tu cuenta o que falte el bucket",
+    photosDeployLink: "Ver el deploy en Cloudflare",
+    photosRevert: "Volver a fotos básicas",
+    photosMeanwhile:
+      "Mientras tanto, tu tienda sigue andando con la versión anterior, pero no va a poder actualizarse hasta que lo resuelvas o vuelvas a fotos básicas.",
+    photosActive: "activas",
+    photosProHelp:
+      "Las fotos se guardan en el almacenamiento de Cloudflare (R2), con la mejor calidad y sin tope.",
   },
   panelProducts: {
     title: "Productos",
@@ -318,7 +344,7 @@ export const es = {
     price: (currency: string) => `Precio (${currency})`,
     photo: "Foto",
     photoHelp:
-      "JPG, PNG o WebP de hasta 5 MB. Para publicar hace falta una foto; sin foto queda como borrador.",
+      "JPG, PNG o WebP. La foto se achica sola antes de subirla. Para publicar hace falta una foto; sin foto queda como borrador.",
     category: "Categoría",
     noCategory: "Sin categoría",
     categoryHelp:
@@ -461,6 +487,10 @@ export const es = {
       EMPTY_NAME: "Escribí un nombre (hasta 80 caracteres).",
       INVALID_SLUG: "La dirección del producto no es válida.",
       INVALID_IMAGE: "La foto tiene que ser JPG, PNG o WebP y no muy pesada. Probá con otra.",
+      IMAGE_QUOTA_REACHED:
+        "Llegaste a las 200 fotos del modo básico. Activá Fotos profesionales y sin límite en Configuración para seguir subiendo.",
+      R2_ALREADY_SET:
+        "El wrangler.jsonc de tu repositorio ya tiene un almacenamiento de fotos propio: cambialo a mano.",
       PRODUCT_PAUSED: "Ese producto está pausado.",
       PRODUCT_NOT_FOUND: "No encontramos ese producto.",
       CATEGORY_NOT_FOUND: "No encontramos esa categoría.",

@@ -15,6 +15,7 @@ import {
   deleteSampleProducts,
   disconnectDomain,
   domainStatus,
+  enableProfessionalPhotos,
   finishPasskeyRegistration,
   finishSignIn,
   getProduct,
@@ -23,11 +24,16 @@ import {
   listPasskeys,
   listPublishedProducts,
   loadSampleProducts,
+  MAX_BASIC_IMAGE_SIZE,
+  MAX_IMAGE_SIZE,
   type OnboardingDeps,
+  type PhotoStorageDeps,
+  photoStorageStatus,
   prepareUpdate,
   quoteOrder,
   regenerateRecoveryCode,
   registerInstallation,
+  revertProfessionalPhotos,
   type StoreRegistry,
   saveStoreName,
   saveTransfer,
@@ -52,9 +58,11 @@ import {
   createD1ChallengeRepository,
   createD1CredentialRepository,
   createD1GithubConnectionRepository,
+  createD1ImageStorage,
   createD1PaymentMethodRepository,
   createD1ProductRepository,
   createD1SessionRepository,
+  createD1SettingsRepository,
   createD1StoreRepository,
   createDomainInspector,
   createGithubClient,
@@ -63,6 +71,7 @@ import {
   systemClock,
   ulidGenerator,
   webCryptography,
+  withFallback,
 } from "./packages/infra-cloudflare/index";
 import { createSimpleWebAuthnCeremony } from "./adapters/simplewebauthn-ceremony";
 import { codeHash } from "./claim";
@@ -74,7 +83,14 @@ export const DEFAULT_REGISTRY_URL = "https://tutiendita.ar";
 export function build(env: Env) {
   const repo = createD1ProductRepository(env.DB);
   const categories = createD1CategoryRepository(env.DB);
-  const images = createR2ImageStorage(env.IMAGENES, ulidGenerator);
+  // Photos go to D1 (basic mode) unless the Worker has the R2 binding; with R2, old D1 photos still resolve.
+  const d1Images = createD1ImageStorage(env.DB, ulidGenerator);
+  const hasBucket = env.IMAGENES !== undefined;
+  const images = env.IMAGENES
+    ? withFallback(createR2ImageStorage(env.IMAGENES, ulidGenerator), d1Images)
+    : d1Images;
+  const maxImageSize = hasBucket ? MAX_IMAGE_SIZE : MAX_BASIC_IMAGE_SIZE;
+  const settings = createD1SettingsRepository(env.DB);
   const store = createD1StoreRepository(env.DB);
   const accessRepo = createD1AccessRepository(env.DB);
   const deps: AccessDeps = {
@@ -96,7 +112,7 @@ export function build(env: Env) {
     clock: systemClock,
     ids: ulidGenerator,
   };
-  const productDeps = { repo, categories, images, clock: systemClock, ids: ulidGenerator };
+  const productDeps = { repo, categories, images, maxImageSize, clock: systemClock, ids: ulidGenerator };
   // Sample photos are static Worker assets (public/samples). They are requested with the request's own origin:
   // in production the host doesn't matter, but `astro dev` (Vite) rejects unknown hosts with 403.
   const readPhotoFrom = (origin: string) => async (path: string) => {
@@ -116,6 +132,15 @@ export function build(env: Env) {
     github: updatesDeps.github,
     inspector: createDomainInspector(),
     clock: systemClock,
+  };
+  const photoDeps: PhotoStorageDeps = {
+    settings,
+    images,
+    connection: updatesDeps.connection,
+    github: updatesDeps.github,
+    access: accessRepo,
+    clock: systemClock,
+    hasBucket,
   };
   const registryUrl = env.REGISTRY_URL ?? DEFAULT_REGISTRY_URL;
   const registry: StoreRegistry =
@@ -180,12 +205,17 @@ export function build(env: Env) {
       connect: connectDomain(domainDeps),
       disconnect: disconnectDomain(domainDeps),
     },
+    photos: {
+      status: photoStorageStatus(photoDeps),
+      enable: enableProfessionalPhotos(photoDeps),
+      revert: revertProfessionalPhotos(photoDeps),
+    },
     heartbeat: {
       send: (origin: string) => sendHeartbeat({ store, registry }, origin, systemClock.now()),
       setEnabled: (enabled: boolean) => setHeartbeatEnabled({ store }, enabled, systemClock.now()),
     },
     images,
-    bucket: env.IMAGENES,
+    hasBucket,
   };
 }
 

@@ -9,9 +9,9 @@
   "compatibility_flags": [ "nodejs_compat" ],
   "assets": { "binding": "ASSETS" },
   // No IDs on purpose: `npm run deploy` creates the D1 database if missing (scripts/prepare-d1.mjs) and
-  // `wrangler deploy` creates the R2 bucket. The names follow the Worker's (<worker>-db,
-  // <worker>-imagenes, like wrangler's provisioning): if you rename the Worker, rename these two
-  // as well, so two stores in the same account never share data.
-  "d1_databases": [{ "binding": "DB", "database_name": "tiendita-db", "migrations_dir": "migraciones" }],
-  "r2_buckets": [{ "binding": "IMAGENES", "bucket_name": "tiendita-imagenes" }]
+  // `wrangler deploy` provisions it. The name follows the Worker's (<worker>-db, like wrangler's
+  // provisioning): if you rename the Worker, rename the database as well, so two stores in the same
+  // account never share data. No R2 on purpose (Cloudflare asks for a card): photos live in D1 and
+  // the store's Settings can add the `r2_buckets` line later.
+  "d1_databases": [{ "binding": "DB", "database_name": "tiendita-db", "migrations_dir": "migraciones" }]
 }

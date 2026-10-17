@@ -4,7 +4,7 @@
 
 Tu tienda online, funcionando en **tu propia cuenta de Cloudflare**, con un solo botón. Sin saber programar, sin pagar hosting y sin pegar claves ni contraseñas. Sitio del proyecto: [tutiendita.ar](https://tutiendita.ar).
 
-**Tienda online gratis y de código abierto para emprendedores y pymes**, en tu propia cuenta de Cloudflare (Workers, D1 y R2): catálogo con fotos, categorías y variantes, carrito que manda el pedido por WhatsApp, pago por transferencia, páginas listas para Google (sitemap, Open Graph, schema.org Product) y un panel con passkeys. Sin comisiones por venta y tus datos son tuyos.
+**Tienda online gratis y de código abierto para emprendedores y pymes**, en tu propia cuenta de Cloudflare (Workers y D1): catálogo con fotos, categorías y variantes, carrito que manda el pedido por WhatsApp, pago por transferencia, páginas listas para Google (sitemap, Open Graph, schema.org Product) y un panel con passkeys. Sin comisiones por venta y tus datos son tuyos.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ezequielcorbalan/tutiendita)
 
@@ -27,13 +27,14 @@ Todo queda a tu nombre; nadie más tiene acceso.
 | Qué | Para qué |
 |---|---|
 | Un **Worker** con el nombre de tu tienda | Es la tienda: las páginas que ven tus clientes y la API. |
-| Una base de datos **D1** a nombre de tu tienda | Guarda tus productos, categorías y pedidos. |
-| Un espacio de imágenes **R2** a nombre de tu tienda | Guarda las fotos de tus productos. |
+| Una base de datos **D1** a nombre de tu tienda | Guarda tus productos, categorías, pedidos y las fotos de tus productos (hasta 200). |
 | Un repositorio en tu GitHub o GitLab | Tu copia del código. Cada cambio que subas ahí se publica solo. |
+
+**No hace falta tarjeta de crédito.** Las fotos se guardan en la base de datos. Si querés más, podés activar **"Fotos profesionales y sin límite"** después desde Configuración del panel: usa R2, Cloudflare pide una tarjeta para activarlo y es gratis hasta 10 GB.
 
 ## Cuánto cuesta
 
-Para una tienda chica, **nada**: entra en el plan gratuito de Cloudflare (Workers, D1 y R2 tienen cuotas gratuitas diarias y mensuales). Si algún día tu tienda crece mucho, Cloudflare te avisa antes de cobrarte; nunca se activa un plan pago solo.
+Para una tienda chica, **nada**: entra en el plan gratuito de Cloudflare (Workers y D1 tienen cuotas gratuitas diarias y mensuales). Si algún día tu tienda crece mucho, Cloudflare te avisa antes de cobrarte; nunca se activa un plan pago solo.
 
 ## Reclamá tu tienda
 
@@ -81,7 +82,7 @@ npm run deploy                # crea la D1 si falta + migraciones remotas + wran
 
 - Astro arma las páginas y Hono atiende `/api`, `/img`, `/feed`, `/.well-known` y `/mcp`, todo en un solo Worker.
 - El dominio y los casos de uso están en `src/packages/core`; los adaptadores de D1 y R2 en `src/packages/infra-cloudflare`.
-- La base D1 y el bucket R2 se llaman como el Worker más `-db` e `-imagenes` (`wrangler.jsonc`). Si le cambiás el nombre al Worker a mano, cambiá también esos dos: así dos tiendas en la misma cuenta nunca comparten datos.
+- La base D1 se llama como el Worker más `-db` (`wrangler.jsonc`). Si le cambiás el nombre al Worker a mano, cambiá también la base: así dos tiendas en la misma cuenta nunca comparten datos. No hay bucket R2 hasta que el dueño activa "Fotos profesionales y sin límite" en Configuración, que agrega la línea `r2_buckets` a tu `wrangler.jsonc`.
 - Toda escritura exige una sesión del dueño (passkey) y el `Origin` de la tienda: sin sesión, `POST /api/products` responde 401. Con `npm run dev` en `localhost` la tienda arranca reclamada, con el primer ingreso hecho y los productos de ejemplo, y el panel abre sin passkey (`src/dev/local-owner.ts`, nunca en el build). Para probar el reclamo de verdad, borrá `.wrangler/state` y usá `npm run build && npm run preview`; con la variable de build `CODIGO_DE_RECLAMO` podés fijar el código (no hace falta en producción).
 - El código de reclamo lo genera `integrations/claim-code.mjs` en cada `astro build`: lo imprime y deja en el Worker solo su SHA-256.
 
