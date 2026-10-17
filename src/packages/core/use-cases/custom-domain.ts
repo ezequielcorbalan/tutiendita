@@ -7,12 +7,13 @@ import {
 } from "../domain/custom-domain";
 import { type DomainError, domainError } from "../domain/errors";
 import { err, ok, type Result } from "../domain/result";
-import { isReady, OFFICIAL_REPO, type ReadyConnection } from "../domain/update";
+import type { ReadyConnection } from "../domain/update";
 import type { AccessRepository } from "../ports/access-repository";
 import type { Clock } from "../ports/clock";
 import type { DomainDns, DomainInspector } from "../ports/domain-inspector";
 import type { GithubClient, GithubConnectionRepository } from "../ports/github";
 import type { StoreRepository } from "../ports/store-repository";
+import { attempt, readyConnection } from "./github-connection";
 
 export type CustomDomainDeps = {
   readonly access: AccessRepository;
@@ -43,24 +44,6 @@ export type DomainCheck = {
 
 const origin = (hostname: string) => `https://${hostname}`;
 const hostOf = (o: AllowedOrigin) => new URL(o.origin).hostname;
-
-async function readyConnection(deps: CustomDomainDeps): Promise<ReadyConnection | null> {
-  const c = await deps.connection.get();
-  return c && isReady(c) && c.repository.toLowerCase() !== OFFICIAL_REPO.toLowerCase() ? c : null;
-}
-
-async function attempt<T>(code: "GITHUB_NOT_RESPONDING" | "DNS_NOT_RESPONDING", f: () => Promise<T>) {
-  try {
-    return ok(await f()) as Result<T, DomainError>;
-  } catch (cause) {
-    const what = code === "DNS_NOT_RESPONDING" ? "DNS" : "GitHub";
-    return err(
-      domainError(code, `${what} did not respond as expected; try again in a while`, {
-        cause: String(cause),
-      }),
-    );
-  }
-}
 
 const toCheck = (hostname: string, dns: DomainDns): DomainCheck => ({
   hostname,

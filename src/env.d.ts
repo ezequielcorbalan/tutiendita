@@ -4,7 +4,8 @@
 declare namespace Cloudflare {
   interface Env {
     DB: D1Database;
-    IMAGENES: R2Bucket;
+    /** Optional: without it, photos live in D1 (basic mode). */
+    IMAGENES?: R2Bucket;
     ASSETS: Fetcher;
     /** Where the daily heartbeat goes (tutiendita.ar by default); empty string disables it (tests). */
     REGISTRY_URL?: string;

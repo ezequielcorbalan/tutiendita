@@ -80,7 +80,7 @@ export const en: Texts = {
     resourcesHtml: [
       "<strong>The store</strong>: a Cloudflare Worker that serves this address.",
       "<strong>The database</strong>: a D1 database for your store, where your products and orders will live.",
-      "<strong>The photo storage</strong>: an R2 image bucket for your store, with your product photos.",
+      "<strong>The photos</strong>: your product photos are kept in your store's database. If you later want better quality and no limit, you can send new photos to R2 from Settings.",
       "<strong>Your copy of the code</strong>: a repository in your GitHub or GitLab account. Every change pushed there goes live on its own.",
     ],
     whatsNext: "What's next? Claim your store",
@@ -228,6 +228,31 @@ export const en: Texts = {
       "You sign in to the panel with the same passkey from both addresses. The workers.dev one keeps working and sends your customers to your domain.",
     disconnect: "Disconnect the domain",
     confirmDisconnect: "Disconnect the domain? Your store goes back to workers.dev only.",
+    photosTitle: "Photos",
+    photosBasicTitle: "Basic photos",
+    photosUsed: (used: number, max: number) => `${used} of ${max} photos used`,
+    photosBasicHelp: "Photos are kept in your store's database, at normal size.",
+    photosProTitle: "Professional photos, no limit",
+    photosProIntroHtml:
+      "Better quality and no 200-photo cap: new photos go to Cloudflare's own storage (R2); the current ones stay in your database. It's free up to 10 GB, but <strong>Cloudflare asks for a card</strong> to turn it on; this store never sees or uses it.",
+    photosStep1:
+      "In your Cloudflare dashboard, go to R2, turn it on by adding the card and create a bucket named exactly",
+    photosCopy: "Copy the name",
+    photosCopied: "Copied",
+    photosOpenR2: "Open R2 in Cloudflare",
+    photosReady: "I turned on R2 and created the bucket",
+    photosEnable: "Turn on professional photos",
+    photosGithubNote: "Needs the store connected to GitHub (like your own domain).",
+    photosActivating:
+      "Cloudflare is deploying the photo storage; it usually takes a few minutes. This page refreshes on its own.",
+    photosFailed:
+      "Cloudflare couldn't connect the photo storage. Most likely R2 isn't turned on in your account or this bucket is missing",
+    photosDeployLink: "See the deploy in Cloudflare",
+    photosRevert: "Go back to basic photos",
+    photosMeanwhile:
+      "Meanwhile your store keeps running the previous version, but it can't be updated until you fix this or go back to basic photos.",
+    photosActive: "on",
+    photosProHelp: "Photos are kept in Cloudflare's storage (R2), at the best quality and with no cap.",
   },
   panelProducts: {
     title: "Products",
@@ -307,7 +332,8 @@ export const en: Texts = {
     descriptionHelp: "Say what it's like, its size, what it includes. Customers see it on the product page.",
     price: (currency: string) => `Price (${currency})`,
     photo: "Photo",
-    photoHelp: "JPG, PNG or WebP up to 5 MB. Publishing needs a photo; without one it's saved as a draft.",
+    photoHelp:
+      "JPG, PNG or WebP. The photo is shrunk automatically before upload. Publishing needs a photo; without one it's saved as a draft.",
     category: "Category",
     noCategory: "No category",
     categoryHelp:
@@ -449,6 +475,10 @@ export const en: Texts = {
       EMPTY_NAME: "Type a name (up to 80 characters).",
       INVALID_SLUG: "The product address isn't valid.",
       INVALID_IMAGE: "The photo has to be a JPG, PNG or WebP and not too large. Try another one.",
+      IMAGE_QUOTA_REACHED:
+        "You reached the 200 photos of basic mode. Turn on Professional photos, no limit in Settings to keep uploading.",
+      R2_ALREADY_SET:
+        "Your repository's wrangler.jsonc already has its own photo storage: change it by hand.",
       PRODUCT_PAUSED: "That product is paused.",
       PRODUCT_NOT_FOUND: "We couldn't find that product.",
       CATEGORY_NOT_FOUND: "We couldn't find that category.",

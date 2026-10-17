@@ -7,7 +7,7 @@ import loopback from "./integrations/loopback.mjs";
 export default defineConfig({
   output: "server",
   adapter: cloudflare({
-    // No Astro image service: product images are served by Hono from R2.
+    // No Astro image service: product images are served by Hono from the database or R2.
     imageService: "passthrough",
   }),
   // No Astro sessions: keeps the adapter from adding a "SESSION" KV binding nobody uses.

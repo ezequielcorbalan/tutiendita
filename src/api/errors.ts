@@ -23,6 +23,8 @@ const STATUSES: Partial<Record<ErrorCode, ContentfulStatusCode>> = {
   ROUTES_ALREADY_SET: 409,
   DNS_NOT_RESPONDING: 502,
   TOO_MANY_ATTEMPTS: 429,
+  IMAGE_QUOTA_REACHED: 409,
+  R2_ALREADY_SET: 409,
 };
 
 export const statusFor = (e: DomainError): ContentfulStatusCode => STATUSES[e.code] ?? 422;

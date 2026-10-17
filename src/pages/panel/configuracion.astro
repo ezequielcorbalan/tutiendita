@@ -7,7 +7,11 @@ import { texts } from "../../i18n";
 import Panel from "../../layouts/panel.astro";
 
 const container = build(env);
-const [store, domain] = await Promise.all([container.getStore(), container.domain.status()]);
+const [store, domain, photos] = await Promise.all([
+  container.getStore(),
+  container.domain.status(),
+  container.photos.status(),
+]);
 const t = texts(Astro.locals.language).settings;
 ---
 
@@ -97,6 +101,96 @@ const t = texts(Astro.locals.language).settings;
     <p class="error" data-domain-error role="alert"></p>
   </section>
 
+  <section
+    id="photos"
+    aria-labelledby="photos-title"
+    data-photos-polling={photos.mode === "activating" && !photos.failed ? "" : undefined}
+  >
+    <h2 id="photos-title">{t.photosTitle}</h2>
+    {
+      photos.mode === "professional" ? (
+        <>
+          <p>
+            <strong>{t.photosProTitle}</strong> · {t.photosActive}
+          </p>
+          <p>{t.photosProHelp}</p>
+        </>
+      ) : photos.mode === "activating" ? (
+        photos.failed ? (
+          <>
+            <p>
+              {t.photosFailed} <code>{photos.bucketName}</code>.
+            </p>
+            <p>
+              <a href="https://dash.cloudflare.com/?to=/:account/workers-and-pages" target="_blank" rel="noopener">
+                {t.photosDeployLink}
+              </a>
+            </p>
+            <p>{t.photosMeanwhile}</p>
+            <p>
+              <button type="button" class="secondary" data-revert>
+                {t.photosRevert}
+              </button>
+            </p>
+          </>
+        ) : (
+          <p role="status">{t.photosActivating}</p>
+        )
+      ) : (
+        <>
+          <p>
+            <strong>{t.photosBasicTitle}</strong> · {t.photosUsed(photos.used, photos.max)}
+          </p>
+          <p>{t.photosBasicHelp}</p>
+          <h3>{t.photosProTitle}</h3>
+          <p set:html={t.photosProIntroHtml} />
+          <ol>
+            <li>
+              {t.photosStep1} <code data-bucket>{photos.bucketName}</code>
+              <p class="actions">
+                <button type="button" class="secondary" data-copy data-copied={t.photosCopied}>
+                  <span aria-live="polite">{t.photosCopy}</span>
+                </button>
+                <a class="button secondary" href="https://dash.cloudflare.com/?to=/:account/r2" target="_blank" rel="noopener">
+                  {t.photosOpenR2}
+                </a>
+              </p>
+            </li>
+            {photos.github && (
+              <>
+                <li>
+                  <label>
+                    <input type="checkbox" data-r2-ready /> {t.photosReady}
+                  </label>
+                </li>
+                <li>
+                  <button type="button" data-enable disabled>
+                    {t.photosEnable}
+                  </button>
+                </li>
+              </>
+            )}
+          </ol>
+          {photos.github ? (
+            <p>
+              <small>{t.photosGithubNote}</small>
+            </p>
+          ) : (
+            <>
+              <p>{t.photosGithubNote}</p>
+              <p>
+                <a class="button" href="/panel/actualizaciones">
+                  {t.goToUpdates}
+                </a>
+              </p>
+            </>
+          )}
+        </>
+      )
+    }
+    <p class="error" data-photos-error role="alert"></p>
+  </section>
+
   <section aria-labelledby="language">
     <h2 id="language">{t.languageTitle}</h2>
     <form data-language>
@@ -124,6 +218,21 @@ const t = texts(Astro.locals.language).settings;
     </form>
   </section>
 </Panel>
+
+<!-- is:global: a scoped style would add data-astro-cid-* to every element of the page. -->
+<style is:global>
+  /* Below the sticky panel bar when the page is opened at #photos. */
+  #photos {
+    scroll-margin-top: 6rem;
+  }
+
+  /* The bucket name stays on one line when it fits; a long one still wraps instead of overflowing. */
+  [data-bucket] {
+    display: inline-block;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+</style>
 
 <script>
   import { element, request, showError, t } from "../../scripts/panel";
@@ -214,4 +323,56 @@ const t = texts(Astro.locals.language).settings;
       showError(error, e);
     }
   });
+
+  const photosError = document.querySelector("[data-photos-error]");
+  const copy = document.querySelector<HTMLButtonElement>("[data-copy]");
+  copy?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(element("[data-bucket]").textContent ?? "");
+      const label = element("[data-copy] [aria-live]");
+      const original = label.textContent;
+      label.textContent = copy.dataset.copied ?? "";
+      setTimeout(() => {
+        label.textContent = original;
+      }, 2000);
+    } catch (e) {
+      showError(photosError, e);
+    }
+  });
+
+  const enable = document.querySelector<HTMLButtonElement>("[data-enable]");
+  const ready = document.querySelector<HTMLInputElement>("[data-r2-ready]");
+  ready?.addEventListener("change", () => {
+    if (enable) enable.disabled = !ready.checked;
+  });
+
+  // Enable and revert POST, then the page is rendered again with the new state.
+  for (const [button, url] of [
+    [enable, "/api/photos/enable"],
+    [document.querySelector<HTMLButtonElement>("[data-revert]"), "/api/photos/revert"],
+  ] as const) {
+    button?.addEventListener("click", async () => {
+      button.disabled = true;
+      if (photosError) photosError.textContent = "";
+      try {
+        await request("POST", url);
+        location.reload();
+      } catch (e) {
+        button.disabled = false;
+        showError(photosError, e);
+      }
+    });
+  }
+
+  // While Cloudflare redeploys with the bucket: check every 20 s and reload when it's done or has failed.
+  if (document.querySelector("[data-photos-polling]")) {
+    setInterval(async () => {
+      try {
+        const s = await request<{ mode: string; failed?: boolean }>("GET", "/api/photos/status");
+        if (s.mode !== "activating" || s.failed) location.reload();
+      } catch {
+        // A network blip: try again on the next tick.
+      }
+    }, 20_000);
+  }
 </script>

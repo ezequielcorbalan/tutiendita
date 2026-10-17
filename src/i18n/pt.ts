@@ -81,7 +81,7 @@ export const pt: Texts = {
     resourcesHtml: [
       "<strong>A loja</strong>: um Worker da Cloudflare que atende este endereço.",
       "<strong>O banco de dados</strong>: um banco D1 da sua loja, onde vão ficar seus produtos e pedidos.",
-      "<strong>O lugar das fotos</strong>: um espaço de imagens R2 da sua loja, com as fotos dos seus produtos.",
+      "<strong>As fotos</strong>: as fotos dos seus produtos ficam no banco de dados da sua loja. Se depois quiser mais qualidade e sem limite, as novas vão para o R2 em Configurações.",
       "<strong>Sua cópia do código</strong>: um repositório na sua conta do GitHub ou GitLab. Cada mudança enviada para lá é publicada sozinha.",
     ],
     whatsNext: "E agora? Reivindique sua loja",
@@ -229,6 +229,31 @@ export const pt: Texts = {
       "Você entra no painel com a mesma passkey pelos dois endereços. O de workers.dev continua funcionando e leva seus clientes ao seu domínio.",
     disconnect: "Desconectar o domínio",
     confirmDisconnect: "Desconectar o domínio? Sua loja volta a ficar só no workers.dev.",
+    photosTitle: "Fotos",
+    photosBasicTitle: "Fotos básicas",
+    photosUsed: (used: number, max: number) => `${used} de ${max} fotos usadas`,
+    photosBasicHelp: "As fotos ficam no banco de dados da sua loja, em tamanho normal.",
+    photosProTitle: "Fotos profissionais e sem limite",
+    photosProIntroHtml:
+      "Mais qualidade e sem o teto de 200 fotos: as fotos novas vão para um armazenamento próprio da Cloudflare (R2); as atuais ficam no seu banco de dados. É grátis até 10 GB, mas <strong>a Cloudflare pede um cartão</strong> para ativar; esta loja não vê nem usa o cartão.",
+    photosStep1:
+      "No seu painel da Cloudflare, entre em R2, ative cadastrando o cartão e crie um bucket chamado exatamente",
+    photosCopy: "Copiar o nome",
+    photosCopied: "Copiado",
+    photosOpenR2: "Abrir o R2 na Cloudflare",
+    photosReady: "Já ativei o R2 e criei o bucket",
+    photosEnable: "Ativar fotos profissionais",
+    photosGithubNote: "Precisa da loja conectada ao GitHub (como o domínio próprio).",
+    photosActivating:
+      "A Cloudflare está publicando o armazenamento de fotos; costuma levar alguns minutos. Esta página se atualiza sozinha.",
+    photosFailed:
+      "A Cloudflare não conseguiu conectar o armazenamento de fotos. O mais provável é que o R2 não esteja ativado na sua conta ou que falte o bucket",
+    photosDeployLink: "Ver o deploy na Cloudflare",
+    photosRevert: "Voltar para fotos básicas",
+    photosMeanwhile:
+      "Enquanto isso, sua loja continua funcionando com a versão anterior, mas não vai poder ser atualizada até você resolver isso ou voltar para fotos básicas.",
+    photosActive: "ativas",
+    photosProHelp: "As fotos ficam no armazenamento da Cloudflare (R2), com a melhor qualidade e sem teto.",
   },
   panelProducts: {
     title: "Produtos",
@@ -309,7 +334,7 @@ export const pt: Texts = {
     price: (currency: string) => `Preço (${currency})`,
     photo: "Foto",
     photoHelp:
-      "JPG, PNG ou WebP de até 5 MB. Para publicar precisa de uma foto; sem foto fica como rascunho.",
+      "JPG, PNG ou WebP. A foto é reduzida automaticamente antes do envio. Para publicar precisa de uma foto; sem foto fica como rascunho.",
     category: "Categoria",
     noCategory: "Sem categoria",
     categoryHelp:
@@ -450,6 +475,10 @@ export const pt: Texts = {
       EMPTY_NAME: "Digite um nome (até 80 caracteres).",
       INVALID_SLUG: "O endereço do produto não é válido.",
       INVALID_IMAGE: "A foto precisa ser JPG, PNG ou WebP e não muito pesada. Tente outra.",
+      IMAGE_QUOTA_REACHED:
+        "Você chegou às 200 fotos do modo básico. Ative Fotos profissionais e sem limite em Configurações para continuar enviando.",
+      R2_ALREADY_SET:
+        "O wrangler.jsonc do seu repositório já tem um armazenamento de fotos próprio: altere-o manualmente.",
       PRODUCT_PAUSED: "Esse produto está pausado.",
       PRODUCT_NOT_FOUND: "Não encontramos esse produto.",
       CATEGORY_NOT_FOUND: "Não encontramos essa categoria.",

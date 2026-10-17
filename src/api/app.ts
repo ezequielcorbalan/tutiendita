@@ -8,6 +8,7 @@ import { domainRoutes, wellKnownRoutes } from "./routes/domain";
 import { imgRoutes } from "./routes/img";
 import { onboardingRoutes, paymentMethodRoutes, storeRoutes } from "./routes/onboarding";
 import { orderRoutes } from "./routes/orders";
+import { photoRoutes } from "./routes/photos";
 import { productRoutes } from "./routes/products";
 import { sampleRoutes } from "./routes/samples";
 import { updatesRoutes } from "./routes/updates";
@@ -28,6 +29,7 @@ export const api = new Hono<ApiEnv>()
   .route("/api/samples", sampleRoutes)
   .route("/api/updates", updatesRoutes)
   .route("/api/domain", domainRoutes)
+  .route("/api/photos", photoRoutes)
   .route("/.well-known", wellKnownRoutes)
   .route("/img", imgRoutes)
   .notFound(notFound)
