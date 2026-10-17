@@ -38,12 +38,12 @@ Para uma loja pequena, **nada**: cabe no plano gratuito da Cloudflare (Workers e
 
 ## Reivindique a sua loja
 
-O endereço da sua loja é fácil de adivinhar, então na primeira vez que você entra pedimos um **código de reivindicação** que só você pode ver. Ele é gerado toda vez que a loja é publicada e aparece no final do log de compilação:
+O endereço da sua loja é fácil de adivinhar, então na primeira vez que você entra pedimos um **código de reivindicação** que só você pode ver. Ele é gerado toda vez que a loja é publicada e aparece no log da etapa **Deploying**:
 
 1. Entre no seu [painel da Cloudflare](https://dash.cloudflare.com/).
 2. Vá em **Workers e Pages** (*Workers & Pages*) e abra a sua loja (o Worker com o nome que você escolheu ao instalar; se você não mudou, **tiendita**).
-3. Na aba **Implantações** (*Deployments*), abra a mais recente e clique em **Ver log de compilação** (*View build log*).
-4. No final você vai ver um quadro com `CODIGO DE RECLAMO: XXXX-XXXX-XXXX-XXXX-XXXX-XXXX` (o seu código de reivindicação).
+3. Na aba **Implantações** (*Deployments*), clique na mais recente e depois na etapa **Deploying** (implantando).
+4. No log aparece o quadro **TU TIENDITA: CÓDIGO PARA RECLAMARLA** (em espanhol): copie o que vem depois de `CODIGO DE RECLAMO:`, com os hífens (`XXXX-XXXX-XXXX-XXXX-XXXX-XXXX`); esse é o seu código de reivindicação.
 5. Abra a sua loja, clique em **"Reclamar mi tienda"** (Reivindicar minha loja) e cole o código.
 
 Depois você vai:
@@ -63,7 +63,7 @@ Se você fechar no meio, entre de novo com a sua passkey e continue de onde paro
   1. No painel da Cloudflare, vá em **Armazenamento e bancos de dados → D1** (*Storage & Databases → D1*), abra o banco que tem o nome da sua loja mais `-db` (se você não mudou o nome, **tiendita-db**) e entre no **Console**.
   2. Execute: `DELETE FROM acceso;`
   3. Publique a loja de novo para gerar um código de reivindicação novo: em **Workers e Pages →** sua loja **→ Implantações**, tente de novo a última compilação (ou envie qualquer mudança para o seu repositório).
-  4. Procure o código novo no log de compilação e reivindique a loja como na primeira vez (você pode fazer isso de outro endereço: sem dono, os endereços antigos não contam). As passkeys, sessões e endereços antigos são apagados sozinhos ao reivindicar.
+  4. Procure o código novo no log da etapa **Deploying** da última implantação e reivindique a loja como na primeira vez (você pode fazer isso de outro endereço: sem dono, os endereços antigos não contam). As passkeys, sessões e endereços antigos são apagados sozinhos ao reivindicar.
 
 ## Lojas ativas
 

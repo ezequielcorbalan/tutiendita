@@ -38,12 +38,12 @@ Para una tienda chica, **nada**: entra en el plan gratuito de Cloudflare (Worker
 
 ## Reclamá tu tienda
 
-La dirección de tu tienda es fácil de adivinar, así que la primera vez que entrás te pedimos un **código de reclamo** que solo vos podés ver. Se genera cada vez que la tienda se publica y aparece al final del registro de compilación:
+La dirección de tu tienda es fácil de adivinar, así que la primera vez que entrás te pedimos un **código de reclamo** que solo vos podés ver. Se genera cada vez que la tienda se publica y aparece en el registro de la etapa **Desplegando**:
 
 1. Entrá a tu [panel de Cloudflare](https://dash.cloudflare.com/).
 2. Andá a **Workers y Pages** (*Workers & Pages*) y abrí tu tienda (el Worker con el nombre que elegiste al instalarla; si no lo cambiaste, **tiendita**).
-3. En la pestaña **Implementaciones** (*Deployments*), abrí la más reciente y tocá **Ver registro de compilación** (*View build log*).
-4. Al final vas a ver un recuadro con `CODIGO DE RECLAMO: XXXX-XXXX-XXXX-XXXX-XXXX-XXXX`.
+3. En la pestaña **Implementaciones** (*Deployments*), tocá la más reciente y después la etapa **Desplegando** (*Deploying*).
+4. En el registro vas a ver el recuadro **TU TIENDITA: CÓDIGO PARA RECLAMARLA**: copiá lo que sigue a `CODIGO DE RECLAMO:`, con los guiones (`XXXX-XXXX-XXXX-XXXX-XXXX-XXXX`).
 5. Abrí tu tienda, tocá **Reclamar mi tienda** y pegá el código.
 
 Después vas a:
@@ -63,7 +63,7 @@ Si lo cerrás a la mitad, volvé a entrar con tu passkey y seguís donde quedast
   1. En el panel de Cloudflare, andá a **Almacenamiento y bases de datos → D1** (*Storage & Databases → D1*), abrí la base que se llama como tu tienda más `-db` (si no le cambiaste el nombre, **tiendita-db**) y entrá a la **Consola**.
   2. Ejecutá: `DELETE FROM acceso;`
   3. Volvé a publicar la tienda para que se genere un código de reclamo nuevo: en **Workers y Pages →** tu tienda **→ Implementaciones**, reintentá la última compilación (o subí cualquier cambio a tu repositorio).
-  4. Buscá el código nuevo en el registro de compilación y reclamá la tienda como la primera vez (podés hacerlo desde otra dirección: sin dueño, las direcciones viejas no cuentan). Las passkeys, sesiones y direcciones viejas se borran solas al reclamarla.
+  4. Buscá el código nuevo en el registro de la etapa **Desplegando** de la última implementación y reclamá la tienda como la primera vez (podés hacerlo desde otra dirección: sin dueño, las direcciones viejas no cuentan). Las passkeys, sesiones y direcciones viejas se borran solas al reclamarla.
 
 ## Tiendas activas
 
