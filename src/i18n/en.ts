@@ -190,6 +190,11 @@ export const en: Texts = {
     title: "Settings",
     languageTitle: "Language",
     saveLanguage: "Save language",
+    heartbeatTitle: "Active stores",
+    heartbeatIntro:
+      "Once a day your store tells tutiendita.ar its address so active stores can be counted. Nothing else is sent: no sales, no products, no customer data.",
+    heartbeatLabel: "Count my store on tutiendita.ar",
+    saveHeartbeat: "Save",
     domainTitle: "Your domain",
     domainIntro:
       "Your store can live at an address of your own, like shop.yourbusiness.com, instead of the workers.dev one.",

@@ -195,6 +195,11 @@ export const es = {
     title: "Configuración",
     languageTitle: "Idioma",
     saveLanguage: "Guardar idioma",
+    heartbeatTitle: "Tiendas activas",
+    heartbeatIntro:
+      "Una vez por día tu tienda le avisa a tutiendita.ar su dirección para contar las tiendas activas. No manda nada más: ni ventas, ni productos, ni datos de tus clientes.",
+    heartbeatLabel: "Contar mi tienda en tutiendita.ar",
+    saveHeartbeat: "Guardar",
     domainTitle: "Tu dominio",
     domainIntro:
       "Tu tienda puede estar en una dirección tuya, como tienda.tunegocio.com.ar, en vez de la de workers.dev.",

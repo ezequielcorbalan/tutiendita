@@ -64,6 +64,10 @@ Se você fechar no meio, entre de novo com a sua passkey e continue de onde paro
   3. Publique a loja de novo para gerar um código de reivindicação novo: em **Workers e Pages →** sua loja **→ Implantações**, tente de novo a última compilação (ou envie qualquer mudança para o seu repositório).
   4. Procure o código novo no log de compilação e reivindique a loja como na primeira vez (você pode fazer isso de outro endereço: sem dono, os endereços antigos não contam). As passkeys, sessões e endereços antigos são apagados sozinhos ao reivindicar.
 
+## Lojas ativas
+
+Uma vez por dia a sua loja avisa ao tutiendita.ar o seu endereço (nada mais: nem vendas, nem produtos, nem dados dos seus clientes) para contar quantas lojas estão ativas. Dá para desligar em **"Configuración"** (Configurações) no painel.
+
 ## Para quem sabe programar
 
 Este repo é uma cópia autocontida da loja do monorepo do **tutiendita** (`apps/tiendita` mais os seus pacotes; site do projeto: https://tutiendita.ar): ele é gerado automaticamente e o ideal é fazer as mudanças lá. Mesmo assim, você pode modificá-lo como quiser.

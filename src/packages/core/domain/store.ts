@@ -15,6 +15,10 @@ export type Store = {
     readonly email: string | null;
   };
   readonly domain: string | null;
+  /** Whether the store announces its origin to tutiendita.ar once a day (see heartbeat.ts). */
+  readonly heartbeatEnabled: boolean;
+  /** ISO date of the last announcement, `null` if it never happened. */
+  readonly heartbeatSentAt: string | null;
 };
 
 export const LANGUAGES = ["es", "en", "pt"] as const;
@@ -60,6 +64,8 @@ export function createStore(
     language: language.value,
     contact: { whatsapp: null, email: null },
     domain: null,
+    heartbeatEnabled: true,
+    heartbeatSentAt: null,
   });
 }
 
@@ -77,3 +83,5 @@ export const withWhatsapp = (t: Store, number: string): Store => ({
   ...t,
   contact: { ...t.contact, whatsapp: number },
 });
+
+export const withHeartbeat = (t: Store, enabled: boolean): Store => ({ ...t, heartbeatEnabled: enabled });

@@ -191,6 +191,11 @@ export const pt: Texts = {
     title: "Configurações",
     languageTitle: "Idioma",
     saveLanguage: "Salvar idioma",
+    heartbeatTitle: "Lojas ativas",
+    heartbeatIntro:
+      "Uma vez por dia a sua loja avisa ao tutiendita.ar o seu endereço para contar as lojas ativas. Não manda mais nada: nem vendas, nem produtos, nem dados dos seus clientes.",
+    heartbeatLabel: "Contar a minha loja no tutiendita.ar",
+    saveHeartbeat: "Salvar",
     domainTitle: "Seu domínio",
     domainIntro:
       "Sua loja pode ficar num endereço seu, como loja.seunegocio.com.br, em vez do endereço workers.dev.",

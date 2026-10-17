@@ -6,6 +6,8 @@ declare namespace Cloudflare {
     DB: D1Database;
     IMAGENES: R2Bucket;
     ASSETS: Fetcher;
+    /** Where the daily heartbeat goes (tutiendita.ar by default); empty string disables it (tests). */
+    REGISTRY_URL?: string;
   }
 }
 
