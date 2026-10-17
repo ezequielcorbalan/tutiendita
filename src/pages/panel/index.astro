@@ -5,8 +5,14 @@ import { texts } from "../../i18n";
 import Panel from "../../layouts/panel.astro";
 
 const container = build(env);
-const [store, all] = await Promise.all([container.getStore(), container.listAllProducts()]);
+// shortcut: loads every order to count them; add a COUNT query when stores have hundreds of sales
+const [store, all, orders] = await Promise.all([
+  container.getStore(),
+  container.listAllProducts(),
+  container.orders.list(),
+]);
 // Product status is stored in D1: the literals stay in Spanish.
+const pending = orders.filter((o) => o.status === "nuevo" || o.status === "contactado").length;
 const published = all.filter((p) => p.status === "publicado").length;
 const t = texts(Astro.locals.language).panelHome;
 ---
@@ -34,9 +40,16 @@ const t = texts(Astro.locals.language).panelHome;
         <span class="dashboard__number">{all.length - published}</span>
         <span>{t.unpublishedCount}</span>
       </li>
+      <li class="card">
+        <span class="dashboard__number">{pending}</span>
+        <span>{t.pendingSales}</span>
+      </li>
     </ul>
     {all.length === 0 && <p>{t.noProducts}</p>}
-    <p><a class="button secondary" href="/panel/productos">{t.viewProducts}</a></p>
+    <p>
+      <a class="button secondary" href="/panel/productos">{t.viewProducts}</a>
+      <a class="button secondary" href="/panel/ventas">{t.viewSales}</a>
+    </p>
   </section>
 
   <section aria-labelledby="insights">

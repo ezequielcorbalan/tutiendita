@@ -240,6 +240,30 @@ export const imageBlobs = sqliteTable("imagenes_blob", {
   createdAt: text("creado_en").notNull(),
 });
 
+/** WhatsApp orders. `items` is a JSON snapshot, written and read only by order-repository-d1. */
+export const orders = sqliteTable(
+  "pedidos",
+  {
+    id: text("id").primaryKey(),
+    buyerName: text("comprador_nombre").notNull(),
+    note: text("nota").notNull().default(""),
+    paymentMethod: text("medio_de_pago", { enum: ["whatsapp", "transferencia"] }).notNull(),
+    items: text("items").notNull(),
+    totalAmount: integer("total_monto").notNull(),
+    totalCurrency: text("total_moneda").notNull(),
+    status: text("estado", { enum: ["nuevo", "contactado", "pagado", "entregado", "cancelado"] }).notNull(),
+    createdAt: text("creado_en").notNull(),
+    updatedAt: text("actualizado_en").notNull(),
+  },
+  (t) => [
+    index("pedidos_estado_idx").on(t.status),
+    check(
+      "pedidos_estado_check",
+      sql`${t.status} IN ('nuevo', 'contactado', 'pagado', 'entregado', 'cancelado')`,
+    ),
+  ],
+);
+
 /** Store settings as key/value (keys in core `SettingKey`). */
 export const settings = sqliteTable("configuracion", {
   key: text("clave").primaryKey(),

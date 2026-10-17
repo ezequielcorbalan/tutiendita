@@ -38,7 +38,10 @@ export type ErrorCode =
   | "ROUTES_ALREADY_SET"
   | "DNS_NOT_RESPONDING"
   | "IMAGE_QUOTA_REACHED"
-  | "R2_ALREADY_SET";
+  | "R2_ALREADY_SET"
+  | "ORDER_NOT_FOUND"
+  | "INVALID_TRANSITION"
+  | "INVALID_ORDER";
 
 export type DomainError = {
   readonly code: ErrorCode;
