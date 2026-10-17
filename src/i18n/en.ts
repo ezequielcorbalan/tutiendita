@@ -95,9 +95,9 @@ export const en: Texts = {
   whereIsTheCode: {
     stepsHtml: [
       'Sign in to your <a href="https://dash.cloudflare.com/" rel="noopener" target="_blank">Cloudflare dashboard</a> with the same account you used to create the store.',
-      "Go to <strong>Workers &amp; Pages</strong> and open <strong>tiendita</strong>.",
-      "In the <strong>Deployments</strong> tab, open the most recent one and click <strong>View build log</strong>.",
-      "Scroll to the end of the log: you'll see a box with <code>CODIGO DE RECLAMO: XXXX-XXXX-XXXX-XXXX-XXXX-XXXX</code> (that's your claim code).",
+      "Go to <strong>Workers &amp; Pages</strong> and open your store (if you didn't rename it when installing, it's called <strong>tiendita</strong>).",
+      "In the <strong>Deployments</strong> tab, click the most recent one, at the top, and then the <strong>Deploying</strong> stage.",
+      "The log shows the box <strong>TU TIENDITA: CÓDIGO PARA RECLAMARLA</strong> (it's in Spanish). Copy what follows <code>CODIGO DE RECLAMO:</code>, dashes included: that's your claim code, six groups like <code>XXXX-XXXX-XXXX-XXXX-XXXX-XXXX</code>.",
     ],
     noteHtml:
       "Only people with access to your Cloudflare account can see that log, so nobody else can take over your store. Every time the store is published again a new code is generated: use the latest one. If you're trying it on your computer (<code>npm run dev</code>), the code shows up in the terminal.",

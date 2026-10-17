@@ -96,9 +96,9 @@ export const pt: Texts = {
   whereIsTheCode: {
     stepsHtml: [
       'Entre no seu <a href="https://dash.cloudflare.com/" rel="noopener" target="_blank">painel da Cloudflare</a> com a mesma conta que você usou para criar a loja.',
-      "Vá em <strong>Workers e Pages</strong> (em inglês, <em>Workers &amp; Pages</em>) e abra <strong>tiendita</strong>.",
-      "Na aba <strong>Implantações</strong> (<em>Deployments</em>), abra a mais recente e clique em <strong>Ver log de compilação</strong> (<em>View build log</em>).",
-      "Role até o final do log: você vai ver um quadro com <code>CODIGO DE RECLAMO: XXXX-XXXX-XXXX-XXXX-XXXX-XXXX</code> (esse é o seu código de reivindicação).",
+      "Vá em <strong>Workers e Pages</strong> (em inglês, <em>Workers &amp; Pages</em>) e abra a sua loja (se você não mudou o nome ao instalar, ela se chama <strong>tiendita</strong>).",
+      "Na aba <strong>Implantações</strong> (<em>Deployments</em>), clique na mais recente, a de cima, e depois na etapa <strong>Deploying</strong> (implantando).",
+      "No log aparece o quadro <strong>TU TIENDITA: CÓDIGO PARA RECLAMARLA</strong> (está em espanhol). Copie o que vem depois de <code>CODIGO DE RECLAMO:</code>, com os hífens: esse é o seu código de reivindicação, seis grupos como <code>XXXX-XXXX-XXXX-XXXX-XXXX-XXXX</code>.",
     ],
     noteHtml:
       "Esse log só pode ser visto por quem tem acesso à sua conta da Cloudflare, então ninguém mais consegue se apropriar da sua loja. Cada vez que a loja é publicada de novo, um código novo é gerado: use o mais recente. Se você está testando no seu computador (<code>npm run dev</code>), o código aparece no terminal.",

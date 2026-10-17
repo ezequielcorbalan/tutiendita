@@ -99,9 +99,9 @@ export const es = {
   whereIsTheCode: {
     stepsHtml: [
       'Entrá a tu <a href="https://dash.cloudflare.com/" rel="noopener" target="_blank">panel de Cloudflare</a> con la misma cuenta con la que creaste la tienda.',
-      "Andá a <strong>Workers y Pages</strong> (en inglés, <em>Workers &amp; Pages</em>) y abrí <strong>tiendita</strong>.",
-      "En la pestaña <strong>Implementaciones</strong> (<em>Deployments</em>), abrí la más reciente y tocá <strong>Ver registro de compilación</strong> (<em>View build log</em>).",
-      "Bajá hasta el final del registro: vas a ver un recuadro con <code>CODIGO DE RECLAMO: XXXX-XXXX-XXXX-XXXX-XXXX-XXXX</code>.",
+      "Andá a <strong>Workers y Pages</strong> (en inglés, <em>Workers &amp; Pages</em>) y abrí tu tienda (si no le cambiaste el nombre al instalarla, se llama <strong>tiendita</strong>).",
+      "En la pestaña <strong>Implementaciones</strong> (<em>Deployments</em>), tocá la más reciente, la de arriba, y después la etapa <strong>Desplegando</strong> (<em>Deploying</em>).",
+      "En el registro vas a ver el recuadro <strong>TU TIENDITA: CÓDIGO PARA RECLAMARLA</strong>. Copiá lo que sigue a <code>CODIGO DE RECLAMO:</code>, con los guiones (son seis grupos, como <code>XXXX-XXXX-XXXX-XXXX-XXXX-XXXX</code>).",
     ],
     noteHtml:
       "Ese registro solo lo ve quien tiene acceso a tu cuenta de Cloudflare, así que nadie más puede adueñarse de tu tienda. Cada vez que la tienda se vuelve a publicar se genera un código nuevo: usá el del último. Si estás probando en tu computadora (<code>npm run dev</code>), el código aparece en la terminal.",

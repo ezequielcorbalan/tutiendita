@@ -38,12 +38,12 @@ For a small store, **nothing**: it fits within Cloudflare's free plan (Workers a
 
 ## Claim your store
 
-Your store's address is easy to guess, so the first time you open it we ask for a **claim code** that only you can see. A new one is generated every time the store is published, and it shows up at the end of the build log:
+Your store's address is easy to guess, so the first time you open it we ask for a **claim code** that only you can see. A new one is generated every time the store is published, and it shows up in the log of the **Deploying** stage:
 
 1. Go to your [Cloudflare dashboard](https://dash.cloudflare.com/).
 2. Go to **Workers & Pages** and open your store (the Worker with the name you chose when installing it; if you didn't change it, **tiendita**).
-3. In the **Deployments** tab, open the most recent one and click **View build log**.
-4. At the end you'll see a box with `CODIGO DE RECLAMO: XXXX-XXXX-XXXX-XXXX-XXXX-XXXX` (your claim code).
+3. In the **Deployments** tab, click the most recent one and then the **Deploying** stage.
+4. The log shows the box **TU TIENDITA: CÓDIGO PARA RECLAMARLA** (in Spanish): copy what follows `CODIGO DE RECLAMO:`, dashes included (`XXXX-XXXX-XXXX-XXXX-XXXX-XXXX`); that's your claim code.
 5. Open your store, click **"Reclamar mi tienda"** (Claim my store) and paste the code.
 
 Then you'll:
@@ -63,7 +63,7 @@ If you close it halfway through, sign back in with your passkey and pick up wher
   1. In the Cloudflare dashboard, go to **Storage & Databases → D1**, open the database named after your store plus `-db` (if you didn't rename it, **tiendita-db**) and open the **Console**.
   2. Run: `DELETE FROM acceso;`
   3. Publish the store again so a new claim code is generated: in **Workers & Pages →** your store **→ Deployments**, retry the latest build (or push any change to your repository).
-  4. Find the new code in the build log and claim the store just like the first time (you can do it from a different address: with no owner, old addresses don't count). Old passkeys, sessions and addresses are deleted automatically when you claim it.
+  4. Find the new code in the log of the **Deploying** stage of the latest deployment and claim the store just like the first time (you can do it from a different address: with no owner, old addresses don't count). Old passkeys, sessions and addresses are deleted automatically when you claim it.
 
 ## Active stores
 
