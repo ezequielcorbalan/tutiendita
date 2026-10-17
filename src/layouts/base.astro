@@ -1,6 +1,7 @@
 ---
 import { HTML_LANG, LOCALES } from "../i18n";
 import "../styles/store.css";
+import { STORE_VERSION } from "../version";
 
 interface Props {
   title: string;
@@ -24,6 +25,8 @@ const canonical = new URL(Astro.url.pathname, Astro.url.origin).href;
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* tutiendita.ar reads this marker to verify a heartbeat comes from a real store. */}
+    <meta name="generator" content={`tutiendita ${STORE_VERSION}`} />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     {index ? <link rel="canonical" href={canonical} /> : <meta name="robots" content="noindex" />}

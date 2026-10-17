@@ -105,6 +105,24 @@ const t = texts(Astro.locals.language).settings;
       <p class="error" data-error role="alert"></p>
     </form>
   </section>
+
+  <section aria-labelledby="heartbeat">
+    <h2 id="heartbeat">{t.heartbeatTitle}</h2>
+    <p id="heartbeat-intro">{t.heartbeatIntro}</p>
+    <form data-heartbeat>
+      <label>
+        <input
+          type="checkbox"
+          name="enabled"
+          checked={store?.heartbeatEnabled ?? true}
+          aria-describedby="heartbeat-intro"
+        />
+        {t.heartbeatLabel}
+      </label>
+      <button type="submit">{t.saveHeartbeat}</button>
+      <p class="error" data-error role="alert"></p>
+    </form>
+  </section>
 </Panel>
 
 <script>
@@ -112,17 +130,21 @@ const t = texts(Astro.locals.language).settings;
 
   type Check = { hostname: string; zone: string | null; delegated: boolean; nameservers: string[]; records: string[] };
 
-  const language = element<HTMLFormElement>("[data-language]");
-  language.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    try {
-      await request("PUT", "/api/store/language", { language: String(new FormData(language).get("language") ?? "") });
-      // The page is rendered again in the new language.
-      location.reload();
-    } catch (e) {
-      showError(language.querySelector("[data-error]"), e);
-    }
-  });
+  /** Saves the form's setting and renders the page again (in the new language, with the new state). */
+  const saveAndReload = (selector: string, path: string, body: (data: FormData) => unknown) => {
+    const form = element<HTMLFormElement>(selector);
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      try {
+        await request("PUT", path, body(new FormData(form)));
+        location.reload();
+      } catch (e) {
+        showError(form.querySelector("[data-error]"), e);
+      }
+    });
+  };
+  saveAndReload("[data-language]", "/api/store/language", (d) => ({ language: String(d.get("language") ?? "") }));
+  saveAndReload("[data-heartbeat]", "/api/store/heartbeat", (d) => ({ enabled: d.has("enabled") }));
 
   const error = document.querySelector("[data-domain-error]");
   const show = (selector: string, visible: boolean) =>

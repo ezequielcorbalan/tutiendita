@@ -64,6 +64,10 @@ If you close it halfway through, sign back in with your passkey and pick up wher
   3. Publish the store again so a new claim code is generated: in **Workers & Pages →** your store **→ Deployments**, retry the latest build (or push any change to your repository).
   4. Find the new code in the build log and claim the store just like the first time (you can do it from a different address: with no owner, old addresses don't count). Old passkeys, sessions and addresses are deleted automatically when you claim it.
 
+## Active stores
+
+Once a day your store tells tutiendita.ar its address (nothing else: no sales, no products, no customer data) so we can count how many stores are active. You can turn it off from **"Configuración"** (Settings) in the panel.
+
 ## For people who code
 
 This repo is a self-contained copy of the store from the **tutiendita** monorepo (`apps/tiendita` plus its packages; project site: https://tutiendita.ar): it's generated automatically, so it's best to make changes over there. You can still modify it however you like.

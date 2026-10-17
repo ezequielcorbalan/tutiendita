@@ -64,6 +64,10 @@ Si lo cerrás a la mitad, volvé a entrar con tu passkey y seguís donde quedast
   3. Volvé a publicar la tienda para que se genere un código de reclamo nuevo: en **Workers y Pages →** tu tienda **→ Implementaciones**, reintentá la última compilación (o subí cualquier cambio a tu repositorio).
   4. Buscá el código nuevo en el registro de compilación y reclamá la tienda como la primera vez (podés hacerlo desde otra dirección: sin dueño, las direcciones viejas no cuentan). Las passkeys, sesiones y direcciones viejas se borran solas al reclamarla.
 
+## Tiendas activas
+
+Una vez por día tu tienda le avisa a tutiendita.ar su dirección (nada más: ni ventas, ni productos, ni datos de tus clientes) para contar cuántas tiendas hay activas. Se apaga desde **Configuración** en el panel.
+
 ## Para quien sabe programar
 
 Este repo es una copia autocontenida de la tienda del monorepo de **tutiendita** (`apps/tiendita` más sus paquetes; sitio del proyecto: https://tutiendita.ar): se genera automáticamente y conviene hacer los cambios allá. Igual podés modificarlo a gusto.

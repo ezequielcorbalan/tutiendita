@@ -37,6 +37,11 @@ export const storeRoutes = new Hono<ApiEnv>()
     const r = await build(c.env).onboarding.changeLanguage(c.req.valid("json"));
     if (!r.ok) return respondDomainError(c, r.error);
     return c.json({ language: r.value.language });
+  })
+  .put("/heartbeat", ownerOnly, validate("json", z.object({ enabled: z.boolean() })), async (c) => {
+    const r = await build(c.env).heartbeat.setEnabled(c.req.valid("json").enabled);
+    if (!r.ok) return respondDomainError(c, r.error);
+    return c.json({ enabled: r.value.heartbeatEnabled });
   });
 
 export const paymentMethodRoutes = new Hono<ApiEnv>()

@@ -12,6 +12,7 @@ export * from "./d1/store-repository-d1";
 export * from "./dns/domain-inspector";
 export * from "./github/github-client";
 export * from "./r2/image-storage-r2";
+export * from "./registry/registry-client";
 export * from "./system-clock";
 export * from "./ulid-generator";
 export * from "./webcrypto-cryptography";

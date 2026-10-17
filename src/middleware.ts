@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { env } from "cloudflare:workers";
-import { DEFAULT_LANGUAGE } from "./packages/core/index";
+import { DEFAULT_LANGUAGE, shouldSendHeartbeat } from "./packages/core/index";
 import { API_ROUTES, api } from "./api/app";
 import { build } from "./container";
 import { cookieName, cookieOptions, isLocalDev, SESSION_COOKIE } from "./lib/cookies";
@@ -40,6 +40,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const container = build(env);
   const store = await container.getStore();
   context.locals.language = store?.language ?? DEFAULT_LANGUAGE;
+  // Once a day the store tells tutiendita.ar it is alive (only its origin). Off the hot path and never on http.
+  if (store && !localDev && context.url.protocol === "https:" && shouldSendHeartbeat(store, new Date())) {
+    context.locals.cfContext.waitUntil(container.heartbeat.send(context.url.origin).catch(() => {}));
+  }
   if (!PANEL_PATH.test(pathname)) {
     // Once the store's own domain answers, public pages live only there: one address for customers and search
     // engines. The panel stays reachable on workers.dev (its passkeys' rpId).

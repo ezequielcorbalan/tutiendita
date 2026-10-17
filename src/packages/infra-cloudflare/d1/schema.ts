@@ -17,6 +17,9 @@ export const stores = sqliteTable("tiendas", {
   contactWhatsapp: text("contacto_whatsapp"),
   contactEmail: text("contacto_email"),
   domain: text("dominio"),
+  /** Daily announcement to tutiendita.ar: on by default, and the ISO date of the last one. */
+  heartbeatEnabled: integer("latido_activo", { mode: "boolean" }).notNull().default(true),
+  heartbeatSentAt: text("latido_en"),
   createdAt: text("creado_en").notNull(),
   updatedAt: text("actualizado_en").notNull(),
 });

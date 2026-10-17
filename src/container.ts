@@ -28,9 +28,12 @@ import {
   quoteOrder,
   regenerateRecoveryCode,
   registerInstallation,
+  type StoreRegistry,
   saveStoreName,
   saveTransfer,
   saveWhatsapp,
+  sendHeartbeat,
+  setHeartbeatEnabled,
   signInWithRecoveryCode,
   signOut,
   startPasskeyRegistration,
@@ -56,12 +59,16 @@ import {
   createDomainInspector,
   createGithubClient,
   createR2ImageStorage,
+  createRegistryClient,
   systemClock,
   ulidGenerator,
   webCryptography,
 } from "./packages/infra-cloudflare/index";
 import { createSimpleWebAuthnCeremony } from "./adapters/simplewebauthn-ceremony";
 import { codeHash } from "./claim";
+
+/** The registry of active stores the daily heartbeat goes to (REGISTRY_URL overrides it; "" turns it off). */
+export const DEFAULT_REGISTRY_URL = "https://tutiendita.ar";
 
 /** Composition root: builds the use cases per request with the adapters from `env`. */
 export function build(env: Env) {
@@ -110,6 +117,9 @@ export function build(env: Env) {
     inspector: createDomainInspector(),
     clock: systemClock,
   };
+  const registryUrl = env.REGISTRY_URL ?? DEFAULT_REGISTRY_URL;
+  const registry: StoreRegistry =
+    registryUrl === "" ? { async announce() {} } : createRegistryClient(registryUrl);
   return {
     storeStatus: getStoreStatus({ access: accessRepo }),
     allowedOrigins: async () => (await accessRepo.allowedOrigins()).map((o) => o.origin),
@@ -169,6 +179,10 @@ export function build(env: Env) {
       check: checkDomain(domainDeps),
       connect: connectDomain(domainDeps),
       disconnect: disconnectDomain(domainDeps),
+    },
+    heartbeat: {
+      send: (origin: string) => sendHeartbeat({ store, registry }, origin, systemClock.now()),
+      setEnabled: (enabled: boolean) => setHeartbeatEnabled({ store }, enabled, systemClock.now()),
     },
     images,
     bucket: env.IMAGENES,
