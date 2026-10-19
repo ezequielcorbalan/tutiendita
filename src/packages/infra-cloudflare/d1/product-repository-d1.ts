@@ -17,6 +17,17 @@ type ValueRow = typeof optionValues.$inferSelect;
 // Drizzle keys join results by SQL table name.
 type JoinedRow = { productos: ProductRow; imagenes_producto: ImageRow | null };
 
+/** D1 allows 100 bound parameters per statement: splits the rows so each insert stays under it. */
+const MAX_BOUND_PARAMS = 100;
+function chunkByParams<T extends object>(rows: T[]): T[][] {
+  const first = rows[0];
+  if (first === undefined) return [];
+  const size = Math.max(1, Math.floor(MAX_BOUND_PARAMS / Object.keys(first).length));
+  return Array.from({ length: Math.ceil(rows.length / size) }, (_, i) =>
+    rows.slice(i * size, (i + 1) * size),
+  );
+}
+
 const toProduct = (row: ProductRow, images: ProductImage[], options: ProductOption[]): Product =>
   Object.freeze({
     id: row.id,
@@ -61,7 +72,7 @@ const groupOptions = (options: OptionRow[], values: ValueRow[]): Map<string, Pro
       name: o.name,
       values: values
         .filter((v) => v.optionId === o.id)
-        .map((v) => ({ id: v.id, label: v.label, priceDelta: v.priceDelta })),
+        .map((v) => ({ id: v.id, label: v.label, priceDelta: v.priceDelta, imageKey: v.imageKey })),
     });
     byProduct.set(o.productId, list);
   }
@@ -173,10 +184,11 @@ export function createD1ProductRepository(db: D1Database): ProductRepository {
           optionId: o.id,
           label: v.label,
           priceDelta: v.priceDelta,
+          imageKey: v.imageKey,
           position,
         })),
       );
-      if (values.length > 0) statements.push(orm.insert(optionValues).values(values));
+      for (const rows of chunkByParams(values)) statements.push(orm.insert(optionValues).values(rows));
     }
     const [first, ...others] = statements;
     if (first === undefined) return;

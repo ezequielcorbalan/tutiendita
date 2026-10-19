@@ -7,6 +7,8 @@ import { isValidSlug } from "./slug";
 // Stored in D1: values stay in Spanish (draft, published, paused).
 export type ProductStatus = "borrador" | "publicado" | "pausado";
 
+export const MAX_PRODUCT_IMAGES = 8;
+
 export type ProductImage = {
   readonly key: string;
   readonly position: number;
@@ -48,6 +50,26 @@ export type CreationContext = {
   now: Date;
 };
 
+/** Every value photo must be one of the product's gallery photos. */
+function checkValueImages(
+  options: readonly ProductOption[],
+  images: readonly ProductImage[],
+): Result<true, DomainError> {
+  const keys = new Set(images.map((i) => i.key));
+  for (const o of options) {
+    for (const v of o.values) {
+      if (v.imageKey !== null && !keys.has(v.imageKey)) {
+        return err(
+          domainError("INVALID_OPTIONS", "A value photo must be one of the product's photos", {
+            imageKey: v.imageKey,
+          }),
+        );
+      }
+    }
+  }
+  return ok(true);
+}
+
 const freeze = (p: Product): Product => Object.freeze(p);
 
 export function newProduct(e: ProductInput, ctx: CreationContext): Result<Product, DomainError> {
@@ -61,6 +83,8 @@ export function newProduct(e: ProductInput, ctx: CreationContext): Result<Produc
   const images = (e.images ?? []).map((img, i) => ({ key: img.key, position: i }));
   const options = validateOptions(e.options ?? []);
   if (!options.ok) return options;
+  const photos = checkValueImages(options.value, images);
+  if (!photos.ok) return photos;
   return ok(
     freeze({
       id: ctx.id,
@@ -108,9 +132,25 @@ export function pause(p: Product, now: Date): Result<Product, DomainError> {
   return ok(nextVersion(p, { status: "pausado" }, now));
 }
 
-export function withImage(p: Product, img: ProductImage, now: Date): Product {
-  const images = [...p.images, { key: img.key, position: p.images.length }];
-  return nextVersion(p, { images }, now);
+/** Replaces the gallery with these keys, in order. Value photos that left the gallery are cleared. */
+export function withImages(p: Product, keys: readonly string[], now: Date): Result<Product, DomainError> {
+  if (keys.length > MAX_PRODUCT_IMAGES) {
+    return err(
+      domainError("TOO_MANY_IMAGES", `At most ${MAX_PRODUCT_IMAGES} photos per product`, {
+        max: MAX_PRODUCT_IMAGES,
+      }),
+    );
+  }
+  const dup = keys.find((k, i) => keys.indexOf(k) !== i);
+  if (dup !== undefined) return err(domainError("INVALID_IMAGE", "A photo is repeated", { key: dup }));
+  const images = keys.map((key, position) => ({ key, position }));
+  const options = p.options.map((o) => ({
+    ...o,
+    values: o.values.map((v) =>
+      v.imageKey !== null && !keys.includes(v.imageKey) ? { ...v, imageKey: null } : v,
+    ),
+  }));
+  return ok(nextVersion(p, { images, options }, now));
 }
 
 export type ProductChanges = {
@@ -127,6 +167,8 @@ export function edit(p: Product, changes: ProductChanges, now: Date): Result<Pro
   if (name === "") return err(domainError("EMPTY_NAME", "The product needs a name"));
   const options = changes.options === undefined ? ok(p.options) : validateOptions(changes.options);
   if (!options.ok) return options;
+  const photos = checkValueImages(options.value, p.images);
+  if (!photos.ok) return photos;
   const next = nextVersion(
     p,
     {
@@ -145,10 +187,6 @@ export function edit(p: Product, changes: ProductChanges, now: Date): Result<Pro
   }
   return ok(next);
 }
-
-/** Replaces all images with this one (the panel handles a single photo per product). */
-export const withOnlyImage = (p: Product, key: string, now: Date): Product =>
-  nextVersion(p, { images: [{ key, position: 0 }] }, now);
 
 /** Back to draft: out of the catalog, from any status. */
 export const toDraft = (p: Product, now: Date): Product => nextVersion(p, { status: "borrador" }, now);

@@ -1,0 +1,1 @@
+ALTER TABLE `valores_opcion` ADD `imagen_clave` text;

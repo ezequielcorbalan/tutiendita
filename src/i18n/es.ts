@@ -65,6 +65,7 @@ export const es = {
     notFoundTitle: "Página no encontrada",
     productNotFoundTitle: "Producto no encontrado",
     productNotFound: "No existe un producto publicado con esa dirección.",
+    viewPhoto: (n: number, total: number) => `Ver foto ${n} de ${total}`,
 
     categories: "Categorías",
     all: "Todos",
@@ -307,6 +308,27 @@ export const es = {
     invalidDelta: "Revisá la diferencia de precio: solo el número, por ejemplo 500, o -500 si cuesta menos.",
     choose: "Elegí una opción",
     chooseAll: "Elegí una opción de cada variante.",
+    photo: "Foto",
+    noPhoto: "Sin foto",
+    photoOf: (label: string) => `Foto de ${label}`,
+  },
+  gallery: {
+    title: "Fotos",
+    help: (max: number) =>
+      `JPG, PNG o WebP, hasta ${max}. Se achican solas antes de subirlas. La primera es la principal: la que se ve en el catálogo. Para publicar hace falta al menos una.`,
+    photo: (n: number | string) => `Foto ${n}`,
+    main: "Principal",
+    moveBefore: "Mover antes",
+    moveAfter: "Mover después",
+    remove: "Quitar",
+    moveBeforeLabel: (n: number | string) => `Mover antes la foto ${n}`,
+    moveAfterLabel: (n: number | string) => `Mover después la foto ${n}`,
+    removeLabel: (n: number | string) => `Quitar la foto ${n}`,
+    add: "Agregar fotos",
+    addFailed: "No pudimos agregar una de las fotos. Probá con otra o de nuevo.",
+    full: (max: number) => `Ya tenés ${max} fotos, el máximo. Quitá una para agregar otra.`,
+    proPrefix: "Varias fotos y foto por color o talle:",
+    proLink: "activá fotos profesionales",
   },
   panelSales: {
     title: "Ventas",
@@ -516,8 +538,11 @@ export const es = {
       EMPTY_NAME: "Escribí un nombre (hasta 80 caracteres).",
       INVALID_SLUG: "La dirección del producto no es válida.",
       INVALID_IMAGE: "La foto tiene que ser JPG, PNG o WebP y no muy pesada. Probá con otra.",
+      TOO_MANY_IMAGES: "Un producto puede tener hasta 8 fotos.",
       IMAGE_QUOTA_REACHED:
         "Llegaste a las 200 fotos del modo básico. Activá Fotos profesionales y sin límite en Configuración para seguir subiendo.",
+      PRO_REQUIRED:
+        "Para sumar más fotos o una foto por opción, activá Fotos profesionales y sin límite en Configuración.",
       R2_ALREADY_SET:
         "El wrangler.jsonc de tu repositorio ya tiene un almacenamiento de fotos propio: cambialo a mano.",
       ORDER_NOT_FOUND: "No encontramos ese pedido.",

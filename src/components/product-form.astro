@@ -1,8 +1,8 @@
 ---
 /**
- * Product form shared by "New product" (POST) and "Edit product" (PUT, with status, current photo and delete).
+ * Product form shared by "New product" (POST) and "Edit product" (PUT, with status, current photos and delete).
  */
-import type { Category, Product } from "../packages/core/index";
+import { type Category, MAX_PRODUCT_IMAGES, type Product } from "../packages/core/index";
 import { texts } from "../i18n";
 import OptionsEditor from "./options-editor.astro";
 
@@ -23,8 +23,10 @@ const priceValue = product
     ? String(product.price.amount / 100)
     : (product.price.amount / 100).toFixed(2)
   : "";
-const firstImage = product?.images[0];
+const images = product?.images ?? [];
+const pro = photoMode === "professional";
 const v = all.variants;
+const g = all.gallery;
 // Category id → its variant templates, for "Usar las variantes de la categoría".
 const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTemplates]));
 ---
@@ -32,7 +34,6 @@ const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTempla
 <form
   data-product-form
   data-currency={currency}
-  data-photo-mode={photoMode}
   data-product-id={product?.id}
   data-confirm={e.confirmDelete}
   data-confirm-replace={v.confirmReplace}
@@ -53,19 +54,103 @@ const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTempla
     {categories.map((c) => <option value={c.id} selected={c.id === product?.categoryId}>{c.name}</option>)}
   </select>
   {categories.length === 0 && <p id="category-help"><small>{t.categoryHelp}</small></p>}
-  <OptionsEditor id="product-options" currency={currency} options={product?.options ?? []} legend={v.title} help={v.help}>
-    <button type="button" class="secondary small" data-from-category hidden>{v.fromCategory}</button>
-  </OptionsEditor>
   {
-    firstImage && (
-      <p>
-        <img src={`/img/${firstImage.key}`} alt={product?.name ?? ""} width="160" height="160" loading="lazy" />
-      </p>
+    pro ? (
+      <fieldset
+        class="gallery"
+        data-gallery
+        data-initial={JSON.stringify(images.map((i) => ({ key: i.key, url: `/img/${i.key}` })))}
+        data-max={MAX_PRODUCT_IMAGES}
+        data-label-photo={g.photo("{n}")}
+        data-label-before={g.moveBeforeLabel("{n}")}
+        data-label-after={g.moveAfterLabel("{n}")}
+        data-label-remove={g.removeLabel("{n}")}
+        data-add-failed={g.addFailed}
+        aria-describedby="gallery-help"
+      >
+        <legend>{g.title}</legend>
+        <p id="gallery-help"><small>{g.help(MAX_PRODUCT_IMAGES)}</small></p>
+        {/* The saved photos without JavaScript; scripts/gallery-editor.ts redraws them with their buttons. */}
+        <ol class="gallery__list" data-gallery-list>
+          {images.map((img, i) => (
+            <li class="gallery__item">
+              <img class="gallery__photo" src={`/img/${img.key}`} alt={g.photo(i + 1)} width="160" height="160" loading="lazy" />
+            </li>
+          ))}
+        </ol>
+        <label for="gallery-input">{g.add}</label>
+        <input
+          id="gallery-input"
+          type="file"
+          multiple
+          accept="image/jpeg,image/png,image/webp"
+          data-gallery-input
+          aria-describedby="gallery-help gallery-full"
+        />
+        <p id="gallery-full" data-gallery-full hidden><small>{g.full(MAX_PRODUCT_IMAGES)}</small></p>
+        <p class="error" data-gallery-error role="alert"></p>
+        <template data-gallery-template>
+          <li class="gallery__item">
+            <img class="gallery__photo" alt="" width="160" height="160" />
+            <span class="badge gallery__main" data-main>{g.main}</span>
+            <div class="gallery__actions">
+              <button type="button" class="secondary small" data-move="-1">{g.moveBefore}</button>
+              <button type="button" class="secondary small" data-move="1">{g.moveAfter}</button>
+              <button type="button" class="secondary small danger-text" data-remove>{g.remove}</button>
+            </div>
+          </li>
+        </template>
+      </fieldset>
+    ) : (
+      <>
+        {images.length > 0 && (
+          <ol class="gallery__list">
+            {images.map((img, i) => (
+              <li class="gallery__item">
+                <img
+                  class="gallery__photo"
+                  src={`/img/${img.key}`}
+                  alt={images.length > 1 ? g.photo(i + 1) : (product?.name ?? "")}
+                  width="160"
+                  height="160"
+                  loading="lazy"
+                />
+              </li>
+            ))}
+          </ol>
+        )}
+        {/* With several photos (saved while the store was PRO) replacing would drop them all: read-only. */}
+        {images.length <= 1 && (
+          <>
+            <label for="image">{product ? e.replacePhoto : t.photo}</label>
+            <input
+              id="image"
+              name="image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              aria-describedby="image-help"
+            />
+            <p id="image-help"><small>{t.photoHelp}</small></p>
+          </>
+        )}
+        <p>
+          <small>
+            {g.proPrefix} <a href="/panel/configuracion#photos">{g.proLink}</a>
+          </small>
+        </p>
+      </>
     )
   }
-  <label for="image">{product ? e.replacePhoto : t.photo}</label>
-  <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="image-help" />
-  <p id="image-help"><small>{t.photoHelp}</small></p>
+  <OptionsEditor
+    id="product-options"
+    currency={currency}
+    options={product?.options ?? []}
+    legend={v.title}
+    help={v.help}
+    photos={pro}
+  >
+    <button type="button" class="secondary small" data-from-category hidden>{v.fromCategory}</button>
+  </OptionsEditor>
   {
     product ? (
       <>
@@ -96,6 +181,7 @@ const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTempla
 </form>
 
 <script>
+  import { mountGalleryEditor } from "../scripts/gallery-editor";
   import { type InitialOption, mountOptionsEditor } from "../scripts/options-editor";
   import { shrinkImage } from "../lib/shrink-image";
   import { element, request, showError, toMinorUnits } from "../scripts/panel";
@@ -103,7 +189,15 @@ const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTempla
   const form = element<HTMLFormElement>("[data-product-form]");
   const error = form.querySelector("[data-error]");
   const id = form.dataset.productId;
-  const editor = mountOptionsEditor(element("#product-options"));
+  const galleryRoot = form.querySelector<HTMLElement>("[data-gallery]");
+  const gallery = galleryRoot
+    ? mountGalleryEditor(
+        galleryRoot,
+        JSON.parse(galleryRoot.dataset.initial ?? "[]") as { key: string; url: string }[],
+        Number(galleryRoot.dataset.max),
+      )
+    : undefined;
+  const editor = mountOptionsEditor(element("#product-options"), gallery);
   const templates = JSON.parse(form.dataset.templates ?? "{}") as Record<string, InitialOption[]>;
   // The Workers types in this project hide HTMLSelectElement: only what is used here.
   const category = element<HTMLElement & { value: string }>("#category");
@@ -126,14 +220,17 @@ const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTempla
     event.preventDefault();
     const data = new FormData(form);
     const body = new FormData();
+    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    if (submit) submit.disabled = true;
+    // Photos still being shrunk belong to this save: wait for them before reading the gallery and options.
+    await gallery?.ready();
     try {
       body.set("options", JSON.stringify(editor.read()));
     } catch (e) {
+      if (submit) submit.disabled = false;
       if (error) error.textContent = (e as Error).message;
       return;
     }
-    const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
-    if (submit) submit.disabled = true;
     body.set("name", String(data.get("name") ?? ""));
     body.set("description", String(data.get("description") ?? "").trim());
     body.set("price_amount", toMinorUnits(String(data.get("price") ?? "")));
@@ -141,11 +238,15 @@ const templates = Object.fromEntries(categories.map((c) => [c.id, c.optionTempla
     body.set("category_id", String(data.get("category") ?? ""));
     if (id) body.set("status", String(data.get("status") ?? "borrador"));
     else body.set("publish", data.get("publish") ? "true" : "false");
-    const image = data.get("image");
-    if (image instanceof File && image.size > 0) body.set(
-        "image",
-        await shrinkImage(image, form.dataset.photoMode === "professional" ? "professional" : "basic"),
-      );
+    if (gallery) {
+      // PRO: the whole gallery in order; the new photos were shrunk when added.
+      const { gallery: refs, files } = gallery.read();
+      body.set("gallery", JSON.stringify(refs));
+      files.forEach((file, i) => body.set(`image_${i}`, file));
+    } else {
+      const image = data.get("image");
+      if (image instanceof File && image.size > 0) body.set("image", await shrinkImage(image, "basic"));
+    }
     try {
       await request(id ? "PUT" : "POST", id ? `/api/products/${id}` : "/api/products", body);
       location.assign(`/panel/productos?${id ? "updated" : "created"}=1`);

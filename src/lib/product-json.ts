@@ -9,7 +9,18 @@ export type ProductJson = {
   price: { amount: number; currency: string };
   images: { key: string; url: string }[];
   /** Variants: the buyer picks one value per option; priceDelta adds to the price (minor unit). */
-  options: { id: string; name: string; values: { id: string; label: string; priceDelta: number }[] }[];
+  options: {
+    id: string;
+    name: string;
+    values: {
+      id: string;
+      label: string;
+      priceDelta: number;
+      /** One of the product's photos, if the value has one. */
+      imageKey: string | null;
+      imageUrl: string | null;
+    }[];
+  }[];
   stock: number | null;
   status: Product["status"];
   categoryId: string | null;
@@ -44,7 +55,17 @@ export function toProductJson(p: Product): ProductJson {
     images: [...p.images]
       .sort((a, b) => a.position - b.position)
       .map((img) => ({ key: img.key, url: imageUrl(img.key) })),
-    options: p.options.map((o) => ({ id: o.id, name: o.name, values: o.values.map((v) => ({ ...v })) })),
+    options: p.options.map((o) => ({
+      id: o.id,
+      name: o.name,
+      values: o.values.map((v) => ({
+        id: v.id,
+        label: v.label,
+        priceDelta: v.priceDelta,
+        imageKey: v.imageKey,
+        imageUrl: v.imageKey === null ? null : imageUrl(v.imageKey),
+      })),
+    })),
     stock: p.stock,
     status: p.status,
     categoryId: p.categoryId,

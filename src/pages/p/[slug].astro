@@ -26,10 +26,38 @@ const valueText = (label: string, delta: number, currency: string) =>
       <script slot="head" type="application/ld+json" is:inline set:html={data.jsonLd} />
       <p><a href="/">← {t.common.backToStore}</a></p>
       <div class="product-page">
-        <div class="product-page__gallery">
-          {data.product.images.map((img) => (
-            <img src={img.url} alt={data.product.name} width="480" height="480" />
-          ))}
+        <div class="product-page__gallery" data-gallery>
+          {data.product.images[0] && (
+            <img
+              src={data.product.images[0].url}
+              alt={data.product.name}
+              width="480"
+              height="480"
+              data-gallery-main
+            />
+          )}
+          {data.product.images.length > 1 && (
+            <>
+              {/* Without JavaScript the thumbnails stay hidden and every photo shows as a plain image. */}
+              <noscript>
+                {data.product.images.slice(1).map((img) => (
+                  <img src={img.url} alt={data.product.name} width="480" height="480" />
+                ))}
+              </noscript>
+              <div class="product-page__thumbs" data-thumbs hidden>
+                {data.product.images.map((img, i, all) => (
+                  <button
+                    type="button"
+                    data-thumb={img.url}
+                    aria-label={t.store.viewPhoto(i + 1, all.length)}
+                    aria-current={i === 0 ? "true" : undefined}
+                  >
+                    <img src={img.url} alt="" width="64" height="64" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
         <div class="product-page__info">
           <h1>{data.product.name}</h1>
@@ -42,7 +70,10 @@ const valueText = (label: string, delta: number, currency: string) =>
                   <select id={`option-${o.id}`} data-option-id={o.id} data-option-name={o.name} required>
                     <option value="">{v.choose}</option>
                     {o.values.map((val) => (
-                      <option value={val.id} data-delta={val.priceDelta} data-label={val.label}>
+                      <option value={val.id} data-delta={val.priceDelta}
+                        data-label={val.label}
+                        data-image={val.imageUrl ?? ""}
+                      >
                         {valueText(val.label, val.priceDelta, data.product.price.currency)}
                       </option>
                     ))}
@@ -109,7 +140,38 @@ const valueText = (label: string, delta: number, currency: string) =>
     price.textContent = formatMoney(amountOf(all, Number(d.amount)), d.currency ?? "ARS", d.locale ?? "es-AR");
     chooseAll?.setAttribute("hidden", "");
   }
-  for (const s of selects) s.addEventListener("change", updatePrice);
+  const main = document.querySelector<HTMLImageElement>("[data-gallery-main]");
+  const thumbs = Array.from(document.querySelectorAll<HTMLButtonElement>("[data-thumb]"));
+  document.querySelector("[data-thumbs]")?.removeAttribute("hidden");
+  // The thumbnails swap the main photo (without JavaScript the <noscript> images show instead).
+  function showPhoto(url: string): void {
+    if (main) main.src = url;
+    for (const t of thumbs) {
+      if (t.dataset.thumb === url) t.setAttribute("aria-current", "true");
+      else t.removeAttribute("aria-current");
+    }
+  }
+  for (const t of thumbs) t.addEventListener("click", () => showPhoto(t.dataset.thumb ?? ""));
+
+  // The photo of an option value, when it has one: the last change wins.
+  const optionPhoto = (c: ReturnType<typeof chosen>[number]) => c.option?.dataset.image || "";
+  for (const s of selects) {
+    s.addEventListener("change", () => {
+      const url = s.selectedOptions[0]?.dataset.image;
+      if (url) showPhoto(url);
+      updatePrice();
+    });
+  }
+  // The browser may restore the chosen values (back/forward): the photo and price follow them without a change.
+  function applyRestored(): void {
+    const url = chosen().map(optionPhoto).filter(Boolean).pop();
+    if (url) showPhoto(url);
+    updatePrice();
+  }
+  applyRestored();
+  window.addEventListener("pageshow", (e) => {
+    if (e.persisted) applyRestored();
+  });
 
   button?.addEventListener("click", () => {
     const d = button.dataset;
@@ -127,7 +189,8 @@ const valueText = (label: string, delta: number, currency: string) =>
       // Preview only: the cart is priced again on the server.
       amount: amountOf(all, Number(d.amount)),
       currency: d.currency ?? "ARS",
-      image: d.image || null,
+      // The photo of the first option (product order) whose value has one, else the main photo.
+      image: all.map(optionPhoto).find(Boolean) || d.image || null,
       ...(all.length > 0
         ? {
             selection: Object.fromEntries(all.map((c) => [c.select.dataset.optionId ?? "", c.select.value])),

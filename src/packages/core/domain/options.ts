@@ -16,6 +16,8 @@ export type OptionValue = {
   readonly label: string;
   /** Added to the product's base price, in the currency's minor unit; may be negative. */
   readonly priceDelta: number;
+  /** Key of one of the product's gallery photos shown when this value is picked; null for none. */
+  readonly imageKey: string | null;
 };
 
 export type ProductOption = {
@@ -108,7 +110,7 @@ export function validateOptions(options: readonly ProductOption[]): Result<Produ
         id: o.raw.id,
         name: o.name,
         values: o.values.map((x) =>
-          Object.freeze({ id: x.raw.id, label: x.label, priceDelta: x.priceDelta }),
+          Object.freeze({ id: x.raw.id, label: x.label, priceDelta: x.priceDelta, imageKey: x.raw.imageKey }),
         ),
       }),
     ),
@@ -139,7 +141,9 @@ export const optionsFromTemplates = (
     Object.freeze({
       id: newId(),
       name: t.name,
-      values: t.values.map((v) => Object.freeze({ id: newId(), label: v.label, priceDelta: v.priceDelta })),
+      values: t.values.map((v) =>
+        Object.freeze({ id: newId(), label: v.label, priceDelta: v.priceDelta, imageKey: null }),
+      ),
     }),
   );
 
@@ -148,7 +152,12 @@ export const withIds = (options: readonly ProductOption[], newId: () => string):
   options.map((o) => ({
     id: o.id.trim() || newId(),
     name: o.name,
-    values: o.values.map((v) => ({ id: v.id.trim() || newId(), label: v.label, priceDelta: v.priceDelta })),
+    values: o.values.map((v) => ({
+      id: v.id.trim() || newId(),
+      label: v.label,
+      priceDelta: v.priceDelta,
+      imageKey: v.imageKey,
+    })),
   }));
 
 /** The cheapest combination: base price plus the smallest adjustment of each option. */
