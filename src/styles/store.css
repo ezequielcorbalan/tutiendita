@@ -304,6 +304,7 @@ form button[type="submit"] {
 }
 
 .product-page__gallery img {
+  display: block;
   width: 100%;
   max-width: 30rem;
   height: auto;
@@ -313,6 +314,44 @@ form button[type="submit"] {
   border: 1px solid var(--border);
   background: var(--surface-2);
   margin-bottom: 1rem;
+}
+
+.product-page__thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.product-page__thumbs[hidden] {
+  display: none;
+}
+
+.product-page__thumbs button {
+  padding: 0;
+  width: 4rem;
+  height: 4rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.product-page__thumbs button[aria-current="true"] {
+  border-color: var(--brand);
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+.product-page__thumbs img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
 }
 
 p.price {
@@ -1052,6 +1091,123 @@ button.icon svg {
     padding-top: 0.75rem;
     border-top: 1px solid var(--border);
   }
+}
+
+/* Product gallery (panel): thumbnails in order; in PRO each one has the main badge and its move/remove buttons. */
+.gallery {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  margin-top: 1rem;
+}
+
+.gallery > p {
+  margin: 0;
+}
+
+.gallery__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 1rem;
+  width: 100%;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gallery .gallery__list {
+  margin: 0;
+}
+
+.gallery__list:empty {
+  display: none;
+}
+
+.gallery__item {
+  position: relative;
+  margin: 0;
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+}
+
+.gallery__photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.gallery__main {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: var(--brand);
+  color: var(--brand-text);
+}
+
+.gallery__actions {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.gallery__actions button {
+  width: 100%;
+}
+
+/* Photo of an option value: a disclosure with the gallery's thumbnails as radios. */
+.value-row__photo {
+  grid-column: 1 / -1;
+}
+
+.value-row__photo summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.value-row__photo summary img {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.photo-choices__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.photo-choices__list label {
+  margin: 0;
+  padding: 0.25rem 0.75rem 0.25rem 0.5rem;
+  font-weight: 400;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.photo-choices__list label:has(:checked) {
+  border-color: var(--brand);
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
+
+.photo-choices__img {
+  width: 3rem;
+  height: 3rem;
+  object-fit: cover;
+  border-radius: 6px;
 }
 
 /* Panel: categories list and side-by-side actions. */

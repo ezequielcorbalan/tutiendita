@@ -52,6 +52,7 @@ export * from "./use-cases/manage-product";
 export * from "./use-cases/onboarding";
 export * from "./use-cases/photo-storage";
 export * from "./use-cases/place-order";
+export * from "./use-cases/product-gallery";
 export * from "./use-cases/quote-order";
 export * from "./use-cases/sample-products";
 export * from "./use-cases/updates";

@@ -4,7 +4,7 @@
 
 Your online store, running on **your own Cloudflare account**, with a single button. No coding, no hosting bills, and no keys or passwords to paste anywhere. Project site: [tutiendita.ar](https://tutiendita.ar).
 
-**Free, open source e-commerce for small businesses**, self-hosted on Cloudflare Workers and D1: product catalog with photos, categories and variants, a cart that sends the order by WhatsApp (each order is kept in the panel's Sales section, where you mark it paid and delivered), bank transfer payments, Google-ready pages (sitemap, Open Graph, schema.org Product) and an owner panel with passkeys. No sales fees and your data stays yours.
+**Free, open source e-commerce for small businesses**, self-hosted on Cloudflare Workers and D1: product catalog with photos (up to 8 per product, and one per option, when R2 is connected), categories and variants, a cart that sends the order by WhatsApp (each order is kept in the panel's Sales section, where you mark it paid and delivered), bank transfer payments, Google-ready pages (sitemap, Open Graph, schema.org Product) and an owner panel with passkeys. No sales fees and your data stays yours.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ezequielcorbalan/tutiendita)
 

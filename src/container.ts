@@ -116,7 +116,15 @@ export function build(env: Env) {
     clock: systemClock,
     ids: ulidGenerator,
   };
-  const productDeps = { repo, categories, images, maxImageSize, clock: systemClock, ids: ulidGenerator };
+  const productDeps = {
+    repo,
+    categories,
+    images,
+    maxImageSize,
+    pro: hasBucket,
+    clock: systemClock,
+    ids: ulidGenerator,
+  };
   // Sample photos are static Worker assets (public/samples). They are requested with the request's own origin:
   // in production the host doesn't matter, but `astro dev` (Vite) rejects unknown hosts with 403.
   const readPhotoFrom = (origin: string) => async (path: string) => {

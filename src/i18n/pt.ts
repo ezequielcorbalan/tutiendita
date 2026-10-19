@@ -61,6 +61,7 @@ export const pt: Texts = {
     notFoundTitle: "Página não encontrada",
     productNotFoundTitle: "Produto não encontrado",
     productNotFound: "Não existe um produto publicado neste endereço.",
+    viewPhoto: (n: number, total: number) => `Ver foto ${n} de ${total}`,
 
     categories: "Categorias",
     all: "Todos",
@@ -298,6 +299,27 @@ export const pt: Texts = {
     invalidDelta: "Confira a diferença de preço: só o número, por exemplo 500, ou -500 se custa menos.",
     choose: "Escolha uma opção",
     chooseAll: "Escolha uma opção de cada variante.",
+    photo: "Foto",
+    noPhoto: "Sem foto",
+    photoOf: (label: string) => `Foto de ${label}`,
+  },
+  gallery: {
+    title: "Fotos",
+    help: (max: number) =>
+      `JPG, PNG ou WebP, até ${max}. Elas diminuem sozinhas antes do envio. A primeira é a principal: a que aparece no catálogo. Para publicar é preciso pelo menos uma.`,
+    photo: (n: number | string) => `Foto ${n}`,
+    main: "Principal",
+    moveBefore: "Mover para antes",
+    moveAfter: "Mover para depois",
+    remove: "Remover",
+    moveBeforeLabel: (n: number | string) => `Mover para antes a foto ${n}`,
+    moveAfterLabel: (n: number | string) => `Mover para depois a foto ${n}`,
+    removeLabel: (n: number | string) => `Remover a foto ${n}`,
+    add: "Adicionar fotos",
+    addFailed: "Não conseguimos adicionar uma das fotos. Tente outra ou tente de novo.",
+    full: (max: number) => `Você já tem ${max} fotos, o máximo. Remova uma para adicionar outra.`,
+    proPrefix: "Várias fotos e foto por cor ou tamanho:",
+    proLink: "ative as fotos profissionais",
   },
   panelSales: {
     title: "Vendas",
@@ -504,8 +526,11 @@ export const pt: Texts = {
       EMPTY_NAME: "Digite um nome (até 80 caracteres).",
       INVALID_SLUG: "O endereço do produto não é válido.",
       INVALID_IMAGE: "A foto precisa ser JPG, PNG ou WebP e não muito pesada. Tente outra.",
+      TOO_MANY_IMAGES: "Um produto pode ter até 8 fotos.",
       IMAGE_QUOTA_REACHED:
         "Você chegou às 200 fotos do modo básico. Ative Fotos profissionais e sem limite em Configurações para continuar enviando.",
+      PRO_REQUIRED:
+        "Para adicionar mais fotos ou uma foto por opção, ative Fotos profissionais e sem limite em Configurações.",
       R2_ALREADY_SET:
         "O wrangler.jsonc do seu repositório já tem um armazenamento de fotos próprio: altere-o manualmente.",
       ORDER_NOT_FOUND: "Não encontramos esse pedido.",

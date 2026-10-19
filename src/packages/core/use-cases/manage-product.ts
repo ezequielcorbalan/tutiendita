@@ -1,6 +1,5 @@
 import { type DomainError, domainError } from "../domain/errors";
 import type { Money } from "../domain/money";
-import { type ProductOption, withIds } from "../domain/options";
 import {
   edit,
   type Product,
@@ -8,7 +7,7 @@ import {
   pause,
   publish,
   toDraft,
-  withOnlyImage,
+  withImages,
 } from "../domain/product";
 import { err, ok, type Result } from "../domain/result";
 import type { CategoryRepository } from "../ports/category-repository";
@@ -16,7 +15,19 @@ import type { Clock } from "../ports/clock";
 import type { IdGenerator } from "../ports/id-generator";
 import type { ImageStorage } from "../ports/image-storage";
 import type { ProductRepository } from "../ports/product-repository";
-import { imageQuotaReached, validateImage } from "./create-product";
+import {
+  checkGallery,
+  checkPro,
+  keyOf,
+  type OptionInput,
+  type PhotoRef,
+  placeholders,
+  removeAll,
+  resolveOptions,
+  type Upload,
+  uploadAll,
+  withInputIds,
+} from "./product-gallery";
 
 export type ManageProductDeps = {
   repo: ProductRepository;
@@ -26,6 +37,8 @@ export type ManageProductDeps = {
   ids: IdGenerator;
   /** Largest photo accepted, in bytes. Default `MAX_IMAGE_SIZE`. */
   maxImageSize?: number;
+  /** Professional photo storage: more than one photo and photos per value. Default false. */
+  pro?: boolean;
 };
 
 export type UpdateProductInput = {
@@ -35,9 +48,10 @@ export type UpdateProductInput = {
   categoryId: string | null;
   status: ProductStatus;
   /** Variants, complete: replace the current ones (new options and values come without id). Omitted: unchanged. */
-  options?: readonly ProductOption[];
-  /** New photo: replaces the current one. */
-  image?: { bytes: Uint8Array; mimeType: string };
+  options?: readonly OptionInput[];
+  /** The whole gallery, in order; each `{ upload: n }` is `uploads[n]`. Omitted: photos unchanged. */
+  gallery?: readonly PhotoRef[];
+  uploads?: readonly Upload[];
 };
 
 const notFound = (id: string) => err(domainError("PRODUCT_NOT_FOUND", "The product does not exist", { id }));
@@ -50,66 +64,84 @@ function applyStatus(p: Product, status: ProductStatus, now: Date): Result<Produ
 }
 
 /**
- * Edits a product from the panel. Everything is validated before uploading the new photo; the old
- * photos are deleted only after saving (best-effort), and the new one is deleted if saving fails.
+ * Edits a product from the panel. Everything is validated before uploading the new photos (the whole
+ * product is built first with stand-in keys); the photos that left the gallery are deleted only after
+ * saving (best-effort), and the new ones are deleted if anything fails after uploading.
  */
 export const updateProduct =
   (deps: ManageProductDeps) =>
   async (id: string, e: UpdateProductInput): Promise<Result<Product, DomainError>> => {
     const current = await deps.repo.findById(id);
     if (current === null) return notFound(id);
-    if (e.image !== undefined) {
-      const v = validateImage(e.image, deps.maxImageSize);
-      if (!v.ok) return v;
-    }
+    const gallery = e.gallery ?? current.images.map((img) => ({ key: img.key }));
+    const uploads = e.uploads ?? [];
+    const valid = checkGallery(
+      gallery,
+      uploads,
+      current.images.map((img) => img.key),
+      e.options,
+      deps.maxImageSize,
+    );
+    if (!valid.ok) return valid;
     if (e.categoryId !== null && (await deps.categories.findById(e.categoryId)) === null) {
       return err(
         domainError("CATEGORY_NOT_FOUND", "The category does not exist", { categoryId: e.categoryId }),
       );
     }
     const now = deps.clock.now();
-    // Status last: publishing needs the new price and photo. A virtual photo checks it before uploading.
-    const edited = edit(
-      current,
-      {
-        name: e.name,
-        description: e.description,
-        price: e.price,
-        categoryId: e.categoryId,
-        ...(e.options !== undefined ? { options: withIds(e.options, () => deps.ids.newId()) } : {}),
-      },
-      now,
-    );
-    if (!edited.ok) return edited;
-    const simulated = e.image === undefined ? edited.value : withOnlyImage(edited.value, "pending", now);
-    const check = applyStatus(simulated, e.status, now);
+    const options = e.options !== undefined ? withInputIds(e.options, () => deps.ids.newId()) : undefined;
+    // Photos first (value photos that leave the gallery are cleared), then the data. Publishing goes last
+    // (it needs the new price and photos); leaving "publicado" goes before the data, so the publishable
+    // check of the in-between state doesn't block it.
+    const build = (uploaded: readonly string[]): Result<Product, DomainError> => {
+      const key = keyOf(uploaded);
+      const photos = withImages(current, gallery.map(key), now);
+      if (!photos.ok) return photos;
+      const unpublished = e.status === "publicado" ? photos : applyStatus(photos.value, e.status, now);
+      if (!unpublished.ok) return unpublished;
+      const edited = edit(
+        unpublished.value,
+        {
+          name: e.name,
+          description: e.description,
+          price: e.price,
+          categoryId: e.categoryId,
+          ...(options !== undefined ? { options: resolveOptions(options, photos.value, key) } : {}),
+        },
+        now,
+      );
+      if (!edited.ok) return edited;
+      const final = applyStatus(edited.value, e.status, now);
+      // One save is one version, however many domain transitions happened.
+      return final.ok
+        ? ok(Object.freeze({ ...final.value, version: current.version + 1, updatedAt: now }))
+        : final;
+    };
+    const check = build(placeholders(uploads.length));
     if (!check.ok) return check;
+    const pro = checkPro(current, check.value, uploads.length, deps.pro ?? false);
+    if (!pro.ok) return pro;
 
-    let product = edited.value;
-    let uploadedKey: string | null = null;
-    if (e.image !== undefined) {
-      try {
-        uploadedKey = (await deps.images.save(e.image.bytes, e.image.mimeType)).key;
-      } catch (error) {
-        const quota = imageQuotaReached(error);
-        if (quota !== null) return err(quota);
-        throw error;
-      }
-      product = withOnlyImage(product, uploadedKey, now);
-    }
-    const final = applyStatus(product, e.status, now);
-    if (!final.ok) return final;
-    // One save is one version, however many domain transitions happened.
-    product = Object.freeze({ ...final.value, version: current.version + 1, updatedAt: now });
+    const uploaded = await uploadAll(deps.images, uploads);
+    if (!uploaded.ok) return uploaded;
+    let product: Product;
     try {
+      const built = build(uploaded.value);
+      if (!built.ok) {
+        await removeAll(deps.images, uploaded.value);
+        return built;
+      }
+      product = built.value;
       await deps.repo.save(product);
     } catch (error) {
-      if (uploadedKey !== null) await deps.images.remove(uploadedKey).catch(() => undefined);
+      await removeAll(deps.images, uploaded.value);
       throw error;
     }
-    if (uploadedKey !== null) {
-      for (const img of current.images) await deps.images.remove(img.key).catch(() => undefined);
-    }
+    const kept = new Set(product.images.map((img) => img.key));
+    await removeAll(
+      deps.images,
+      current.images.filter((img) => !kept.has(img.key)).map((img) => img.key),
+    );
     return ok(product);
   };
 
@@ -120,6 +152,9 @@ export const deleteProduct =
     const current = await deps.repo.findById(id);
     if (current === null) return notFound(id);
     await deps.repo.remove(id);
-    for (const img of current.images) await deps.images.remove(img.key).catch(() => undefined);
+    await removeAll(
+      deps.images,
+      current.images.map((img) => img.key),
+    );
     return ok({ id });
   };

@@ -17,13 +17,48 @@ export const templatesSchema = z
   )
   .max(MAX_OPTIONS);
 
+/** A product photo: one the product already has (by key) or a file sent with the request (by index). */
+export const MAX_UPLOADS = 8;
+const photoRef = z.union([
+  z.strictObject({ key: z.string().min(1).max(128) }),
+  z.strictObject({
+    upload: z
+      .number()
+      .int()
+      .min(0)
+      .max(MAX_UPLOADS - 1),
+  }),
+]);
+
+/** The `gallery` multipart field: JSON text, the product's photos in order. */
+export const galleryField = z
+  .string()
+  .max(20_000)
+  .transform((text, ctx) => {
+    try {
+      return JSON.parse(text) as unknown;
+    } catch {
+      ctx.addIssue({ code: "custom", message: "Must be JSON" });
+      return z.NEVER;
+    }
+  })
+  .pipe(z.array(photoRef).max(MAX_UPLOADS));
+
 const optionsSchema = z
   .array(
     z.object({
       id: z.string().max(64).optional(),
       name: label,
       values: z
-        .array(z.object({ id: z.string().max(64).optional(), label, price_delta: priceDelta }))
+        .array(
+          z.object({
+            id: z.string().max(64).optional(),
+            label,
+            price_delta: priceDelta,
+            // null removes the value's photo; omitted keeps it.
+            image_ref: photoRef.nullable().optional(),
+          }),
+        )
         .max(MAX_OPTION_VALUES),
     }),
   )
@@ -46,7 +81,12 @@ export const optionsField = z
     options.map((o) => ({
       id: o.id ?? "",
       name: o.name,
-      values: o.values.map((v) => ({ id: v.id ?? "", label: v.label, priceDelta: v.price_delta })),
+      values: o.values.map((v) => ({
+        id: v.id ?? "",
+        label: v.label,
+        priceDelta: v.price_delta,
+        ...(v.image_ref !== undefined ? { imageRef: v.image_ref } : {}),
+      })),
     })),
   );
 

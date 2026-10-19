@@ -1,7 +1,8 @@
 ---
 /**
  * Variants editor (options with their values and price difference), shared by the product form and the
- * category form. The rows are built in the browser from the <template>s (scripts/options-editor.ts).
+ * category form. The rows are built in the browser from the <template>s (scripts/options-editor.ts). With
+ * `photos` (product form, PRO) each value row also picks one of the gallery's photos.
  */
 import { MAX_OPTION_LABEL_LENGTH, MAX_OPTION_VALUES, MAX_OPTIONS } from "../packages/core/index";
 import { texts } from "../i18n";
@@ -13,8 +14,9 @@ interface Props {
   options: readonly InitialOption[];
   legend: string;
   help: string;
+  photos?: boolean;
 }
-const { id, currency, options, legend, help } = Astro.props;
+const { id, currency, options, legend, help, photos = false } = Astro.props;
 const t = texts(Astro.locals.language).variants;
 ---
 
@@ -26,6 +28,9 @@ const t = texts(Astro.locals.language).variants;
   data-max-options={MAX_OPTIONS}
   data-max-values={MAX_OPTION_VALUES}
   data-invalid-delta={t.invalidDelta}
+  data-no-photo={t.noPhoto}
+  data-photo={t.photo}
+  data-photo-of={t.photoOf("{label}")}
   aria-describedby={`${id}-help`}
 >
   <legend>{legend}</legend>
@@ -58,6 +63,22 @@ const t = texts(Astro.locals.language).variants;
       <button type="button" class="secondary icon" data-remove-value aria-label={t.removeValue}>
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"></path></svg>
       </button>
+      {
+        photos && (
+          <details class="value-row__photo" data-photo-picker hidden>
+            <summary>
+              <img data-photo-current-img alt="" width="40" height="40" hidden />
+              <span>
+                {t.photo}: <span data-photo-current>{t.noPhoto}</span>
+              </span>
+            </summary>
+            <fieldset class="photo-choices">
+              <legend class="visually-hidden" data-photo-legend>{t.photo}</legend>
+              <div class="photo-choices__list" data-photo-choices></div>
+            </fieldset>
+          </details>
+        )
+      }
     </div>
   </template>
 </fieldset>

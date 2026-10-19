@@ -61,6 +61,7 @@ export const en: Texts = {
     notFoundTitle: "Page not found",
     productNotFoundTitle: "Product not found",
     productNotFound: "There's no published product at this address.",
+    viewPhoto: (n: number, total: number) => `View photo ${n} of ${total}`,
 
     categories: "Categories",
     all: "All",
@@ -297,6 +298,27 @@ export const en: Texts = {
     invalidDelta: "Check the price difference: just the number, for example 500, or -500 if it costs less.",
     choose: "Choose an option",
     chooseAll: "Choose one option of each variant.",
+    photo: "Photo",
+    noPhoto: "No photo",
+    photoOf: (label: string) => `Photo of ${label}`,
+  },
+  gallery: {
+    title: "Photos",
+    help: (max: number) =>
+      `JPG, PNG or WebP, up to ${max}. They shrink on their own before uploading. The first one is the main photo: the one shown in the catalog. You need at least one to publish.`,
+    photo: (n: number | string) => `Photo ${n}`,
+    main: "Main",
+    moveBefore: "Move before",
+    moveAfter: "Move after",
+    remove: "Remove",
+    moveBeforeLabel: (n: number | string) => `Move before photo ${n}`,
+    moveAfterLabel: (n: number | string) => `Move after photo ${n}`,
+    removeLabel: (n: number | string) => `Remove photo ${n}`,
+    add: "Add photos",
+    addFailed: "We couldn't add one of the photos. Try another one or try again.",
+    full: (max: number) => `You have ${max} photos, the maximum. Remove one to add another.`,
+    proPrefix: "Several photos and a photo per color or size:",
+    proLink: "turn on professional photos",
   },
   panelSales: {
     title: "Sales",
@@ -504,8 +526,11 @@ export const en: Texts = {
       EMPTY_NAME: "Type a name (up to 80 characters).",
       INVALID_SLUG: "The product address isn't valid.",
       INVALID_IMAGE: "The photo has to be a JPG, PNG or WebP and not too large. Try another one.",
+      TOO_MANY_IMAGES: "A product can have up to 8 photos.",
       IMAGE_QUOTA_REACHED:
         "You reached the 200 photos of basic mode. Turn on Professional photos, no limit in Settings to keep uploading.",
+      PRO_REQUIRED:
+        "To add more photos or a photo per option, turn on Professional photos, no limit in Settings.",
       R2_ALREADY_SET:
         "Your repository's wrangler.jsonc already has its own photo storage: change it by hand.",
       ORDER_NOT_FOUND: "We couldn't find that order.",

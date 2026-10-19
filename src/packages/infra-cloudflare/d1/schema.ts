@@ -108,6 +108,8 @@ export const optionValues = sqliteTable(
     label: text("etiqueta").notNull(),
     /** In the product currency's minor unit; may be negative. */
     priceDelta: integer("ajuste_precio").notNull().default(0),
+    /** Key of one of the product's photos; null when the value has none. */
+    imageKey: text("imagen_clave"),
     position: integer("orden").notNull(),
   },
   (t) => [index("valores_opcion_opcion_idx").on(t.optionId)],

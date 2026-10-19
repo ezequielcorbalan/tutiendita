@@ -1,18 +1,29 @@
-import { money } from "../../packages/core/index";
+import {
+  domainError,
+  err,
+  MAX_BASIC_IMAGE_SIZE,
+  money,
+  ok,
+  type PhotoRef,
+  type Upload,
+} from "../../packages/core/index";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
+import { createMiddleware } from "hono/factory";
 import { z } from "zod";
 import { build } from "../../container";
 import { toProductJson } from "../../lib/product-json";
 import { type ErrorBody, respondDomainError } from "../errors";
 import { requireSession } from "../middlewares/session";
-import { optionsField } from "../options-schema";
+import { galleryField, MAX_UPLOADS, optionsField } from "../options-schema";
 import type { ApiEnv } from "../types";
 import { validate } from "../validation";
 import { verifyImage } from "../verify-image";
 
-/** Body cap for creation: the image (max 5 MB) plus the other fields. */
-export const MAX_BODY_SIZE = 6 * 1024 * 1024;
+/** Body cap: up to 8 photos (max 5 MB each) plus the other fields. */
+export const MAX_BODY_SIZE = MAX_UPLOADS * 5 * 1024 * 1024 + 1024 * 1024;
+/** Basic stores (no IMAGENES bucket) take one photo of up to 1.5 MB. */
+const MAX_BASIC_BODY_SIZE = MAX_BASIC_IMAGE_SIZE + 1024 * 1024;
 export const MAX_NAME_LENGTH = 120;
 export const MAX_DESCRIPTION_LENGTH = 5000;
 
@@ -37,7 +48,15 @@ const creationSchema = z.object({
     .enum(["true", "false"], { message: 'Must be "true" or "false"' })
     .optional()
     .transform((v) => v === "true"),
+  // One photo (kept for compatibility), or `gallery` (JSON) plus the files image_0 … image_7.
   image: z.instanceof(File, { message: "Must be a file" }).optional(),
+  gallery: galleryField.optional(),
+  ...Object.fromEntries(
+    Array.from({ length: MAX_UPLOADS }, (_, i) => [
+      `image_${i}`,
+      z.instanceof(File, { message: "Must be a file" }).optional(),
+    ]),
+  ),
   // Empty means "no category".
   category_id: z
     .string()
@@ -55,28 +74,49 @@ const updateSchema = creationSchema.omit({ publish: true }).extend({
   status: z.enum(["publicado", "pausado", "borrador"], { message: "Unknown status" }),
 });
 
-const bodyCap = bodyLimit({
-  maxSize: MAX_BODY_SIZE,
-  onError: (c) =>
-    c.json<ErrorBody>(
-      {
-        error: {
-          code: "BODY_TOO_LARGE",
-          // The panel has no text for this code and shows this message as is: it stays in Spanish.
-          message: "El cuerpo de la solicitud supera el máximo",
-          details: { max: MAX_BODY_SIZE },
+const capFor = (maxSize: number) =>
+  bodyLimit({
+    maxSize,
+    onError: (c) =>
+      c.json<ErrorBody>(
+        {
+          error: {
+            code: "BODY_TOO_LARGE",
+            // The panel has no text for this code and shows this message as is: it stays in Spanish.
+            message: "El cuerpo de la solicitud supera el máximo",
+            details: { max: maxSize },
+          },
         },
-      },
-      413,
-    ),
-});
+        413,
+      ),
+  });
+const bodyCap = createMiddleware<ApiEnv>((c, next) =>
+  capFor(c.env.IMAGENES === undefined ? MAX_BASIC_BODY_SIZE : MAX_BODY_SIZE)(c, next),
+);
 
-/** Reads and checks the uploaded photo, if any. */
-async function readImage(file: File | undefined) {
-  if (file === undefined) return { ok: true as const, image: undefined };
-  const image = { bytes: new Uint8Array(await file.arrayBuffer()), mimeType: file.type };
-  const problem = verifyImage(file.name, image.mimeType);
-  return problem === null ? { ok: true as const, image } : { ok: false as const, problem };
+/** Turns the photo fields into the gallery and the uploads of core; every file goes through `verifyImage`. */
+async function readPhotos(data: {
+  image?: File | undefined;
+  gallery?: PhotoRef[] | undefined;
+  [file: `image_${number}`]: File | undefined;
+}) {
+  const files = Array.from({ length: MAX_UPLOADS }, (_, i) => data[`image_${i}`]);
+  const sent = files.filter((f): f is File => f !== undefined);
+  if (data.image !== undefined && (data.gallery !== undefined || sent.length > 0)) {
+    return err(domainError("INVALID_IMAGE", "Send either image or gallery with image_0 … image_7"));
+  }
+  if (files.slice(0, sent.length).some((f) => f === undefined)) {
+    return err(domainError("INVALID_IMAGE", "The files must be image_0, image_1 … without gaps"));
+  }
+  const uploads: Upload[] = [];
+  for (const file of data.image !== undefined ? [data.image] : sent) {
+    const problem = verifyImage(file.name, file.type);
+    if (problem !== null) return err(problem);
+    uploads.push({ bytes: new Uint8Array(await file.arrayBuffer()), mimeType: file.type });
+  }
+  // Neither image, gallery nor files: the product's photos stay as they are.
+  const gallery = data.image !== undefined ? [{ upload: 0 }] : data.gallery;
+  return ok(gallery === undefined && uploads.length === 0 ? {} : { gallery: gallery ?? [], uploads });
 }
 
 export const productRoutes = new Hono<ApiEnv>()
@@ -99,8 +139,8 @@ export const productRoutes = new Hono<ApiEnv>()
       const data = c.req.valid("form");
       const price = money(data.price_amount, data.price_currency);
       if (!price.ok) return respondDomainError(c, price.error);
-      const read = await readImage(data.image);
-      if (!read.ok) return respondDomainError(c, read.problem);
+      const photos = await readPhotos(data);
+      if (!photos.ok) return respondDomainError(c, photos.error);
       const r = await build(c.env).createProduct({
         name: data.name,
         price: price.value,
@@ -108,7 +148,7 @@ export const productRoutes = new Hono<ApiEnv>()
         categoryId: data.category_id,
         ...(data.options !== undefined ? { options: data.options } : {}),
         ...(data.description !== undefined ? { description: data.description } : {}),
-        ...(read.image !== undefined ? { image: read.image } : {}),
+        ...photos.value,
       });
       if (!r.ok) return respondDomainError(c, r.error);
       return c.json(toProductJson(r.value), 201);
@@ -123,8 +163,8 @@ export const productRoutes = new Hono<ApiEnv>()
       const data = c.req.valid("form");
       const price = money(data.price_amount, data.price_currency);
       if (!price.ok) return respondDomainError(c, price.error);
-      const read = await readImage(data.image);
-      if (!read.ok) return respondDomainError(c, read.problem);
+      const photos = await readPhotos(data);
+      if (!photos.ok) return respondDomainError(c, photos.error);
       const r = await build(c.env).updateProduct(c.req.param("id"), {
         name: data.name,
         description: data.description,
@@ -132,7 +172,7 @@ export const productRoutes = new Hono<ApiEnv>()
         categoryId: data.category_id,
         status: data.status,
         ...(data.options !== undefined ? { options: data.options } : {}),
-        ...(read.image !== undefined ? { image: read.image } : {}),
+        ...photos.value,
       });
       if (!r.ok) return respondDomainError(c, r.error);
       return c.json(toProductJson(r.value));
