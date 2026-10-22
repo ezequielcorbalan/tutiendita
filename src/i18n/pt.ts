@@ -218,6 +218,9 @@ export const pt: Texts = {
     exit: "Sair",
   },
   settings: {
+    linksLabel: "Acesso e atualizações",
+    accessText: "Passkeys, chave de acesso e código de recuperação.",
+    updatesText: "Novidades do tutiendita e atualização da sua loja.",
     title: "Configurações",
     identityTitle: "Sua loja",
     identityName: "Nome",

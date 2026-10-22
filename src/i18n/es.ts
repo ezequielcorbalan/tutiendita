@@ -222,6 +222,9 @@ export const es = {
     exit: "Salir",
   },
   settings: {
+    linksLabel: "Acceso y actualizaciones",
+    accessText: "Passkeys, clave de acceso y código de recuperación.",
+    updatesText: "Qué hay de nuevo en tutiendita y actualizar tu tienda.",
     title: "Configuración",
     identityTitle: "Tu tienda",
     identityName: "Nombre",
