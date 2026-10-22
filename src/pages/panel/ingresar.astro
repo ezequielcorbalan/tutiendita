@@ -15,10 +15,15 @@ const t = texts(Astro.locals.language).signIn;
   <p class="error" data-error role="alert"></p>
   <p data-unsupported hidden>{t.unsupported}</p>
   <p><a href="/panel/recuperar">{t.lostMyDevice}</a></p>
+  <h2>{t.keyTitle}</h2>
+  <label for="access-key">{t.keyLabel}</label>
+  <input id="access-key" name="access-key" type="password" autocomplete="current-password" />
+  <button type="button" class="secondary" data-sign-in-key>{t.keyButton}</button>
+  <p class="error" data-key-error role="alert"></p>
 </Panel>
 
 <script>
-  import { browserSupportsWebAuthn, element, signInWithPasskey, showError } from "../../scripts/panel";
+  import { browserSupportsWebAuthn, element, signInWithPasskey, signInWithPassword, showError } from "../../scripts/panel";
 
   const error = element("[data-error]");
   const button = element<HTMLButtonElement>("[data-sign-in]");
@@ -41,4 +46,17 @@ const t = texts(Astro.locals.language).signIn;
       }
     });
   }
+
+  // Works on any device: no passkey involved.
+  const keyError = element("[data-key-error]");
+  const keyInput = element<HTMLInputElement>("#access-key");
+  element<HTMLButtonElement>("[data-sign-in-key]").addEventListener("click", async () => {
+    keyError.textContent = "";
+    try {
+      await signInWithPassword(keyInput.value);
+      location.assign("/panel");
+    } catch (e) {
+      showError(keyError, e);
+    }
+  });
 </script>

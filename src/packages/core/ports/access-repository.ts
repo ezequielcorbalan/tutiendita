@@ -4,8 +4,12 @@ export type ClaimData = {
   readonly webauthnUserId: string;
   readonly now: Date;
   readonly origin: AllowedOrigin;
-  readonly credential: Credential;
-  readonly recoveryCodeHash: string;
+  /** Null when the owner claims with a key instead of a passkey. */
+  readonly credential: Credential | null;
+  /** Null when the owner claims with a key (no recovery code is issued). */
+  readonly recoveryCodeHash: string | null;
+  /** Null when the owner claims with a passkey (the password is optional). */
+  readonly keyHash: string | null;
 };
 
 export type RecoveryData = {
@@ -37,6 +41,9 @@ export interface AccessRepository {
    */
   finishRecovery(d: RecoveryData): Promise<boolean>;
   replaceRecoveryCode(hash: string, now: Date): Promise<void>;
+  /** The stored sign-in password hash, or `null` if there is no owner or no password. */
+  keyHash(): Promise<string | null>;
+  replaceKeyHash(hash: string): Promise<void>;
   saveOnboarding(step: OnboardingStep, completedAt: Date | null): Promise<void>;
   /** Empty if there is no `acceso` row (no owner, even if emergency-plan rows were left over). */
   allowedOrigins(): Promise<AllowedOrigin[]>;

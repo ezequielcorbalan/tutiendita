@@ -1,7 +1,8 @@
 ---
 /**
  * "Crear mi passkey" button + showing the recovery code when the server issues one (claim or
- * recovery). Used in step 1, in /panel/recuperar and in /panel/acceso.
+ * recovery). Used in step 1, in /panel/recuperar and in /panel/acceso. In step 1 (`allowKey`) there is also a
+ * password option for devices without passkeys.
  */
 import { texts } from "../i18n";
 
@@ -11,14 +12,31 @@ interface Props {
   /** Onboarding step completed when done. */
   step?: string;
   text?: string;
+  /** Offers a password instead of a passkey (claim only: devices without passkeys). */
+  allowKey?: boolean;
 }
 const t = texts(Astro.locals.language);
-const { next, step, text = t.passkey.create } = Astro.props;
+const { next, step, text = t.passkey.create, allowKey = false } = Astro.props;
 ---
 
 <div data-register-passkey data-next={next} data-step={step ?? ""}>
   <p data-unsupported hidden>{t.common.noPasskeys}</p>
   <button type="button" data-create>{text}</button>
+  {
+    allowKey && (
+      <>
+        <button type="button" class="secondary" data-create-key>{t.passkey.useKey}</button>
+        <form data-key-form hidden>
+          <label for="claim-password">{t.password.newLabel}</label>
+          <input id="claim-password" type="password" autocomplete="new-password" minlength="12" required />
+          <label for="claim-password-repeat">{t.password.repeatLabel}</label>
+          <input id="claim-password-repeat" type="password" autocomplete="new-password" required />
+          <p><small>{t.password.rules}</small></p>
+          <button type="submit">{t.password.submit}</button>
+        </form>
+      </>
+    )
+  }
   <p class="error" data-error role="alert"></p>
   <div data-code hidden></div>
 </div>
@@ -27,13 +45,17 @@ const { next, step, text = t.passkey.create } = Astro.props;
   import {
     advance,
     browserSupportsWebAuthn,
+    claimWithPassword,
     showRecoveryCode,
     showError,
     registerPasskey,
+    t,
   } from "../scripts/panel";
 
   for (const block of document.querySelectorAll<HTMLElement>("[data-register-passkey]")) {
     const button = block.querySelector<HTMLButtonElement>("[data-create]");
+    const keyButton = block.querySelector<HTMLButtonElement>("[data-create-key]");
+    const keyForm = block.querySelector<HTMLFormElement>("[data-key-form]");
     const error = block.querySelector("[data-error]");
     const code = block.querySelector<HTMLElement>("[data-code]");
     const { next = "/panel", step = "" } = block.dataset;
@@ -45,10 +67,10 @@ const { next, step, text = t.passkey.create } = Astro.props;
         showError(error, e);
       }
     };
+    // Without WebAuthn the passkey button stays disabled, but the password option still works.
     if (!browserSupportsWebAuthn()) {
       block.querySelector<HTMLElement>("[data-unsupported]")?.removeAttribute("hidden");
       if (button) button.disabled = true;
-      continue;
     }
     button?.addEventListener("click", async () => {
       button.disabled = true;
@@ -61,6 +83,29 @@ const { next, step, text = t.passkey.create } = Astro.props;
       } catch (e) {
         showError(error, e);
         button.disabled = false;
+      }
+    });
+    keyButton?.addEventListener("click", () => {
+      if (error) error.textContent = "";
+      if (keyForm) keyForm.hidden = false;
+      keyButton.hidden = true;
+    });
+    keyForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (error) error.textContent = "";
+      const password = keyForm.querySelector<HTMLInputElement>("#claim-password")?.value ?? "";
+      const repeat = keyForm.querySelector<HTMLInputElement>("#claim-password-repeat")?.value ?? "";
+      if (password !== repeat) {
+        if (error) error.textContent = t().password.mismatch;
+        return;
+      }
+      try {
+        await claimWithPassword(password);
+        if (button) button.hidden = true;
+        keyForm.hidden = true;
+        await finish();
+      } catch (e) {
+        showError(error, e);
       }
     });
   }

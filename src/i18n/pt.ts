@@ -143,6 +143,10 @@ export const pt: Texts = {
     unsupported:
       "Este navegador não aceita passkeys. Abra sua loja no dispositivo onde você criou a passkey ou atualize o navegador.",
     lostMyDevice: "Perdi meu dispositivo",
+    keyTitle: "Não consegue usar passkeys?",
+
+    keyLabel: "Sua senha de acesso",
+    keyButton: "Entrar com senha",
   },
   recover: {
     pageTitle: "Recuperar o acesso",
@@ -172,6 +176,8 @@ export const pt: Texts = {
     regenerate: "Gerar um código de recuperação novo",
     ready: "Pronto",
     backToPanel: "Voltar para o painel",
+    keyTitle: "Senha de acesso",
+    keyText: "Outra forma de entrar sem passkey. Se trocar, a anterior para de funcionar.",
   },
   navPanel: {
     marker: "tiendita",
@@ -500,6 +506,16 @@ export const pt: Texts = {
   },
   passkey: {
     create: "Criar minha passkey",
+    useKey: "Não consigo usar passkeys: usar senha",
+  },
+  password: {
+    newLabel: "Escolha uma senha",
+    repeatLabel: "Repita a senha",
+    rules:
+      "Mínimo de 12 caracteres, com pelo menos 3 tipos: maiúsculas, minúsculas, números e símbolos. Sem palavras comuns como 'password' ou 'tiendita'. Se esquecer, não vai conseguir entrar sem passkey.",
+    mismatch: "As duas senhas não coincidem.",
+    submit: "Salvar senha",
+    saved: "Pronto, sua senha foi salva.",
   },
   recoveryCode: {
     title: "Seu código de recuperação",
@@ -581,6 +597,8 @@ export const pt: Texts = {
       CATEGORY_HAS_PRODUCTS: "Essa categoria ainda tem produtos.",
       INVALID_STATUS: "Não dá para fazer essa mudança neste produto.",
       INVALID_CODE: "O código não está correto. Confira e tente de novo.",
+      WEAK_PASSWORD:
+        "A senha precisa de pelo menos 12 caracteres, 3 tipos (maiúsculas, minúsculas, números, símbolos) e sem palavras comuns.",
       STORE_ALREADY_CLAIMED: "Esta loja já tem dono. Se for você, entre com sua passkey.",
       CHALLENGE_EXPIRED: "Passou tempo demais. Tente de novo.",
       PASSKEY_NOT_VERIFIED: "Não conseguimos verificar sua passkey. Tente de novo.",

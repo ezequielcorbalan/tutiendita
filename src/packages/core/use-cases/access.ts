@@ -13,6 +13,7 @@ import {
 } from "../domain/access";
 import { CODE_BYTES, codeFromBytes, formatCode, normalizeCode, toBase64Url } from "../domain/code";
 import { type DomainError, domainError } from "../domain/errors";
+import { passwordProblem } from "../domain/password";
 import { err, ok, type Result } from "../domain/result";
 import type { AccessRepository } from "../ports/access-repository";
 import { type AttemptLimiter, secondsUntilNextWindow } from "../ports/attempt-limiter";
@@ -67,7 +68,7 @@ async function rotateToFull(deps: AccessDeps, old: Session): Promise<StartedSess
   return createSession(deps, "completa");
 }
 
-async function newRecoveryCode(deps: AccessDeps): Promise<{ code: string; hash: string }> {
+async function newCode(deps: AccessDeps): Promise<{ code: string; hash: string }> {
   const code = codeFromBytes(deps.cryptography.randomBytes(CODE_BYTES));
   return { code: formatCode(code), hash: await deps.cryptography.sha256Hex(code) };
 }
@@ -135,6 +136,8 @@ async function blocked(
 }
 
 const invalidCode = <T>() => fail<T>("INVALID_CODE", "The code is not correct.");
+const weakPassword = <T>(problem: "TOO_SHORT" | "TOO_WEAK") =>
+  fail<T>("WEAK_PASSWORD", "The password does not meet the rules", { problem });
 const alreadyRegistered = <T>() =>
   fail<T>("PASSKEY_ALREADY_REGISTERED", "That passkey is already registered in the store");
 
@@ -238,13 +241,14 @@ export const finishPasskeyRegistration =
     };
 
     if (status === null) {
-      const code = await newRecoveryCode(deps);
+      const code = await newCode(deps);
       const won = await deps.access.claim({
         webauthnUserId: challenge.value.webauthnUserId ?? random(deps),
         now,
         origin: origin.value,
         credential,
         recoveryCodeHash: code.hash,
+        keyHash: null,
       });
       if (!won) return fail("STORE_ALREADY_CLAIMED", "Someone else claimed the store first");
       const rotatedSession = await rotateToFull(deps, e.session);
@@ -255,7 +259,7 @@ export const finishPasskeyRegistration =
       // Before the batch, so the code is not spent on a duplicate credential (in a race, the whole batch fails).
       if ((await deps.credentials.findById(credential.id)) !== null) return alreadyRegistered();
       // Only here is the code spent: credential, new code and end of recovery sessions, together.
-      const code = await newRecoveryCode(deps);
+      const code = await newCode(deps);
       const used = await deps.access.finishRecovery({
         sessionIdHash: e.session.idHash,
         credential,
@@ -339,10 +343,64 @@ export const signInWithRecoveryCode =
   };
 
 export const regenerateRecoveryCode = (deps: AccessDeps) => async (): Promise<string> => {
-  const code = await newRecoveryCode(deps);
+  const code = await newCode(deps);
   await deps.access.replaceRecoveryCode(code.hash, deps.clock.now());
   return code.code;
 };
+
+/**
+ * Claim without a passkey, for devices that cannot make one: the owner picks a password (checked here, and
+ * stored as a slow hash). Forgetting it means no way back in (as with the recovery code: redeploy the store).
+ */
+export const claimWithKey =
+  (deps: AccessDeps) =>
+  async (e: {
+    session: Session;
+    origin: string;
+    password: string;
+  }): Promise<Result<StartedSession, DomainError>> => {
+    const problem = passwordProblem(e.password);
+    if (problem) return weakPassword(problem);
+    const status = await deps.access.get();
+    const canRegister = checkSessionCanRegister(status, e.session);
+    if (!canRegister.ok) return canRegister;
+    const origin = await originFor(deps, e.origin, status);
+    if (!origin.ok) return origin;
+    const won = await deps.access.claim({
+      webauthnUserId: random(deps),
+      now: deps.clock.now(),
+      origin: origin.value,
+      credential: null,
+      recoveryCodeHash: null,
+      keyHash: await deps.cryptography.hashPassword(e.password),
+    });
+    if (!won) return fail("STORE_ALREADY_CLAIMED", "Someone else claimed the store first");
+    return ok(await rotateToFull(deps, e.session));
+  };
+
+/** Sets the sign-in password of a full session (the previous one stops working). */
+export const setKeyPassword =
+  (deps: AccessDeps) =>
+  async (e: { password: string }): Promise<Result<true, DomainError>> => {
+    const problem = passwordProblem(e.password);
+    if (problem) return weakPassword(problem);
+    await deps.access.replaceKeyHash(await deps.cryptography.hashPassword(e.password));
+    return ok(true);
+  };
+
+export const signInWithKey =
+  (deps: AccessDeps) =>
+  async (e: { password: string; ip: string }): Promise<Result<StartedSession, DomainError>> => {
+    const key = `key-sign-in:${e.ip}`;
+    const limit = await blocked(deps, key);
+    if (limit) return limit;
+    const stored = await deps.access.keyHash();
+    if (stored === null || !(await deps.cryptography.verifyPassword(e.password, stored))) {
+      await deps.limiter.recordFailure(key, deps.clock.now());
+      return invalidCode();
+    }
+    return ok(await createSession(deps, "completa"));
+  };
 
 export type ValidSession = { session: Session; renewed: boolean };
 

@@ -130,6 +130,8 @@ export const access = sqliteTable(
     /** SHA-256 (hex) of the current recovery code; null after it is used. */
     recoveryCodeHash: text("codigo_recuperacion_hash"),
     recoveryCodeCreatedAt: text("codigo_recuperacion_creado_en"),
+    /** Hash of the owner's sign-in password (for owners without a passkey, see ADR-020); null if there is none. */
+    keyHash: text("clave_hash"),
     onboardingStep: text("primer_ingreso_paso", { enum: ONBOARDING_STEPS }).notNull(),
     onboardingCompletedAt: text("primer_ingreso_completado_en"),
   },

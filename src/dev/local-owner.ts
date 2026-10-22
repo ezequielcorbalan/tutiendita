@@ -41,6 +41,7 @@ export async function ensureLocalOwner(env: Env, url: URL): Promise<void> {
     },
     // Nobody knows this code: local recovery isn't needed.
     recoveryCodeHash: await webCryptography.sha256Hex(random()),
+    keyHash: null,
   });
   if (!won) return;
   const container = build(env);

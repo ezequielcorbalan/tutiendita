@@ -66,10 +66,16 @@ export function createD1AccessRepository(db: D1Database): AccessRepository {
       const results = await db.batch([
         db
           .prepare(
-            `INSERT INTO acceso (id, webauthn_user_id, reclamada_en, codigo_recuperacion_hash, codigo_recuperacion_creado_en, primer_ingreso_paso)
-             SELECT 1, ?, ?, ?, ?, 'acceso' WHERE NOT EXISTS (SELECT 1 FROM acceso)`,
+            `INSERT INTO acceso (id, webauthn_user_id, reclamada_en, codigo_recuperacion_hash, codigo_recuperacion_creado_en, clave_hash, primer_ingreso_paso)
+             SELECT 1, ?, ?, ?, ?, ?, 'acceso' WHERE NOT EXISTS (SELECT 1 FROM acceso)`,
           )
-          .bind(d.webauthnUserId, now, d.recoveryCodeHash, now),
+          .bind(
+            d.webauthnUserId,
+            now,
+            d.recoveryCodeHash,
+            d.recoveryCodeHash === null ? null : now,
+            d.keyHash,
+          ),
         // Emergency plan: if the access row was deleted, whatever the previous owner left is no longer valid.
         db.prepare(`DELETE FROM credenciales_passkey WHERE ${isThisClaim}`).bind(d.webauthnUserId),
         db.prepare(`DELETE FROM origenes_permitidos WHERE ${isThisClaim}`).bind(d.webauthnUserId),
@@ -79,7 +85,7 @@ export function createD1AccessRepository(db: D1Database): AccessRepository {
             `INSERT INTO origenes_permitidos (origen, rp_id, principal, agregado_en) SELECT ?, ?, 1, ? WHERE ${isThisClaim}`,
           )
           .bind(d.origin.origin, d.origin.rpId, now, d.webauthnUserId),
-        insertCredentialIf(db, d.credential, isThisClaim, d.webauthnUserId),
+        ...(d.credential ? [insertCredentialIf(db, d.credential, isThisClaim, d.webauthnUserId)] : []),
       ]);
       return results[0]?.meta.changes === 1;
     },
@@ -131,6 +137,17 @@ export function createD1AccessRepository(db: D1Database): AccessRepository {
         )
         .bind(hash, iso(now))
         .run();
+    },
+
+    async keyHash() {
+      const row = await db
+        .prepare("SELECT clave_hash AS hash FROM acceso WHERE id = 1")
+        .first<{ hash: string | null }>();
+      return row?.hash ?? null;
+    },
+
+    async replaceKeyHash(hash) {
+      await db.prepare("UPDATE acceso SET clave_hash = ? WHERE id = 1").bind(hash).run();
     },
 
     async saveOnboarding(step, completedAt) {

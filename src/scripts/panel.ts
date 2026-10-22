@@ -93,6 +93,20 @@ export async function registerPasskey(): Promise<{ recoveryCode: string | null }
   return request("POST", "/api/access/passkeys", { response });
 }
 
+/** Claim without a passkey (claim session): the server checks and stores the owner's password. */
+export async function claimWithPassword(password: string): Promise<void> {
+  await request("POST", "/api/access/claim-key", { password });
+}
+
+/** Sets the sign-in password (full session). */
+export async function setPassword(password: string): Promise<void> {
+  await request("POST", "/api/access/key", { password });
+}
+
+export async function signInWithPassword(password: string): Promise<void> {
+  await request("POST", "/api/access/sign-in-key", { password });
+}
+
 /** Passkey sign-in; with `autocomplete`, waits for the person to pick it in the field (if the browser can). */
 export async function signInWithPasskey(autocomplete = false): Promise<boolean> {
   if (autocomplete && !(await browserSupportsWebAuthnAutofill())) return false;
