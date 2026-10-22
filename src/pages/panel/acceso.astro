@@ -7,6 +7,7 @@ import Panel from "../../layouts/panel.astro";
 
 const language = Astro.locals.language ?? "es";
 const t = texts(language).access;
+const password = texts(language).password;
 const passkeys = await build(env).access.listPasskeys();
 const date = (d: Date | null) =>
   d === null ? t.never : d.toLocaleDateString(LOCALES[language], { timeZone: "UTC" });
@@ -36,11 +37,23 @@ const date = (d: Date | null) =>
   <p>{t.codeText}</p>
   <button type="button" data-regenerate>{t.regenerate}</button>
   <div data-new-code hidden></div>
+  <h2>{t.keyTitle}</h2>
+  <p>{t.keyText}</p>
+  <form data-password-form>
+    <label for="new-password">{password.newLabel}</label>
+    <input id="new-password" type="password" autocomplete="new-password" minlength="12" required />
+    <label for="new-password-repeat">{password.repeatLabel}</label>
+    <input id="new-password-repeat" type="password" autocomplete="new-password" required />
+    <p><small>{password.rules}</small></p>
+    <button type="submit">{password.submit}</button>
+    <p class="error" data-password-error role="alert"></p>
+  </form>
+  <p data-password-saved hidden>{password.saved}</p>
   <p><a href="/panel">{t.backToPanel}</a></p>
 </Panel>
 
 <script>
-  import { element, showRecoveryCode, showError, request, t } from "../../scripts/panel";
+  import { element, setPassword, showRecoveryCode, showError, request, t } from "../../scripts/panel";
 
   const error = element("[data-error]");
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-delete]")) {
@@ -66,6 +79,24 @@ const date = (d: Date | null) =>
       showRecoveryCode(element("[data-new-code]"), recoveryCode, () => location.reload(), t().access.ready);
     } catch (e) {
       showError(error, e);
+    }
+  });
+  const passwordForm = element<HTMLFormElement>("[data-password-form]");
+  const passwordError = element("[data-password-error]");
+  passwordForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    passwordError.textContent = "";
+    const password = element<HTMLInputElement>("#new-password").value;
+    if (password !== element<HTMLInputElement>("#new-password-repeat").value) {
+      passwordError.textContent = t().password.mismatch;
+      return;
+    }
+    try {
+      await setPassword(password);
+      passwordForm.hidden = true;
+      element("[data-password-saved]").hidden = false;
+    } catch (e) {
+      showError(passwordError, e);
     }
   });
 </script>

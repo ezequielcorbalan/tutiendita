@@ -146,6 +146,10 @@ export const es = {
     unsupported:
       "Este navegador no permite passkeys. Abrí tu tienda en el dispositivo donde creaste la passkey o actualizá el navegador.",
     lostMyDevice: "Perdí mi dispositivo",
+    keyTitle: "¿No podés usar passkeys?",
+
+    keyLabel: "Tu contraseña de acceso",
+    keyButton: "Entrar con contraseña",
   },
   recover: {
     pageTitle: "Recuperar el acceso",
@@ -176,6 +180,8 @@ export const es = {
     regenerate: "Generar un código de recuperación nuevo",
     ready: "Listo",
     backToPanel: "Volver al panel",
+    keyTitle: "Contraseña de acceso",
+    keyText: "Otra forma de entrar sin passkey. Si la cambiás, la anterior deja de servir.",
   },
   navPanel: {
     marker: "tiendita",
@@ -511,6 +517,16 @@ export const es = {
   },
   passkey: {
     create: "Crear mi passkey",
+    useKey: "No puedo usar passkeys: usar contraseña",
+  },
+  password: {
+    newLabel: "Elegí una contraseña",
+    repeatLabel: "Repetí la contraseña",
+    rules:
+      "Mínimo 12 caracteres, con al menos 3 tipos: mayúsculas, minúsculas, números y símbolos. Sin palabras comunes como «password» o «tiendita». Si la olvidás, no vas a poder entrar sin passkey.",
+    mismatch: "Las dos contraseñas no coinciden.",
+    submit: "Guardar contraseña",
+    saved: "Listo, tu contraseña quedó guardada.",
   },
   recoveryCode: {
     title: "Tu código de recuperación",
@@ -594,6 +610,8 @@ export const es = {
       CATEGORY_HAS_PRODUCTS: "Esa categoría todavía tiene productos.",
       INVALID_STATUS: "No se puede hacer ese cambio en este producto.",
       INVALID_CODE: "El código no es correcto. Revisalo y probá de nuevo.",
+      WEAK_PASSWORD:
+        "La contraseña necesita al menos 12 caracteres, 3 tipos (mayúsculas, minúsculas, números, símbolos) y sin palabras comunes.",
       STORE_ALREADY_CLAIMED: "Esta tienda ya tiene dueña o dueño. Si sos vos, entrá con tu passkey.",
       CHALLENGE_EXPIRED: "Pasó demasiado tiempo. Probá de nuevo.",
       PASSKEY_NOT_VERIFIED: "No pudimos verificar tu passkey. Probá de nuevo.",

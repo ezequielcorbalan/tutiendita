@@ -142,6 +142,10 @@ export const en: Texts = {
     unsupported:
       "This browser doesn't support passkeys. Open your store on the device where you created your passkey, or update your browser.",
     lostMyDevice: "I lost my device",
+    keyTitle: "Can't use passkeys?",
+
+    keyLabel: "Your access password",
+    keyButton: "Sign in with password",
   },
   recover: {
     pageTitle: "Recover access",
@@ -171,6 +175,8 @@ export const en: Texts = {
     regenerate: "Generate a new recovery code",
     ready: "Done",
     backToPanel: "Back to the dashboard",
+    keyTitle: "Access password",
+    keyText: "Another way to sign in without a passkey. If you change it, the old one stops working.",
   },
   navPanel: {
     marker: "tiendita",
@@ -499,6 +505,16 @@ export const en: Texts = {
   },
   passkey: {
     create: "Create my passkey",
+    useKey: "I can't use passkeys: use a password",
+  },
+  password: {
+    newLabel: "Choose a password",
+    repeatLabel: "Repeat the password",
+    rules:
+      "At least 12 characters, with at least 3 of: uppercase, lowercase, numbers and symbols. No common words like 'password' or 'tiendita'. If you forget it, you won't be able to sign in without a passkey.",
+    mismatch: "The two passwords don't match.",
+    submit: "Save password",
+    saved: "Done, your password is saved.",
   },
   recoveryCode: {
     title: "Your recovery code",
@@ -580,6 +596,8 @@ export const en: Texts = {
       CATEGORY_HAS_PRODUCTS: "That category still has products.",
       INVALID_STATUS: "That change can't be made to this product.",
       INVALID_CODE: "That code isn't right. Check it and try again.",
+      WEAK_PASSWORD:
+        "The password needs at least 12 characters, 3 kinds (uppercase, lowercase, numbers, symbols) and no common words.",
       STORE_ALREADY_CLAIMED: "This store already has an owner. If that's you, sign in with your passkey.",
       CHALLENGE_EXPIRED: "Too much time went by. Please try again.",
       PASSKEY_NOT_VERIFIED: "We couldn't verify your passkey. Please try again.",

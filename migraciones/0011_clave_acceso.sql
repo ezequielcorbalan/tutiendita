@@ -1,0 +1,1 @@
+ALTER TABLE `acceso` ADD `clave_hash` text;

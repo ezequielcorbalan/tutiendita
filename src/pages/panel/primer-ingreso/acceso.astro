@@ -22,7 +22,7 @@ const t = texts(Astro.locals.language);
         </p>
       </>
     ) : (
-      <RegisterPasskey next="/panel/primer-ingreso/nombre" step="acceso" />
+      <RegisterPasskey next="/panel/primer-ingreso/nombre" step="acceso" allowKey />
     )
   }
   <p class="error" data-continue-error role="alert"></p>

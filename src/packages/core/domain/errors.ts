@@ -45,7 +45,8 @@ export type ErrorCode =
   | "R2_ALREADY_SET"
   | "ORDER_NOT_FOUND"
   | "INVALID_TRANSITION"
-  | "INVALID_ORDER";
+  | "INVALID_ORDER"
+  | "WEAK_PASSWORD";
 
 export type DomainError = {
   readonly code: ErrorCode;

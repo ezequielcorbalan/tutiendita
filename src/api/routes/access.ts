@@ -16,6 +16,8 @@ import type { ApiEnv } from "../types";
 import { validate } from "../validation";
 
 const codeSchema = z.object({ code: z.string().max(100) });
+/** Sign-in and new passwords: length and strength are checked in core (passwords up to 200 characters). */
+const passwordSchema = z.object({ password: z.string().min(1).max(200) });
 /** SimpleWebAuthn verifies the browser's response; here it only has to have an id. */
 const responseSchema = z.object({ response: z.looseObject({ id: z.string().min(1).max(1024) }) });
 
@@ -122,4 +124,32 @@ export const accessRoutes = new Hono<ApiEnv>()
   .post("/recovery-code", requireSession("completa"), async (c) => {
     const recoveryCode = await build(c.env).access.regenerateRecoveryCode();
     return c.json({ recoveryCode });
+  })
+
+  /** For devices without passkeys: claims the store with a password (a claim session only). */
+  .post("/claim-key", requireSession("reclamo"), validate("json", passwordSchema), async (c) => {
+    const r = await build(c.env).access.claimWithKey({
+      session: sessionOf(c),
+      origin: originOf(c.req.url),
+      password: c.req.valid("json").password,
+    });
+    if (!r.ok) return respondDomainError(c, r.error);
+    setStartedSession(c, r.value);
+    return c.json({ session: r.value.session.type }, 201);
+  })
+
+  .post("/key", requireSession("completa"), validate("json", passwordSchema), async (c) => {
+    const r = await build(c.env).access.setKeyPassword({ password: c.req.valid("json").password });
+    if (!r.ok) return respondDomainError(c, r.error);
+    return c.body(null, 204);
+  })
+
+  .post("/sign-in-key", validate("json", passwordSchema), async (c) => {
+    const r = await build(c.env).access.signInWithKey({
+      password: c.req.valid("json").password,
+      ip: ipOf(c.req.raw),
+    });
+    if (!r.ok) return respondDomainError(c, r.error);
+    setStartedSession(c, r.value);
+    return c.json({ session: r.value.session.type });
   });
