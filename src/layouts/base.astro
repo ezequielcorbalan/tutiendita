@@ -12,8 +12,10 @@ interface Props {
   image?: string | undefined;
   /** Public store pages: they get the display font for titles (the panel keeps the system font). */
   store?: boolean | undefined;
+  /** The browser tab icon (the store's logo, when it has one). */
+  icon?: string | undefined;
 }
-const { title, index = true, image, store } = Astro.props;
+const { title, index = true, image, store, icon } = Astro.props;
 // One line of at most ~160 characters, cut between words: what search results show.
 const full = Astro.props.description?.replace(/\s+/g, " ").trim();
 const description = full && full.length > 160 ? `${full.slice(0, 157).replace(/\s+\S*$/, "")}…` : full;
@@ -30,6 +32,7 @@ const canonical = new URL(Astro.url.pathname, Astro.url.origin).href;
     {/* tutiendita.ar reads this marker to verify a heartbeat comes from a real store. */}
     <meta name="generator" content={`tutiendita ${STORE_VERSION}`} />
     <title>{title}</title>
+    {icon && <link rel="icon" href={icon} />}
     {description && <meta name="description" content={description} />}
     {index ? <link rel="canonical" href={canonical} /> : <meta name="robots" content="noindex" />}
     {

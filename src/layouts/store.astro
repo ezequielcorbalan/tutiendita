@@ -20,6 +20,8 @@ const container = build(env);
 const [store, colorId] = await Promise.all([container.getStore(), container.identity.color()]);
 const storeName = store?.name ?? "tiendita";
 const whatsapp = store?.contact.whatsapp;
+// The logo is the tab icon and, on pages without a photo of their own (home, categories), the share image.
+const logoUrl = store?.logoKey ? new URL(`/img/${store.logoKey}`, Astro.url.origin).href : undefined;
 const all = texts(Astro.locals.language);
 const t = all.storeLayout;
 
@@ -34,7 +36,14 @@ const brandStyle = brand
   : "";
 ---
 
-<Base title={title ? `${title} · ${storeName}` : storeName} {description} {index} {image} store>
+<Base
+  title={title ? `${title} · ${storeName}` : storeName}
+  {description}
+  {index}
+  image={image ?? logoUrl}
+  icon={logoUrl}
+  store
+>
   <meta slot="head" property="og:site_name" content={storeName} />
   {/* The titles' font (self-hosted, latin subset): preloaded so the first paint already has it. */}
   <link
