@@ -26,6 +26,8 @@ export type Language = (typeof LANGUAGES)[number];
 export const DEFAULT_LANGUAGE: Language = "es";
 
 export const MAX_STORE_NAME_LENGTH = 80;
+/** The tagline shown under the store name. */
+export const MAX_STORE_DESCRIPTION_LENGTH = 200;
 /** Onboarding does not ask for the currency: it is changed later from the panel. */
 export const DEFAULT_CURRENCY = "ARS";
 
@@ -78,6 +80,24 @@ export function withLanguage(t: Store, language: string): Result<Store, DomainEr
   const valid = validateLanguage(language);
   return valid.ok ? ok({ ...t, language: valid.value }) : valid;
 }
+
+export function withDescription(t: Store, text: string): Result<Store, DomainError> {
+  const clean = text.trim();
+  if (clean.length > MAX_STORE_DESCRIPTION_LENGTH) {
+    return err(
+      domainError(
+        "DESCRIPTION_TOO_LONG",
+        `The tagline must be at most ${MAX_STORE_DESCRIPTION_LENGTH} characters`,
+        {
+          max: MAX_STORE_DESCRIPTION_LENGTH,
+        },
+      ),
+    );
+  }
+  return ok({ ...t, description: clean });
+}
+
+export const withLogo = (t: Store, key: string | null): Store => ({ ...t, logoKey: key });
 
 export const withWhatsapp = (t: Store, number: string): Store => ({
   ...t,

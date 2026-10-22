@@ -1,6 +1,7 @@
 ---
 /** Public store pages: header with the store name, the page in <main> and a footer. */
 import { env } from "cloudflare:workers";
+import { type BrandShades, brandColorById, DEFAULT_BRAND_COLOR } from "../packages/core/index";
 import { build } from "../container";
 import { texts } from "../i18n";
 import Base from "./base.astro";
@@ -15,17 +16,34 @@ interface Props {
   image?: string | undefined;
 }
 const { title, description, index, image } = Astro.props;
-const storeName = (await build(env).getStore())?.name ?? "tiendita";
+const container = build(env);
+const [store, colorId] = await Promise.all([container.getStore(), container.identity.color()]);
+const storeName = store?.name ?? "tiendita";
+const whatsapp = store?.contact.whatsapp;
 const all = texts(Astro.locals.language);
 const t = all.storeLayout;
+
+// The stylesheet already carries the default colour; any other one overrides its `--brand*` tokens. Set on
+// `body` (not `:root`) so it wins by inheritance whatever the order of this style and the sheet in <head>.
+// The values are palette constants (never store data), so they can go in as raw CSS.
+const tokens = (s: BrandShades) =>
+  `--brand:${s.brand};--brand-text:${s.brandText};--brand-soft:${s.brandSoft}`;
+const brand = colorId === DEFAULT_BRAND_COLOR ? undefined : brandColorById(colorId);
+const brandStyle = brand
+  ? `<style>body{${tokens(brand.light)}}@media (prefers-color-scheme: dark){body{${tokens(brand.dark)}}}</style>`
+  : "";
 ---
 
 <Base title={title ? `${title} · ${storeName}` : storeName} {description} {index} {image}>
   <meta slot="head" property="og:site_name" content={storeName} />
+  {brandStyle && <Fragment slot="head" set:html={brandStyle} />}
   <slot name="head" slot="head" />
   <header class="store-bar" slot="top">
     <div class="store-bar__content">
-      <a class="store-bar__name" href="/">{storeName}</a>
+      <a class="store-bar__name" href="/">
+        {store?.logoKey && <img class="store-bar__logo" src={`/img/${store.logoKey}`} alt="" width="40" height="40" />}
+        {storeName}
+      </a>
       <a class="store-bar__cart" href="/carrito">
         {all.cart.link} <span class="store-bar__count" data-cart-count hidden>0</span>
       </a>
@@ -33,6 +51,15 @@ const t = all.storeLayout;
   </header>
   <slot />
   <footer class="store-footer" slot="bottom">
+    {
+      whatsapp && (
+        <p class="store-footer__contact">
+          <a href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener">
+            {all.store.contactWhatsapp}
+          </a>
+        </p>
+      )
+    }
     <p>
       © {new Date().getUTCFullYear()} {storeName} · {t.madeWith} <a href={t.landingUrl}>tutiendita</a>
     </p>

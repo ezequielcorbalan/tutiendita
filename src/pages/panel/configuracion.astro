@@ -1,14 +1,16 @@
 ---
 // Public URL stays in Spanish (/panel/configuracion), like the rest of the panel's URLs.
 import { env } from "cloudflare:workers";
+import { BRAND_COLORS, MAX_STORE_DESCRIPTION_LENGTH, MAX_STORE_NAME_LENGTH } from "../../packages/core/index";
 import LanguageSelector from "../../components/language-selector.astro";
 import { build } from "../../container";
 import { texts } from "../../i18n";
 import Panel from "../../layouts/panel.astro";
 
 const container = build(env);
-const [store, domain, photos] = await Promise.all([
+const [store, color, domain, photos] = await Promise.all([
   container.getStore(),
+  container.identity.color(),
   container.domain.status(),
   container.photos.status(),
 ]);
@@ -17,6 +19,63 @@ const t = texts(Astro.locals.language).settings;
 
 <Panel title={t.title} section="settings">
   <h1>{t.title}</h1>
+
+  <section aria-labelledby="identity">
+    <h2 id="identity">{t.identityTitle}</h2>
+    <form data-identity enctype="multipart/form-data">
+      <label for="store-name">{t.identityName}</label>
+      <input
+        id="store-name"
+        name="name"
+        type="text"
+        value={store?.name ?? ""}
+        maxlength={MAX_STORE_NAME_LENGTH}
+        autocomplete="organization"
+        required
+      />
+      <label for="store-tagline">{t.identityTagline}</label>
+      <textarea
+        id="store-tagline"
+        name="description"
+        rows="2"
+        maxlength={MAX_STORE_DESCRIPTION_LENGTH}
+        aria-describedby="store-tagline-help">{store?.description ?? ""}</textarea
+      >
+      <p id="store-tagline-help"><small>{t.identityTaglineHelp}</small></p>
+      <label for="store-logo">{t.identityLogo}</label>
+      {store?.logoKey && <img class="identity-logo" src={`/img/${store.logoKey}`} alt="" width="80" height="80" />}
+      <input
+        id="store-logo"
+        name="logo"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        aria-describedby="store-logo-help"
+      />
+      <p id="store-logo-help"><small>{t.identityLogoHelp}</small></p>
+      {
+        store?.logoKey && (
+          <label>
+            <input type="checkbox" name="remove_logo" value="true" /> {t.identityRemoveLogo}
+          </label>
+        )
+      }
+      <fieldset class="swatches" aria-describedby="store-color-help">
+        <legend>{t.identityColor}</legend>
+        {
+          BRAND_COLORS.map((c) => (
+            <label class="swatch">
+              <input class="swatch__input" type="radio" name="color" value={c.id} checked={c.id === color} />
+              <span class="swatch__dot" style={`--swatch: ${c.light.brand}`} aria-hidden="true" />
+              {t.identityColorNames[c.id]}
+            </label>
+          ))
+        }
+      </fieldset>
+      <p id="store-color-help"><small>{t.identityColorHelp}</small></p>
+      <button type="submit">{t.identitySave}</button>
+      <p class="error" data-error role="alert"></p>
+    </form>
+  </section>
 
   <section aria-labelledby="domain">
     <h2 id="domain">{t.domainTitle}</h2>
@@ -232,6 +291,61 @@ const t = texts(Astro.locals.language).settings;
     max-width: 100%;
     overflow-wrap: anywhere;
   }
+
+  .identity-logo {
+    display: block;
+    width: 5rem;
+    height: 5rem;
+    margin: 0.5rem 0;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface-2);
+  }
+
+  /* Brand colour swatches: the native radio stays for keyboard and screen readers; the dot shows the colour,
+     the chosen one has a ring and bold text (not colour alone). */
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    gap: 0.25rem 1rem;
+    margin-top: 1rem;
+  }
+
+  .swatches .swatch {
+    margin-top: 0;
+    cursor: pointer;
+  }
+
+  .swatches .swatch:has(.swatch__input:checked) {
+    font-weight: 700;
+  }
+
+  .swatches .swatch__input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .swatch__dot {
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 50%;
+    background: var(--swatch);
+    outline: 3px solid transparent;
+    outline-offset: 3px;
+  }
+
+  .swatches .swatch__input:checked + .swatch__dot {
+    outline-color: var(--text);
+  }
+
+  .swatches .swatch__input:focus-visible + .swatch__dot {
+    box-shadow: 0 0 0 3px var(--background), 0 0 0 6px var(--focus);
+  }
 </style>
 
 <script>
@@ -252,6 +366,12 @@ const t = texts(Astro.locals.language).settings;
       }
     });
   };
+  saveAndReload("[data-identity]", "/api/store/identity", (d) => {
+    // A file input left empty still adds a 0-byte file: that means "keep the logo as it is".
+    const logo = d.get("logo");
+    if (logo instanceof File && logo.size === 0) d.delete("logo");
+    return d;
+  });
   saveAndReload("[data-language]", "/api/store/language", (d) => ({ language: String(d.get("language") ?? "") }));
   saveAndReload("[data-heartbeat]", "/api/store/heartbeat", (d) => ({ enabled: d.has("enabled") }));
 

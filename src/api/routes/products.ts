@@ -74,7 +74,8 @@ const updateSchema = creationSchema.omit({ publish: true }).extend({
   status: z.enum(["publicado", "pausado", "borrador"], { message: "Unknown status" }),
 });
 
-const capFor = (maxSize: number) =>
+/** 413 with the API error shape when the multipart body goes over `maxSize`. */
+export const capFor = (maxSize: number) =>
   bodyLimit({
     maxSize,
     onError: (c) =>

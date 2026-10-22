@@ -1,8 +1,12 @@
 ---
 import { env } from "cloudflare:workers";
+import HowToBuy from "../../components/how-to-buy.astro";
+import ProductCard from "../../components/product-card.astro";
 import { LOCALES, texts } from "../../i18n";
 import Store from "../../layouts/store.astro";
+import { productUrl } from "../../lib/json-ld";
 import { formatPrice, productData } from "../../lib/pages";
+import { MAX_QUANTITY } from "../../scripts/cart";
 
 const t = texts(Astro.locals.language);
 const data = await productData(env, Astro.params.slug ?? "", Astro.url.origin, Astro.locals.language);
@@ -14,6 +18,9 @@ const valueText = (label: string, delta: number, currency: string) =>
   delta === 0
     ? label
     : `${label} (${delta > 0 ? "+" : "−"} ${formatPrice(Math.abs(delta), currency, language)})`;
+/** "Consultar por WhatsApp" opens a chat with the product's name and URL already written. */
+const consultHref = (number: string, name: string, slug: string) =>
+  `https://wa.me/${number}?text=${encodeURIComponent(t.store.consultMessage(name, productUrl(slug, Astro.url.origin)))}`;
 ---
 
 {
@@ -24,7 +31,27 @@ const valueText = (label: string, delta: number, currency: string) =>
       image={data.product.images[0] && new URL(data.product.images[0].url, Astro.url.origin).href}
     >
       <script slot="head" type="application/ld+json" is:inline set:html={data.jsonLd} />
-      <p><a href="/">← {t.common.backToStore}</a></p>
+      <nav class="breadcrumb" aria-label={t.store.breadcrumb}>
+        <ol class="breadcrumb__list">
+          <li class="breadcrumb__item">
+            <a class="breadcrumb__link" href="/">{t.store.home}</a>
+          </li>
+          {data.category && (
+            <li class="breadcrumb__item">
+              <svg class="breadcrumb__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+              <a class="breadcrumb__link" href={`/c/${data.category.slug}`}>{data.category.name}</a>
+            </li>
+          )}
+          <li class="breadcrumb__item" aria-current="page">
+            <svg class="breadcrumb__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+            {data.product.name}
+          </li>
+        </ol>
+      </nav>
       <div class="product-page">
         <div class="product-page__gallery" data-gallery>
           {data.product.images[0] && (
@@ -60,32 +87,58 @@ const valueText = (label: string, delta: number, currency: string) =>
           )}
         </div>
         <div class="product-page__info">
+          {data.category && <p class="label">{data.category.name}</p>}
           <h1>{data.product.name}</h1>
           <p class="price" data-price>{data.product.priceText}</p>
           {data.product.options.length > 0 && (
             <div class="variant-picker" data-variants>
               {data.product.options.map((o) => (
-                <div>
-                  <label for={`option-${o.id}`}>{o.name}</label>
-                  <select id={`option-${o.id}`} data-option-id={o.id} data-option-name={o.name} required>
-                    <option value="">{v.choose}</option>
+                <fieldset class="variant-picker__group" data-option-id={o.id} data-option-name={o.name}>
+                  <legend class="variant-picker__legend">{o.name}</legend>
+                  <div class="variant-picker__pills">
                     {o.values.map((val) => (
-                      <option value={val.id} data-delta={val.priceDelta}
-                        data-label={val.label}
-                        data-image={val.imageUrl ?? ""}
-                      >
+                      <label class="pill">
+                        <input
+                          class="pill__input"
+                          type="radio"
+                          name={`option-${o.id}`}
+                          value={val.id}
+                          data-delta={val.priceDelta}
+                          data-label={val.label}
+                          data-image={val.imageUrl ?? ""}
+                          required
+                        />
                         {valueText(val.label, val.priceDelta, data.product.price.currency)}
-                      </option>
+                      </label>
                     ))}
-                  </select>
-                </div>
+                  </div>
+                </fieldset>
               ))}
             </div>
           )}
           <p class="error" data-choose-all hidden role="alert">{v.chooseAll}</p>
-          <p>
+          <div class="product-page__buy">
+            <div class="stepper">
+              <button type="button" class="stepper__button" data-step="-1" aria-label={t.cart.oneLess}>
+                −
+              </button>
+              <input
+                class="stepper__input"
+                type="number"
+                min="1"
+                max={MAX_QUANTITY}
+                value="1"
+                inputmode="numeric"
+                aria-label={t.cart.quantity}
+                data-quantity
+              />
+              <button type="button" class="stepper__button" data-step="1" aria-label={t.cart.oneMore}>
+                +
+              </button>
+            </div>
             <button
               type="button"
+              class="product-page__add"
               data-add-to-cart
               data-product-id={data.product.id}
               data-slug={data.product.slug}
@@ -94,16 +147,48 @@ const valueText = (label: string, delta: number, currency: string) =>
               data-currency={data.product.price.currency}
               data-image={data.product.images[0]?.url ?? ""}
               data-locale={LOCALES[language]}
+              data-added-text={t.cart.addedShort}
             >
-              {t.cart.add}
+              <svg class="product-page__check" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M5 12l5 5L20 7" />
+              </svg>
+              <span data-add-text>{t.cart.add}</span>
             </button>
-          </p>
+          </div>
           <p data-added hidden role="status">
             {t.cart.added} <a href="/carrito">{t.cart.viewCart}</a>
           </p>
+          {data.whatsapp && (
+            <p>
+              <a
+                class="button secondary product-page__consult"
+                href={consultHref(data.whatsapp, data.product.name, data.product.slug)}
+                target="_blank"
+                rel="noopener"
+              >
+                <svg class="product-page__consult-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-5A8 8 0 1 1 21 12z" />
+                </svg>
+                {t.store.consultWhatsapp}
+              </a>
+            </p>
+          )}
           {data.product.description && <p class="description">{data.product.description}</p>}
+          <HowToBuy />
         </div>
       </div>
+      {data.related.length > 0 && (
+        <section class="shelf" aria-labelledby="related">
+          <div class="shelf__head">
+            <h2 class="shelf__title" id="related">{t.store.related}</h2>
+          </div>
+          <ul class="catalog">
+            {data.related.map((p) => (
+              <ProductCard product={p} />
+            ))}
+          </ul>
+        </section>
+      )}
     </Store>
   ) : (
     <Store title={t.store.productNotFoundTitle} index={false}>
@@ -114,17 +199,21 @@ const valueText = (label: string, delta: number, currency: string) =>
 }
 
 <script>
-  import { addToCart, formatMoney } from "../../scripts/cart";
+  import { addToCart, formatMoney, MAX_QUANTITY } from "../../scripts/cart";
 
   const button = document.querySelector<HTMLButtonElement>("[data-add-to-cart]");
-  // The Workers types in this project hide HTMLSelectElement: only what is used here.
-  type Picker = HTMLElement & { value: string; selectedOptions: ArrayLike<HTMLElement> };
-  const selects = Array.from(document.querySelectorAll<HTMLElement>("[data-variants] select")) as Picker[];
+  const groups = Array.from(document.querySelectorAll<HTMLElement>("[data-variants] fieldset"));
   const price = document.querySelector<HTMLElement>("[data-price]");
   const chooseAll = document.querySelector<HTMLElement>("[data-choose-all]");
+  const quantityInput = document.querySelector<HTMLInputElement>("[data-quantity]");
   const initialPrice = price?.textContent ?? "";
 
-  const chosen = () => selects.map((s) => ({ select: s, option: s.selectedOptions[0], ok: s.value !== "" }));
+  /** Per variant, the checked pill (one radio per value). */
+  const chosen = () =>
+    groups.map((group) => {
+      const option = group.querySelector<HTMLInputElement>("input:checked");
+      return { group, option, ok: option !== null };
+    });
   const amountOf = (all: ReturnType<typeof chosen>, base: number) =>
     all.reduce((sum, c) => sum + Number(c.option?.dataset.delta ?? 0), base);
 
@@ -155,13 +244,11 @@ const valueText = (label: string, delta: number, currency: string) =>
 
   // The photo of an option value, when it has one: the last change wins.
   const optionPhoto = (c: ReturnType<typeof chosen>[number]) => c.option?.dataset.image || "";
-  for (const s of selects) {
-    s.addEventListener("change", () => {
-      const url = s.selectedOptions[0]?.dataset.image;
-      if (url) showPhoto(url);
-      updatePrice();
-    });
-  }
+  document.querySelector("[data-variants]")?.addEventListener("change", (e) => {
+    const url = (e.target as HTMLInputElement | null)?.dataset.image;
+    if (url) showPhoto(url);
+    updatePrice();
+  });
   // The browser may restore the chosen values (back/forward): the photo and price follow them without a change.
   function applyRestored(): void {
     const url = chosen().map(optionPhoto).filter(Boolean).pop();
@@ -173,31 +260,59 @@ const valueText = (label: string, delta: number, currency: string) =>
     if (e.persisted) applyRestored();
   });
 
+  // Quantity: 1 to MAX_QUANTITY; a blank or garbled number counts as 1.
+  const quantity = () => Math.max(1, Math.min(MAX_QUANTITY, Math.round(Number(quantityInput?.value)) || 1));
+  for (const step of document.querySelectorAll<HTMLButtonElement>("[data-step]")) {
+    step.addEventListener("click", () => {
+      if (!quantityInput) return;
+      quantityInput.value = String(Math.max(1, Math.min(MAX_QUANTITY, quantity() + Number(step.dataset.step))));
+    });
+  }
+
+  // "Agregado" with a check for a moment, then the button reads "Agregar al carrito" again.
+  const addText = button?.querySelector<HTMLElement>("[data-add-text]");
+  const addLabel = addText?.textContent ?? "";
+  let addedTimer: ReturnType<typeof setTimeout> | undefined;
+  function showAdded(): void {
+    if (addText) addText.textContent = button?.dataset.addedText ?? addLabel;
+    button?.classList.add("product-page__add--added");
+    clearTimeout(addedTimer);
+    addedTimer = setTimeout(() => {
+      if (addText) addText.textContent = addLabel;
+      button?.classList.remove("product-page__add--added");
+    }, 2000);
+  }
+
   button?.addEventListener("click", () => {
     const d = button.dataset;
     const all = chosen();
     const missing = all.find((c) => !c.ok);
     if (missing) {
       chooseAll?.removeAttribute("hidden");
-      missing.select.focus();
+      missing.group.querySelector<HTMLInputElement>("input")?.focus();
       return;
     }
-    addToCart({
-      productId: d.productId ?? "",
-      slug: d.slug ?? "",
-      name: d.name ?? "",
-      // Preview only: the cart is priced again on the server.
-      amount: amountOf(all, Number(d.amount)),
-      currency: d.currency ?? "ARS",
-      // The photo of the first option (product order) whose value has one, else the main photo.
-      image: all.map(optionPhoto).find(Boolean) || d.image || null,
-      ...(all.length > 0
-        ? {
-            selection: Object.fromEntries(all.map((c) => [c.select.dataset.optionId ?? "", c.select.value])),
-            variant: all.map((c) => `${c.select.dataset.optionName}: ${c.option?.dataset.label}`).join(" · "),
-          }
-        : {}),
-    });
+    addToCart(
+      {
+        productId: d.productId ?? "",
+        slug: d.slug ?? "",
+        name: d.name ?? "",
+        // Preview only: the cart is priced again on the server.
+        amount: amountOf(all, Number(d.amount)),
+        currency: d.currency ?? "ARS",
+        // The photo of the first option (product order) whose value has one, else the main photo.
+        image: all.map(optionPhoto).find(Boolean) || d.image || null,
+        ...(all.length > 0
+          ? {
+              selection: Object.fromEntries(all.map((c) => [c.group.dataset.optionId ?? "", c.option?.value ?? ""])),
+              variant: all.map((c) => `${c.group.dataset.optionName}: ${c.option?.dataset.label}`).join(" · "),
+            }
+          : {}),
+      },
+      quantity(),
+    );
+    if (quantityInput) quantityInput.value = "1";
+    showAdded();
     document.querySelector<HTMLElement>("[data-added]")?.removeAttribute("hidden");
   });
 </script>

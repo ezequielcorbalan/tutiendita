@@ -311,7 +311,6 @@ form button[type="submit"] {
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: var(--radius);
-  border: 1px solid var(--border);
   background: var(--surface-2);
   margin-bottom: 1rem;
 }
@@ -355,16 +354,35 @@ form button[type="submit"] {
 }
 
 p.price {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Catalog: a grid of cards (square photo, name, price), the same as the tutiendita.ar sample. */
+/* Store home: the name as the title and, under it, the owner's tagline. */
+.store-hero {
+  margin-bottom: 1.5rem;
+}
+
+.store-hero__title {
+  margin: 0;
+}
+
+.store-hero__tagline {
+  margin: 0.5rem 0 0;
+  max-width: 36rem;
+  font-size: clamp(1.1rem, 2.6vw, 1.3rem);
+  color: var(--text-soft);
+}
+
+/* Catalog: a grid of cards (square photo, name, price). Photo without a frame; the price is the loudest line. */
 .catalog {
   display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 1rem 0.75rem;
+  /* 9rem: two columns on a 360 px phone (minus the gutters and a scrollbar). */
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
   list-style: none;
+  margin: 0;
   padding: 0;
 }
 
@@ -372,61 +390,155 @@ p.price {
   margin-top: 0;
 }
 
-.product {
+.product__link {
   display: flex;
   flex-direction: column;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-}
-
-.product a {
-  display: flex;
-  flex-direction: column;
+  gap: 0.15rem;
   color: var(--text);
   text-decoration: none;
 }
 
-.product a:focus-visible {
-  outline-offset: -3px;
-}
-
-.product img,
-.product a:not(:has(img))::before {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1;
-  object-fit: cover;
-  background: var(--surface-2);
-}
-
-/* No photo: the same empty square so the grid stays even. */
-.product a:not(:has(img))::before {
-  content: "";
+.product__photo {
   display: block;
+  margin-bottom: 0.45rem;
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  overflow: hidden;
 }
 
-.product strong {
-  padding: 0.6rem 0.85rem 0;
+.product__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product__link:hover .product__img {
+  transform: scale(1.04);
+}
+
+.product__name {
+  font-weight: 500;
   line-height: 1.3;
 }
 
-.product a:hover strong {
+.product__link:hover .product__name {
   text-decoration: underline;
 }
 
-.product .price {
-  padding: 0.25rem 0.85rem 0.85rem;
-  color: var(--text-soft);
+.product__price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 1.15rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.price__from {
+  color: var(--text-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Home page sections ("Novedades", one per category): title with its "Ver todo" link, then a grid. */
+.shelf + .shelf {
+  margin-top: 1rem;
+}
+
+.shelf__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2rem 0 1rem;
+}
+
+.shelf__title {
+  margin: 0;
+}
+
+.shelf__all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  min-height: 2.75rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.shelf__all:hover {
+  text-decoration: underline;
+}
+
+.shelf__icon {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* "Cómo comprar": the configured channels, on the alternate surface, at the end of the catalog. */
+.how-to-buy {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+
+.how-to-buy__list {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.how-to-buy__step {
+  margin-top: 0;
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+}
+
+.how-to-buy__icon {
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0.65rem;
+  border-radius: 50%;
+  background: var(--surface);
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.how-to-buy__title {
+  display: block;
+}
+
+.how-to-buy__text {
+  color: var(--text-soft);
 }
 
 @media (min-width: 40rem) {
   .catalog {
-    gap: 1rem;
+    gap: 1.5rem 1.25rem;
     grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  }
+
+  .how-to-buy__list {
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1.5rem;
   }
 
   main {
@@ -761,11 +873,22 @@ p.price {
 .store-bar__name {
   display: inline-flex;
   align-items: center;
+  gap: 0.6rem;
   min-height: 2.75rem;
   color: var(--text);
   font-size: 1.25rem;
   font-weight: 800;
   text-decoration: none;
+}
+
+/* The store logo (panel › Configuración), round, before the name. */
+.store-bar__logo {
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--surface-2);
 }
 
 .store-footer {
@@ -781,6 +904,10 @@ p.price {
   margin: 0;
 }
 
+.store-footer__contact {
+  margin-bottom: 0.35rem;
+}
+
 textarea {
   width: 100%;
   min-height: 7rem;
@@ -793,40 +920,94 @@ textarea {
   resize: vertical;
 }
 
-/* Category navigation of the public store: chips, the current one filled. */
-nav.categories ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+/* Category navigation of the public store: tiles with a photo (3 per row on phones), the current one outlined. */
+nav.categories {
   margin: 0 0 1.5rem;
+}
+
+.categories__label {
+  margin-bottom: 0.75rem;
+}
+
+.categories__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem 0.6rem;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
-nav.categories li + li {
+.categories__item {
   margin-top: 0;
 }
 
-nav.categories a {
-  display: inline-flex;
+.categories__link {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  min-height: 2.75rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--field-border);
-  border-radius: 999px;
+  gap: 0.5rem;
   color: var(--text);
+  font-size: 0.95rem;
   font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
   text-decoration: none;
 }
 
-nav.categories a:hover {
+.categories__photo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius);
   background: var(--surface-2);
+  border: 2px solid transparent;
+  overflow: hidden;
 }
 
-nav.categories a[aria-current="page"] {
-  background: var(--brand);
+.categories__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.categories__link:hover {
+  text-decoration: underline;
+}
+
+.categories__link[aria-current="page"] {
+  color: var(--brand);
+}
+
+.categories__link[aria-current="page"] .categories__photo {
   border-color: var(--brand);
-  color: var(--brand-text);
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Phones: "Ver las N categorías" shows the tiles past the second row; from 40rem every tile shows. */
+.categories--collapsed .categories__item--extra {
+  display: none;
+}
+
+.categories__toggle {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+@media (min-width: 40rem) {
+  .categories__list {
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 1rem;
+  }
+
+  .categories--collapsed .categories__item--extra {
+    display: block;
+  }
+
+  .categories__toggle {
+    display: none;
+  }
 }
 
 @media (max-width: 47.99rem) {
@@ -981,12 +1162,14 @@ legend {
 
 @media (prefers-reduced-motion: reduce) {
   .button,
-  button {
+  button,
+  .product__img {
     transition: none;
   }
 
   .button:hover,
-  button:hover:not(:disabled) {
+  button:hover:not(:disabled),
+  .product__link:hover .product__img {
     transform: none;
   }
 }
@@ -1380,4 +1563,195 @@ ul.order-list li + li {
 
 .order-list .card h2 {
   margin-top: 0;
+}
+
+/* Product page: breadcrumb (Inicio › category › product), variant pills, quantity stepper and the buy block. */
+.breadcrumb__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  font-size: 0.95rem;
+  color: var(--text-soft);
+}
+
+.breadcrumb__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2.75rem;
+}
+
+.breadcrumb__item + .breadcrumb__item {
+  margin-top: 0;
+}
+
+.breadcrumb__icon {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.variant-picker__group {
+  margin-bottom: 1rem;
+}
+
+.variant-picker__legend {
+  margin-bottom: 0.5rem;
+}
+
+.variant-picker__pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* One pill per value; the radio inside is kept (keyboard, forms) but drawn as the pill's state. */
+.variant-picker__pills .pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  gap: 0;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.variant-picker__pills .pill:hover {
+  border-color: var(--brand);
+}
+
+.variant-picker__pills .pill:has(:focus-visible) {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.variant-picker__pills .pill:has(:checked) {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--brand-text);
+}
+
+.pill .pill__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Quantity and "Agregar al carrito" together; on phones they stick to the bottom while the details scroll. */
+.product-page__buy {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+}
+
+.stepper__button {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--brand);
+  font-size: 1.25rem;
+}
+
+.stepper__button:hover:not(:disabled) {
+  background: var(--brand-soft);
+  transform: none;
+}
+
+.stepper .stepper__input[type="number"] {
+  width: 3.25rem;
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.product-page__add {
+  flex: 1 1 12rem;
+  gap: 0.5rem;
+}
+
+.product-page__check,
+.product-page__consult-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The check only shows while the button reads "Agregado". */
+.product-page__check {
+  display: none;
+}
+
+.product-page__add--added .product-page__check {
+  display: block;
+}
+
+.product-page__consult {
+  gap: 0.5rem;
+}
+
+.product-page__info .how-to-buy {
+  margin-top: 2rem;
+}
+
+@media (min-width: 48rem) {
+  .product-page__info {
+    position: sticky;
+    top: 1rem;
+  }
+
+  .product-page__buy {
+    position: static;
+    padding: 0;
+    border-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .variant-picker__pills .pill {
+    transition: none;
+  }
 }

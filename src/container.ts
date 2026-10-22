@@ -19,6 +19,7 @@ import {
   enableProfessionalPhotos,
   finishPasskeyRegistration,
   finishSignIn,
+  getBrandColor,
   getProduct,
   getStoreStatus,
   listAllProducts,
@@ -51,6 +52,7 @@ import {
   updateCategory,
   updateProduct,
   updateStatus,
+  updateStoreIdentity,
   validateClaimCode,
   validateSession,
 } from "./packages/core/index";
@@ -228,6 +230,10 @@ export function build(env: Env) {
       status: photoStorageStatus(photoDeps),
       enable: enableProfessionalPhotos(photoDeps),
       revert: revertProfessionalPhotos(photoDeps),
+    },
+    identity: {
+      update: updateStoreIdentity({ store, settings, images, clock: systemClock, maxImageSize }),
+      color: getBrandColor({ settings }),
     },
     heartbeat: {
       send: (origin: string) => sendHeartbeat({ store, registry }, origin, systemClock.now()),

@@ -1,4 +1,5 @@
 export * from "./domain/access";
+export * from "./domain/brand-color";
 export * from "./domain/category";
 export * from "./domain/code";
 export * from "./domain/custom-domain";
@@ -55,4 +56,5 @@ export * from "./use-cases/place-order";
 export * from "./use-cases/product-gallery";
 export * from "./use-cases/quote-order";
 export * from "./use-cases/sample-products";
+export * from "./use-cases/store-identity";
 export * from "./use-cases/updates";
