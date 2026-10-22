@@ -10,8 +10,10 @@ interface Props {
   index?: boolean | undefined;
   /** Absolute URL of the image shown when the page is shared (a product's first photo). */
   image?: string | undefined;
+  /** Public store pages: they get the display font for titles (the panel keeps the system font). */
+  store?: boolean | undefined;
 }
-const { title, index = true, image } = Astro.props;
+const { title, index = true, image, store } = Astro.props;
 // One line of at most ~160 characters, cut between words: what search results show.
 const full = Astro.props.description?.replace(/\s+/g, " ").trim();
 const description = full && full.length > 160 ? `${full.slice(0, 157).replace(/\s+\S*$/, "")}…` : full;
@@ -21,7 +23,7 @@ const canonical = new URL(Astro.url.pathname, Astro.url.origin).href;
 ---
 
 <!doctype html>
-<html lang={HTML_LANG[language]}>
+<html lang={HTML_LANG[language]} data-store={store ? "" : undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

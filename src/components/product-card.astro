@@ -18,6 +18,12 @@ const t = texts(Astro.locals.language).store;
           <img class="product__img" src={p.images[0].url} alt={p.name} width="320" height="320" loading="lazy" />
         )
       }
+      {/* The second photo shows on hover (pointer devices only); decorative, the first one carries the alt. */}
+      {
+        p.images[1] && (
+          <img class="product__img product__img--alt" src={p.images[1].url} alt="" width="320" height="320" loading="lazy" />
+        )
+      }
     </span>
     <strong class="product__name">{p.name}</strong>
     <span class="product__price">
