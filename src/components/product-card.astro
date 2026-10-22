@@ -1,0 +1,28 @@
+---
+import { texts } from "../i18n";
+import type { ProductView } from "../lib/pages";
+
+/** One catalog card: square photo (or an empty square), name and price, with "Desde" as a label of its own. */
+interface Props {
+  product: ProductView;
+}
+const { product: p } = Astro.props;
+const t = texts(Astro.locals.language).store;
+---
+
+<li class="product">
+  <a class="product__link" href={`/p/${p.slug}`}>
+    <span class="product__photo">
+      {
+        p.images[0] && (
+          <img class="product__img" src={p.images[0].url} alt={p.name} width="320" height="320" loading="lazy" />
+        )
+      }
+    </span>
+    <strong class="product__name">{p.name}</strong>
+    <span class="product__price">
+      {p.priceFrom && <span class="price__from">{t.from}</span>}
+      {p.priceLabel}
+    </span>
+  </a>
+</li>

@@ -1,50 +1,108 @@
 ---
 import { texts } from "../i18n";
 import type { HomeData } from "../lib/pages";
+import HowToBuy from "./how-to-buy.astro";
+import ProductCard from "./product-card.astro";
 
-/** The public catalog: category navigation (if any) and the product list. Used by / and /c/<slug>. */
+/**
+ * The public catalog, used by / and /c/<slug>: the store's name and tagline, the categories as tiles with
+ * a photo, then the products in sections (home page with categories) or in one grid.
+ */
 interface Props {
   data: Extract<HomeData, { status: "ready" }>;
 }
 const { data } = Astro.props;
 const t = texts(Astro.locals.language).store;
 const current = data.currentCategory?.slug;
+/** On phones the grid shows two rows of tiles; a button (scripts below) reveals the rest. */
+const VISIBLE_ON_PHONES = 6;
 ---
 
-<h1>{data.name}</h1>
+<header class="store-hero">
+  <h1 class="store-hero__title">{data.name}</h1>
+  {data.description && <p class="store-hero__tagline">{data.description}</p>}
+</header>
 {
   data.categories.length > 0 && (
-    <nav class="categories" aria-label={t.categories}>
-      <ul>
-        <li>
-          <a href="/" aria-current={current === undefined ? "page" : undefined}>{t.all}</a>
-        </li>
-        {data.categories.map((c) => (
-          <li>
-            <a href={`/c/${c.slug}`} aria-current={current === c.slug ? "page" : undefined}>{c.name}</a>
+    <nav class="categories" aria-label={t.categories} data-categories>
+      <p class="label categories__label">{t.browse}</p>
+      <ul class="categories__list">
+        {data.categories.map((c, i) => (
+          <li class:list={["categories__item", { "categories__item--extra": i >= VISIBLE_ON_PHONES }]}>
+            <a class="categories__link" href={`/c/${c.slug}`} aria-current={current === c.slug ? "page" : undefined}>
+              <span class="categories__photo">
+                {c.imageUrl && (
+                  <img class="categories__img" src={c.imageUrl} alt="" width="160" height="160" loading="lazy" />
+                )}
+              </span>
+              {c.name}
+            </a>
           </li>
         ))}
       </ul>
+      {data.categories.length > VISIBLE_ON_PHONES && (
+        <button
+          type="button"
+          class="secondary small categories__toggle"
+          data-categories-toggle
+          data-more={t.moreCategories(data.categories.length)}
+          data-fewer={t.fewerCategories}
+          aria-expanded="true"
+          hidden
+        >
+          {t.fewerCategories}
+        </button>
+      )}
     </nav>
   )
 }
 {data.currentCategory && <h2>{data.currentCategory.name}</h2>}
 {
-  data.products.length === 0 ? (
+  data.sections ? (
+    data.sections.map((s, i) => (
+      <section class="shelf" aria-labelledby={`shelf-${i}`}>
+        <div class="shelf__head">
+          <h2 class="shelf__title" id={`shelf-${i}`}>{s.title}</h2>
+          {s.href && (
+            <a class="shelf__all" href={s.href}>
+              {t.viewAll}
+              <svg class="shelf__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M9 6l6 6-6 6" />
+              </svg>
+            </a>
+          )}
+        </div>
+        <ul class="catalog">
+          {s.products.map((p) => (
+            <ProductCard product={p} />
+          ))}
+        </ul>
+      </section>
+    ))
+  ) : data.products.length === 0 ? (
     <p>{t.noProducts}</p>
   ) : (
     <ul class="catalog">
       {data.products.map((p) => (
-        <li class="product">
-          <a href={`/p/${p.slug}`}>
-            {p.images[0] && (
-              <img src={p.images[0].url} alt={p.name} width="160" height="160" loading="lazy" />
-            )}
-            <strong>{p.name}</strong>
-          </a>
-          <span class="price">{p.priceText}</span>
-        </li>
+        <ProductCard product={p} />
       ))}
     </ul>
   )
 }
+<HowToBuy />
+
+<script>
+  // Phones: the tiles past the second row stay hidden until "Ver las N categorías" (without JavaScript, all show).
+  const nav = document.querySelector<HTMLElement>("[data-categories]");
+  const toggle = nav?.querySelector<HTMLButtonElement>("[data-categories-toggle]");
+  if (nav && toggle) {
+    const show = (expanded: boolean) => {
+      nav.classList.toggle("categories--collapsed", !expanded);
+      toggle.setAttribute("aria-expanded", String(expanded));
+      toggle.textContent = (expanded ? toggle.dataset.fewer : toggle.dataset.more) ?? "";
+    };
+    toggle.hidden = false;
+    show(false);
+    toggle.addEventListener("click", () => show(nav.classList.contains("categories--collapsed")));
+  }
+</script>

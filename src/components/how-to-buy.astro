@@ -1,0 +1,53 @@
+---
+import { env } from "cloudflare:workers";
+import { build } from "../container";
+import { texts } from "../i18n";
+
+/**
+ * "Cómo comprar": one line per channel the owner configured (WhatsApp orders, bank transfer). Nothing is
+ * invented: without a configured method the section is not rendered.
+ */
+const container = build(env);
+const [whatsapp, transfer] = await Promise.all([
+  container.getPaymentMethod("whatsapp"),
+  container.getPaymentMethod("transferencia"),
+]);
+const t = texts(Astro.locals.language).store;
+// Simple stroke icons (24×24), decorative: the text names each step.
+const steps: { title: string; text: string; icon: string }[] = [];
+if (whatsapp?.active) {
+  steps.push({
+    title: t.buyWhatsapp,
+    text: t.buyWhatsappText,
+    icon: "M21 12a8 8 0 0 1-11.6 7.1L4 20l1-5A8 8 0 1 1 21 12z",
+  });
+}
+if (transfer?.active) {
+  steps.push({
+    title: t.buyTransfer,
+    text: t.buyTransferText,
+    icon: "M3 10l9-6 9 6M5 10v9h14v-9M9 19v-5h6v5",
+  });
+}
+---
+
+{
+  steps.length > 0 && (
+    <section class="how-to-buy" aria-labelledby="how-to-buy">
+      <h2 id="how-to-buy" class="label">{t.howToBuy}</h2>
+      <ul class="how-to-buy__list">
+        {steps.map((s) => (
+          <li class="how-to-buy__step">
+            <svg class="how-to-buy__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d={s.icon} />
+            </svg>
+            <span class="how-to-buy__text">
+              <strong class="how-to-buy__title">{s.title}</strong>
+              {s.text}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
