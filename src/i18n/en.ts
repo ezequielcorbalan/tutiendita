@@ -217,6 +217,9 @@ export const en: Texts = {
     exit: "Sign out",
   },
   settings: {
+    linksLabel: "Access and updates",
+    accessText: "Passkeys, access key and recovery code.",
+    updatesText: "What is new in tutiendita and updating your store.",
     title: "Settings",
     identityTitle: "Your store",
     identityName: "Name",

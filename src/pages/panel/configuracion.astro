@@ -14,11 +14,34 @@ const [store, color, domain, photos] = await Promise.all([
   container.domain.status(),
   container.photos.status(),
 ]);
-const t = texts(Astro.locals.language).settings;
+const all = texts(Astro.locals.language);
+const t = all.settings;
+const n = all.navPanel;
 ---
 
 <Panel title={t.title} section="settings">
   <h1>{t.title}</h1>
+
+  <nav class="settings-links" aria-label={t.linksLabel}>
+    <a class="card settings-links__item" href="/panel/acceso">
+      <svg class="settings-links__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M7 14a4 4 0 1 1 3.9-5H21v3h-2v3h-3v-3h-5.1A4 4 0 0 1 7 14z" />
+      </svg>
+      <span class="settings-links__text">
+        <strong class="settings-links__title">{n.access}</strong>
+        {t.accessText}
+      </span>
+    </a>
+    <a class="card settings-links__item" href="/panel/actualizaciones">
+      <svg class="settings-links__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" />
+      </svg>
+      <span class="settings-links__text">
+        <strong class="settings-links__title">{n.updates}</strong>
+        {t.updatesText}
+      </span>
+    </a>
+  </nav>
 
   <section aria-labelledby="identity">
     <h2 id="identity">{t.identityTitle}</h2>
