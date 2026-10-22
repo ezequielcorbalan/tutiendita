@@ -55,22 +55,18 @@ const t = texts(Astro.locals.language).panelHome;
   <section aria-labelledby="insights">
     <h2 id="insights">{t.insightsTitle}</h2>
     <p>{t.insightsIntro}</p>
-    <ul class="dashboard__insights">
-      {
-        t.insights.map((i, n) => (
-          <li class="card card--coming-soon">
-            <span class="badge">{t.comingSoon}</span>
-            <h3>{i.title}</h3>
-            <p>{i.text}</p>
-            <div class="dashboard__chart" aria-hidden="true">
-              {[40, 65, 50, 80, 60, 90, 70].map((height, k) => (
-                <span style={`--height: ${(height + n * 7 + k * 3) % 100}%`} />
-              ))}
-            </div>
-          </li>
-        ))
-      }
-    </ul>
+    <div class="card card--coming-soon">
+      <span class="badge">{t.comingSoon}</span>
+      <ul class="dashboard__insights">
+        {
+          t.insights.map((i) => (
+            <li>
+              <strong>{i.title}</strong> {i.text}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
   </section>
 </Panel>
 

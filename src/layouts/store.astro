@@ -34,8 +34,17 @@ const brandStyle = brand
   : "";
 ---
 
-<Base title={title ? `${title} · ${storeName}` : storeName} {description} {index} {image}>
+<Base title={title ? `${title} · ${storeName}` : storeName} {description} {index} {image} store>
   <meta slot="head" property="og:site_name" content={storeName} />
+  {/* The titles' font (self-hosted, latin subset): preloaded so the first paint already has it. */}
+  <link
+    slot="head"
+    rel="preload"
+    as="font"
+    type="font/woff2"
+    crossorigin
+    href="/fonts/bricolage-grotesque-700-latin.woff2"
+  />
   {brandStyle && <Fragment slot="head" set:html={brandStyle} />}
   <slot name="head" slot="head" />
   <header class="store-bar" slot="top">
