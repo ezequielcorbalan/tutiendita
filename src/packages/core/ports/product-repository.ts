@@ -7,6 +7,8 @@ export interface ProductRepository {
   findBySlug(slug: string): Promise<Product | null>;
   findById(id: string): Promise<Product | null>;
   slugExists(slug: string): Promise<boolean>;
+  /** How many products exist, whatever their status (the hosted plan's cap counts them all). */
+  count(): Promise<number>;
   /** Inserts or replaces by id, including its images. */
   save(p: Product): Promise<void>;
   /** Deletes the product and its images (the rows; the caller deletes the files in R2). */

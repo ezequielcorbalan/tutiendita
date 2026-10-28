@@ -14,6 +14,7 @@ export * from "./d1/settings-repository-d1";
 export * from "./d1/store-repository-d1";
 export * from "./dns/domain-inspector";
 export * from "./github/github-client";
+export * from "./hosting/hosting-client";
 export * from "./image-storage-fallback";
 export * from "./r2/image-storage-r2";
 export * from "./registry/registry-client";

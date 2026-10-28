@@ -1,7 +1,8 @@
 ---
 /**
- * HTML fragment the panel home loads after rendering: asking GitHub takes a few calls and the home shouldn't
- * wait for them. Empty when there is no security or bugfix update, or GitHub doesn't answer.
+ * HTML fragment the panel home loads after rendering: asking GitHub (or, on the hosted plan, the hosting
+ * service) takes a while and the home shouldn't wait. Empty when there is no security or bugfix update, or
+ * nobody answers.
  */
 import { env } from "cloudflare:workers";
 import UpdateAlert from "../../../components/update-alert.astro";
@@ -10,7 +11,8 @@ import { STORE_VERSION } from "../../../version";
 
 export const partial = true;
 
-const status = await build(env).updates.status(STORE_VERSION);
+const updates = build(env).updates;
+const status = await (updates.hosted ? updates.hosted.status(STORE_VERSION) : updates.status(STORE_VERSION));
 const update = status.ok && status.value.status === "update-available" ? status.value : null;
 ---
 

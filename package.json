@@ -1,6 +1,6 @@
 {
   "name": "tiendita",
-  "version": "0.13.2",
+  "version": "0.14.1",
   "private": true,
   "description": "Tu tienda online en tu propia cuenta de Cloudflare, desplegada con un botón.",
   "type": "module",

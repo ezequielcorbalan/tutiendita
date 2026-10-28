@@ -1,0 +1,59 @@
+---
+/**
+ * Updates page of a store on the hosted plan (shown at /panel/actualizaciones through a rewrite): no GitHub,
+ * the hosting service redeploys the store when the owner presses the button.
+ */
+import { env } from "cloudflare:workers";
+import UpdateAlert from "../../components/update-alert.astro";
+import { build } from "../../container";
+import { texts } from "../../i18n";
+import Panel from "../../layouts/panel.astro";
+import { STORE_VERSION } from "../../version";
+
+const hosted = build(env).updates.hosted;
+if (!hosted) return Astro.redirect("/panel/actualizaciones");
+const t = texts(Astro.locals.language).updates;
+const status = await hosted.status(STORE_VERSION);
+---
+
+<Panel title={t.title} section="updates">
+  <h1>{t.title}</h1>
+  <p>{t.hostedIntro}</p>
+  <p>{t.version(STORE_VERSION)}</p>
+  {!status.ok && <p class="error" role="alert">{t.hostedErrorStatus}</p>}
+  {status.ok && status.value.status === "up-to-date" && <p>{t.upToDate(status.value.current)}</p>}
+  {
+    status.ok && status.value.status === "update-available" && (
+      <section aria-labelledby="new-version" data-update>
+        <h2 id="new-version">{t.updateAvailable(status.value.newVersion, status.value.current)}</h2>
+        <UpdateAlert kind={status.value.kind} version={status.value.newVersion} />
+        <button type="button" data-hosted-update>
+          {t.hostedUpdate}
+        </button>
+        <p data-applied hidden role="status">
+          {t.hostedRequested}
+        </p>
+        <p class="error" data-error role="alert" />
+      </section>
+    )
+  }
+  <p><a href="/panel">{texts(Astro.locals.language).access.backToPanel}</a></p>
+</Panel>
+
+<script>
+  import { showError, request } from "../../scripts/panel";
+
+  const section = document.querySelector<HTMLElement>("[data-update]");
+  const button = section?.querySelector<HTMLButtonElement>("[data-hosted-update]");
+  button?.addEventListener("click", async () => {
+    button.disabled = true;
+    try {
+      await request("POST", "/api/updates/hosted");
+      button.hidden = true;
+      section?.querySelector<HTMLElement>("[data-applied]")?.removeAttribute("hidden");
+    } catch (e) {
+      button.disabled = false;
+      showError(section?.querySelector("[data-error]") ?? null, e);
+    }
+  });
+</script>

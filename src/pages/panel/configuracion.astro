@@ -103,7 +103,10 @@ const n = all.navPanel;
   <section aria-labelledby="domain">
     <h2 id="domain">{t.domainTitle}</h2>
     {
-      domain.status === "active" ? (
+      // Hosted plan: the address is the one tutiendita gave; connecting a domain needs the GitHub flow.
+      container.hosted ? (
+        <p>{t.hostedDomain(Astro.url.hostname)}</p>
+      ) : domain.status === "active" ? (
         <>
           <p>
             {t.active} <a href={`https://${domain.hostname}`}>{domain.hostname}</a>.

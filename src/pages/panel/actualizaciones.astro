@@ -10,6 +10,8 @@ import { appManifest, GITHUB_STATE_COOKIE, random, STATE_TTL_SECONDS } from "../
 import { STORE_VERSION } from "../../version";
 
 const container = build(env);
+// Hosted plan: no GitHub flow, the hosting service redeploys the store.
+if (container.updates.hosted) return Astro.rewrite("/panel/hosted-updates");
 const t = texts(Astro.locals.language).updates;
 const [status, connection, store] = await Promise.all([
   container.updates.status(STORE_VERSION),

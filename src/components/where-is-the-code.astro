@@ -1,12 +1,22 @@
 ---
 // Where the merchant finds the claim code. Used by the first-boot home page and
-// /panel/reclamar; the generated repo's README repeats the same.
+// /panel/reclamar; the generated repo's README repeats the same. Hosted stores got it by email.
+import { env } from "cloudflare:workers";
+import { isHosted } from "../container";
 import { texts } from "../i18n";
 
 const t = texts(Astro.locals.language).whereIsTheCode;
 ---
 
-<ol>
-  {t.stepsHtml.map((step) => <li set:html={step} />)}
-</ol>
-<p set:html={t.noteHtml} />
+{
+  isHosted(env) ? (
+    <p set:html={t.hostedHtml} />
+  ) : (
+    <>
+      <ol>
+        {t.stepsHtml.map((step) => <li set:html={step} />)}
+      </ol>
+      <p set:html={t.noteHtml} />
+    </>
+  )
+}

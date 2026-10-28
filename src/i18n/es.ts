@@ -116,6 +116,10 @@ export const es = {
       "Después vas a crear tu llave de acceso (passkey: entrás con la huella, la cara o el PIN de tu teléfono, sin contraseña), elegir el nombre y el idioma de la tienda y dejar tu WhatsApp. Son cinco pantallas cortas.",
     instructionsHtml:
       'Las instrucciones completas están en el archivo <code>README.md</code> de tu repositorio. Podés ver los recursos creados en tu <a href="https://dash.cloudflare.com/">panel de Cloudflare</a>.',
+    hostedDescription: "Tu tiendita ya está en internet",
+    hostedIntro: "La alojamos nosotros, en tutiendita: no tenés que crear ninguna cuenta ni instalar nada.",
+    hostedClaimHtml:
+      "Para que nadie más pueda adueñarse de ella, la primera vez que entrás te pedimos el <strong>código de reclamo</strong> que te mandamos por mail.",
   },
   whereIsTheCode: {
     stepsHtml: [
@@ -126,6 +130,8 @@ export const es = {
     ],
     noteHtml:
       "Ese registro solo lo ve quien tiene acceso a tu cuenta de Cloudflare, así que nadie más puede adueñarse de tu tienda. Cada vez que la tienda se vuelve a publicar se genera un código nuevo: usá el del último. Si estás probando en tu computadora (<code>npm run dev</code>), el código aparece en la terminal.",
+    hostedHtml:
+      "Buscá el mail de <strong>tutiendita</strong> que dice «Tu tienda está lista» (si no lo ves, fijate en la carpeta de spam). Copiá el código con los guiones: son seis grupos, como <code>XXXX-XXXX-XXXX-XXXX-XXXX-XXXX</code>. Sirve una sola vez.",
   },
   panel: {
     stepOf: (n: number) => `Paso ${n} de 5`,
@@ -165,6 +171,8 @@ export const es = {
     button: "Seguir",
     emergency:
       "Si perdiste el dispositivo y también el código, la única salida es el plan de emergencia del README de tu repositorio: quien tiene la cuenta de Cloudflare borra el acceso desde la base de datos y vuelve a desplegar la tienda para reclamarla con un código nuevo. Tus productos no se pierden.",
+    hostedEmergency:
+      "Si perdiste el dispositivo y también el código, escribinos a hola@tutiendita.ar desde el mail con el que pediste la tienda. Tus productos no se pierden.",
   },
   access: {
     title: "Acceso",
@@ -256,6 +264,8 @@ export const es = {
     domainTitle: "Tu dominio",
     domainIntro:
       "Tu tienda puede estar en una dirección tuya, como tienda.tunegocio.com.ar, en vez de la de workers.dev.",
+    hostedDomain: (host: string) =>
+      `Tu tienda está en ${host}, la dirección que te dio tutiendita. Conectar un dominio propio todavía no está disponible en el plan alojado.`,
     githubNeeded:
       "Para conectar un dominio, primero conectá tu tienda con GitHub en Actualizaciones: así la tienda guarda el cambio en su propio código y Cloudflare la vuelve a publicar.",
     goToUpdates: "Ir a Actualizaciones",
@@ -576,6 +586,12 @@ export const es = {
     applied:
       "¡Listo! Cloudflare está publicando la versión nueva. En unos minutos la vas a ver en tu tienda.",
     errorStatus: "No pudimos hablar con GitHub. Probá de nuevo en un rato.",
+    hostedIntro:
+      "tutiendita aloja y cuida tu tienda. Cuando hay una versión nueva, la traés con un botón: nada cambia sin que lo apruebes.",
+    hostedUpdate: "Actualizar mi tienda",
+    hostedRequested:
+      "¡Listo! Estamos publicando la versión nueva. En un minuto o dos recargá la página y la vas a ver.",
+    hostedErrorStatus: "No pudimos consultar si hay una versión nueva. Probá de nuevo en un rato.",
     securityTitle: "Actualización de seguridad",
     securityText: (v: string) =>
       `La versión ${v} corrige un problema de seguridad. Actualizá tu tienda cuanto antes.`,
@@ -600,6 +616,8 @@ export const es = {
       TOO_MANY_IMAGES: "Un producto puede tener hasta 8 fotos.",
       IMAGE_QUOTA_REACHED:
         "Llegaste a las 200 fotos del modo básico. Activá Fotos profesionales y sin límite en Configuración para seguir subiendo.",
+      PRODUCT_LIMIT_REACHED:
+        "Llegaste al máximo de productos de tu plan. Borrá alguno para poder crear uno nuevo.",
       PRO_REQUIRED:
         "Para sumar más fotos o una foto por opción, activá Fotos profesionales y sin límite en Configuración.",
       R2_ALREADY_SET:
@@ -633,6 +651,7 @@ export const es = {
       INVALID_BRAND_COLOR: "Elegí uno de los colores de la lista.",
       GITHUB_NOT_CONNECTED: "Primero conectá tu tienda con GitHub.",
       GITHUB_NOT_RESPONDING: "GitHub no respondió. Probá de nuevo en un rato.",
+      HOSTING_NOT_RESPONDING: "tutiendita no respondió. Probá de nuevo en un rato.",
       GITHUB_MULTIPLE_REPOSITORIES:
         "La app tiene acceso a más de un repositorio. En GitHub, dejale acceso solo al de tu tienda y volvé a intentar.",
       INVALID_CART: "Revisá el carrito: tiene que tener entre 1 y 50 productos, de 1 a 99 unidades cada uno.",

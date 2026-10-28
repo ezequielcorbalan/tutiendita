@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { build } from "../../container";
 import { STORE_VERSION } from "../../version";
-import { respondDomainError } from "../errors";
+import { notFound, respondDomainError } from "../errors";
 import { requireSession } from "../middlewares/session";
 import type { ApiEnv } from "../types";
 import { validate } from "../validation";
@@ -11,6 +11,14 @@ import { validate } from "../validation";
 const ownerOnly = requireSession("completa");
 
 export const updatesRoutes = new Hono<ApiEnv>()
+  // Hosted plan: the hosting service redeploys the store, so there is no PR to prepare or apply.
+  .post("/hosted", ownerOnly, async (c) => {
+    const hosted = build(c.env).updates.hosted;
+    if (!hosted) return notFound(c);
+    const r = await hosted.request();
+    if (!r.ok) return respondDomainError(c, r.error);
+    return c.json({ requested: true }, 202);
+  })
   .post("/prepare", ownerOnly, async (c) => {
     const r = await build(c.env).updates.prepare(STORE_VERSION);
     if (!r.ok) return respondDomainError(c, r.error);
