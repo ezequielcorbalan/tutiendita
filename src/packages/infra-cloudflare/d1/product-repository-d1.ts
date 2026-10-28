@@ -5,7 +5,7 @@ import {
   type ProductOption,
   type ProductRepository,
 } from "../../core/index";
-import { asc, desc, eq, inArray, type SQL } from "drizzle-orm";
+import { asc, count, desc, eq, inArray, type SQL } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { drizzle } from "drizzle-orm/d1";
 import { optionValues, productImages, productOptions, products } from "./schema";
@@ -213,6 +213,11 @@ export function createD1ProductRepository(db: D1Database): ProductRepository {
         .where(eq(products.slug, slug))
         .limit(1);
       return row.length > 0;
+    },
+
+    async count() {
+      const [row] = await orm.select({ n: count() }).from(products);
+      return row?.n ?? 0;
     },
 
     /** If another product already has the slug, throws DuplicateSlugError (the batch applies nothing). */

@@ -47,6 +47,8 @@ export type CreateProductDeps = {
   maxImageSize?: number;
   /** Professional photo storage: more than one photo and photos per value. Default false. */
   pro?: boolean;
+  /** Most products the store may hold (the hosted plan's cap). Default: no limit. */
+  maxProducts?: number;
 };
 
 const MAX_SLUG_ATTEMPTS = 50;
@@ -88,6 +90,14 @@ async function resolveUniqueSlug(
 export const createProduct =
   (deps: CreateProductDeps) =>
   async (e: CreateProductInput): Promise<Result<Product, DomainError>> => {
+    // shortcut: count-then-save can overshoot by a few under concurrent creations, tighten if the cap must be exact
+    if (deps.maxProducts !== undefined && (await deps.repo.count()) >= deps.maxProducts) {
+      return err(
+        domainError("PRODUCT_LIMIT_REACHED", "The store reached its product limit", {
+          max: deps.maxProducts,
+        }),
+      );
+    }
     const gallery = e.gallery ?? [];
     const uploads = e.uploads ?? [];
     const valid = checkGallery(gallery, uploads, [], e.options, deps.maxImageSize);

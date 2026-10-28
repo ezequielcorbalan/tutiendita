@@ -113,6 +113,11 @@ export const pt: Texts = {
       "Depois você vai criar sua chave de acesso (passkey: você entra com a digital, o rosto ou o PIN do celular, sem senha), escolher o nome e o idioma da loja e informar seu WhatsApp. São cinco telas curtas.",
     instructionsHtml:
       'As instruções completas estão no arquivo <code>README.md</code> do seu repositório. Você pode ver os recursos criados no seu <a href="https://dash.cloudflare.com/">painel da Cloudflare</a>.',
+    hostedDescription: "Sua tiendita já está na internet",
+    hostedIntro:
+      "A gente hospeda para você, na tutiendita: não precisa criar nenhuma conta nem instalar nada.",
+    hostedClaimHtml:
+      "Para que ninguém mais possa se apropriar dela, na primeira vez que você entra pedimos o <strong>código de resgate</strong> que enviamos por e-mail.",
   },
   whereIsTheCode: {
     stepsHtml: [
@@ -123,6 +128,8 @@ export const pt: Texts = {
     ],
     noteHtml:
       "Esse log só pode ser visto por quem tem acesso à sua conta da Cloudflare, então ninguém mais consegue se apropriar da sua loja. Cada vez que a loja é publicada de novo, um código novo é gerado: use o mais recente. Se você está testando no seu computador (<code>npm run dev</code>), o código aparece no terminal.",
+    hostedHtml:
+      "Procure o e-mail da <strong>tutiendita</strong> que diz «Sua loja está pronta» (se não aparecer, olhe na pasta de spam). Copie o código com os hífens: seis grupos como <code>XXXX-XXXX-XXXX-XXXX-XXXX-XXXX</code>. Ele funciona uma vez só.",
   },
   panel: {
     stepOf: (n: number) => `Passo ${n} de 5`,
@@ -162,6 +169,8 @@ export const pt: Texts = {
     button: "Continuar",
     emergency:
       "Se você perdeu o dispositivo e também o código, a única saída é o plano de emergência do README do seu repositório: quem tem a conta da Cloudflare apaga o acesso no banco de dados e publica a loja de novo para reivindicá-la com um código novo. Seus produtos não se perdem.",
+    hostedEmergency:
+      "Se você perdeu o dispositivo e também o código, escreva para hola@tutiendita.ar a partir do e-mail com que pediu a loja. Seus produtos não se perdem.",
   },
   access: {
     title: "Acesso",
@@ -251,6 +260,8 @@ export const pt: Texts = {
     domainTitle: "Seu domínio",
     domainIntro:
       "Sua loja pode ficar num endereço seu, como loja.seunegocio.com.br, em vez do endereço workers.dev.",
+    hostedDomain: (host: string) =>
+      `Sua loja está em ${host}, o endereço que o tutiendita deu a você. Conectar um domínio próprio ainda não está disponível no plano hospedado.`,
     githubNeeded:
       "Para conectar um domínio, primeiro conecte sua loja ao GitHub em Atualizações: assim a loja salva a mudança no próprio código e a Cloudflare publica de novo.",
     goToUpdates: "Ir para Atualizações",
@@ -565,6 +576,12 @@ export const pt: Texts = {
     applied:
       "Pronto! A Cloudflare está publicando a versão nova. Em alguns minutos você vai ver na sua loja.",
     errorStatus: "Não conseguimos falar com o GitHub. Tente de novo daqui a pouco.",
+    hostedIntro:
+      "O tutiendita hospeda e cuida da sua loja. Quando há uma versão nova, você a traz com um botão: nada muda sem a sua aprovação.",
+    hostedUpdate: "Atualizar minha loja",
+    hostedRequested:
+      "Pronto! Estamos publicando a versão nova. Em um ou dois minutos recarregue a página e você a verá.",
+    hostedErrorStatus: "Não conseguimos verificar se há uma versão nova. Tente de novo daqui a pouco.",
     securityTitle: "Atualização de segurança",
     securityText: (v: string) =>
       `A versão ${v} corrige um problema de segurança. Atualize sua loja o quanto antes.`,
@@ -587,6 +604,8 @@ export const pt: Texts = {
       TOO_MANY_IMAGES: "Um produto pode ter até 8 fotos.",
       IMAGE_QUOTA_REACHED:
         "Você chegou às 200 fotos do modo básico. Ative Fotos profissionais e sem limite em Configurações para continuar enviando.",
+      PRODUCT_LIMIT_REACHED:
+        "Você chegou ao limite de produtos do seu plano. Apague um para poder criar outro.",
       PRO_REQUIRED:
         "Para adicionar mais fotos ou uma foto por opção, ative Fotos profissionais e sem limite em Configurações.",
       R2_ALREADY_SET:
@@ -620,6 +639,7 @@ export const pt: Texts = {
       INVALID_BRAND_COLOR: "Escolha uma das cores da lista.",
       GITHUB_NOT_CONNECTED: "Primeiro conecte sua loja ao GitHub.",
       GITHUB_NOT_RESPONDING: "O GitHub não respondeu. Tente de novo daqui a pouco.",
+      HOSTING_NOT_RESPONDING: "O tutiendita não respondeu. Tente de novo daqui a pouco.",
       GITHUB_MULTIPLE_REPOSITORIES:
         "O app tem acesso a mais de um repositório. No GitHub, deixe acesso só ao repositório da sua loja e tente de novo.",
       INVALID_CART: "Confira o carrinho: precisa ter de 1 a 50 produtos, de 1 a 99 unidades cada.",

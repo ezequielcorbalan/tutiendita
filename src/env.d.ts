@@ -9,6 +9,13 @@ declare namespace Cloudflare {
     ASSETS: Fetcher;
     /** Where the daily heartbeat goes (tutiendita.ar by default); empty string disables it (tests). */
     REGISTRY_URL?: string;
+    /** Hosted plan only: most products the store may hold (a number as text). Unset: no limit. */
+    MAX_PRODUCTS?: string;
+    /** Hosted plan only: SHA-256 (hex) of this store's claim code; with HOSTING_URL set it's the only one accepted. */
+    CLAIM_CODE_HASH?: string;
+    /** Hosted plan only: the hosting service the Update button talks to, and this store's bearer token for it. */
+    HOSTING_URL?: string;
+    HOSTING_TOKEN?: string;
   }
 }
 

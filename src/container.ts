@@ -23,6 +23,8 @@ import {
   getBrandColor,
   getProduct,
   getStoreStatus,
+  type HostedUpdatesDeps,
+  hostedUpdateStatus,
   listAllProducts,
   listOrders,
   listPasskeys,
@@ -38,6 +40,7 @@ import {
   quoteOrder,
   regenerateRecoveryCode,
   registerInstallation,
+  requestHostedUpdate,
   revertProfessionalPhotos,
   type StoreRegistry,
   saveStoreName,
@@ -75,6 +78,7 @@ import {
   createD1StoreRepository,
   createDomainInspector,
   createGithubClient,
+  createHostingClient,
   createR2ImageStorage,
   createRegistryClient,
   systemClock,
@@ -88,6 +92,18 @@ import { codeHash } from "./claim";
 /** The registry of active stores the daily heartbeat goes to (REGISTRY_URL overrides it; "" turns it off). */
 export const DEFAULT_REGISTRY_URL = "https://tutiendita.ar";
 
+/**
+ * Hosted plan: one build serves every store and its own claim code sits in our build log, so a hosted store
+ * only accepts the hash the deployer passed. Missing or malformed, the store can't be claimed at all.
+ */
+export function hostedClaimHash(value: string | undefined): string | null {
+  const hash = value?.trim().toLowerCase() ?? "";
+  return /^[0-9a-f]{64}$/.test(hash) ? hash : null;
+}
+
+/** A store of the hosted plan: its claim code arrives by email and it has no Cloudflare account of its own. */
+export const isHosted = (env: Pick<Env, "HOSTING_URL">) => Boolean(env.HOSTING_URL);
+
 /** Composition root: builds the use cases per request with the adapters from `env`. */
 export function build(env: Env) {
   const repo = createD1ProductRepository(env.DB);
@@ -99,6 +115,9 @@ export function build(env: Env) {
     ? withFallback(createR2ImageStorage(env.IMAGENES, ulidGenerator), d1Images)
     : d1Images;
   const maxImageSize = hasBucket ? MAX_IMAGE_SIZE : MAX_BASIC_IMAGE_SIZE;
+  // Hosted plan: the deployer sets MAX_PRODUCTS; anything that isn't a positive integer means no limit.
+  const parsedMax = Number.parseInt(env.MAX_PRODUCTS ?? "", 10);
+  const maxProducts = parsedMax > 0 ? parsedMax : undefined;
   const settings = createD1SettingsRepository(env.DB);
   const store = createD1StoreRepository(env.DB);
   const accessRepo = createD1AccessRepository(env.DB);
@@ -112,7 +131,7 @@ export function build(env: Env) {
     cryptography: webCryptography,
     clock: systemClock,
     store,
-    claimCodeHash: codeHash,
+    claimCodeHash: isHosted(env) ? () => hostedClaimHash(env.CLAIM_CODE_HASH) : codeHash,
   };
   const onboardingDeps: OnboardingDeps = {
     access: accessRepo,
@@ -127,6 +146,7 @@ export function build(env: Env) {
     images,
     maxImageSize,
     pro: hasBucket,
+    ...(maxProducts !== undefined ? { maxProducts } : {}),
     clock: systemClock,
     ids: ulidGenerator,
   };
@@ -142,6 +162,11 @@ export function build(env: Env) {
     github: createGithubClient(),
     clock: systemClock,
   };
+  // Hosted plan: updates go through the hosting service, not through a GitHub repository of the store.
+  const hostedDeps: HostedUpdatesDeps | undefined =
+    env.HOSTING_URL && env.HOSTING_TOKEN
+      ? { hosting: createHostingClient(env.HOSTING_URL, env.HOSTING_TOKEN) }
+      : undefined;
   const domainDeps: CustomDomainDeps = {
     access: accessRepo,
     store,
@@ -225,6 +250,10 @@ export function build(env: Env) {
       registerInstallation: registerInstallation(updatesDeps),
       prepare: prepareUpdate(updatesDeps),
       apply: applyUpdate(updatesDeps),
+      hosted: hostedDeps && {
+        status: hostedUpdateStatus(hostedDeps),
+        request: requestHostedUpdate(hostedDeps),
+      },
     },
     domain: {
       status: domainStatus(domainDeps),
@@ -247,6 +276,8 @@ export function build(env: Env) {
     },
     images,
     hasBucket,
+    /** Hosted plan: the hosting service deploys and updates the store (no GitHub flows). */
+    hosted: hostedDeps !== undefined,
   };
 }
 

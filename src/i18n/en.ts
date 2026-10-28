@@ -112,6 +112,10 @@ export const en: Texts = {
       "Then you'll create your passkey (you sign in with your phone's fingerprint, face or PIN, no password), choose your store's name and language, and add your WhatsApp number. It's five short screens.",
     instructionsHtml:
       'The full instructions are in the <code>README.md</code> file in your repository. You can see the resources that were created in your <a href="https://dash.cloudflare.com/">Cloudflare dashboard</a>.',
+    hostedDescription: "Your tiendita is live",
+    hostedIntro: "We host it for you at tutiendita: no accounts to create and nothing to install.",
+    hostedClaimHtml:
+      "So nobody else can take it over, the first time you sign in we ask for the <strong>claim code</strong> we emailed you.",
   },
   whereIsTheCode: {
     stepsHtml: [
@@ -122,6 +126,8 @@ export const en: Texts = {
     ],
     noteHtml:
       "Only people with access to your Cloudflare account can see that log, so nobody else can take over your store. Every time the store is published again a new code is generated: use the latest one. If you're trying it on your computer (<code>npm run dev</code>), the code shows up in the terminal.",
+    hostedHtml:
+      "Look for the email from <strong>tutiendita</strong> that says «Your store is ready» (if you don't see it, check your spam folder). Copy the code with the dashes: six groups like <code>XXXX-XXXX-XXXX-XXXX-XXXX-XXXX</code>. It works only once.",
   },
   panel: {
     stepOf: (n: number) => `Step ${n} of 5`,
@@ -161,6 +167,8 @@ export const en: Texts = {
     button: "Continue",
     emergency:
       "If you lost both your device and the code, the only way back is the emergency plan in your repository's README: whoever has the Cloudflare account deletes the access from the database and deploys the store again to claim it with a new code. Your products are kept.",
+    hostedEmergency:
+      "If you lost both your device and the code, write to hola@tutiendita.ar from the email you used to ask for the store. Your products are kept.",
   },
   access: {
     title: "Access",
@@ -249,6 +257,8 @@ export const en: Texts = {
     domainTitle: "Your domain",
     domainIntro:
       "Your store can live at an address of your own, like shop.yourbusiness.com, instead of the workers.dev one.",
+    hostedDomain: (host: string) =>
+      `Your store is at ${host}, the address tutiendita gave you. Connecting your own domain isn't available on the hosted plan yet.`,
     githubNeeded:
       "To connect a domain, first connect your store to GitHub in Updates: that's how the store saves the change in its own code and Cloudflare publishes it again.",
     goToUpdates: "Go to Updates",
@@ -563,6 +573,12 @@ export const en: Texts = {
     apply: "Update my store",
     applied: "Done! Cloudflare is publishing the new version. You'll see it on your store in a few minutes.",
     errorStatus: "We couldn't reach GitHub. Please try again in a little while.",
+    hostedIntro:
+      "tutiendita hosts and looks after your store. When there's a new version you get it with one button: nothing changes unless you approve it.",
+    hostedUpdate: "Update my store",
+    hostedRequested:
+      "Done! We're publishing the new version. In a minute or two reload the page and you'll see it.",
+    hostedErrorStatus: "We couldn't check for a new version. Please try again in a little while.",
     securityTitle: "Security update",
     securityText: (v: string) =>
       `Version ${v} fixes a security problem. Update your store as soon as you can.`,
@@ -586,6 +602,7 @@ export const en: Texts = {
       TOO_MANY_IMAGES: "A product can have up to 8 photos.",
       IMAGE_QUOTA_REACHED:
         "You reached the 200 photos of basic mode. Turn on Professional photos, no limit in Settings to keep uploading.",
+      PRODUCT_LIMIT_REACHED: "You reached the product limit of your plan. Delete one to create a new one.",
       PRO_REQUIRED:
         "To add more photos or a photo per option, turn on Professional photos, no limit in Settings.",
       R2_ALREADY_SET:
@@ -620,6 +637,7 @@ export const en: Texts = {
       INVALID_BRAND_COLOR: "Pick one of the colours in the list.",
       GITHUB_NOT_CONNECTED: "First connect your store to GitHub.",
       GITHUB_NOT_RESPONDING: "GitHub didn't respond. Please try again in a little while.",
+      HOSTING_NOT_RESPONDING: "tutiendita didn't respond. Please try again in a little while.",
       GITHUB_MULTIPLE_REPOSITORIES:
         "The app has access to more than one repository. On GitHub, give it access only to your store's repository and try again.",
       INVALID_CART: "Check the cart: it needs 1 to 50 products, 1 to 99 units each.",

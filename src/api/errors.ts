@@ -27,6 +27,8 @@ const STATUSES: Partial<Record<ErrorCode, ContentfulStatusCode>> = {
   R2_ALREADY_SET: 409,
   ORDER_NOT_FOUND: 404,
   PRO_REQUIRED: 403,
+  PRODUCT_LIMIT_REACHED: 409,
+  HOSTING_NOT_RESPONDING: 502,
 };
 
 export const statusFor = (e: DomainError): ContentfulStatusCode => STATUSES[e.code] ?? 422;

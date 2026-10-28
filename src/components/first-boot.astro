@@ -1,23 +1,34 @@
 ---
+import { env } from "cloudflare:workers";
+import { isHosted } from "../container";
 import { texts } from "../i18n";
 import Base from "../layouts/base.astro";
 import WhereIsTheCode from "./where-is-the-code.astro";
 
 // First boot: what the merchant sees when opening the address the "Deploy to Cloudflare"
-// button gave them, before claiming their store.
+// button gave them, before claiming their store. A hosted store has no Cloudflare account or repo to show.
 const t = texts(Astro.locals.language).firstBoot;
+const hosted = isHosted(env);
 ---
 
-<Base title={t.title} description={t.description} index={false}>
+<Base title={t.title} description={hosted ? t.hostedDescription : t.description} index={false}>
   <h1>{t.title}</h1>
-  <p>{t.intro}</p>
-  <ul>
-    {t.resourcesHtml.map((resource) => <li set:html={resource} />)}
-  </ul>
+  {
+    hosted ? (
+      <p>{t.hostedIntro}</p>
+    ) : (
+      <>
+        <p>{t.intro}</p>
+        <ul>
+          {t.resourcesHtml.map((resource) => <li set:html={resource} />)}
+        </ul>
+      </>
+    )
+  }
   <h2>{t.whatsNext}</h2>
-  <p set:html={t.claimHtml} />
+  <p set:html={hosted ? t.hostedClaimHtml : t.claimHtml} />
   <WhereIsTheCode />
   <p><a class="button" href="/panel/reclamar"><strong>{t.button}</strong></a></p>
   <p>{t.after}</p>
-  <p set:html={t.instructionsHtml} />
+  {!hosted && <p set:html={t.instructionsHtml} />}
 </Base>

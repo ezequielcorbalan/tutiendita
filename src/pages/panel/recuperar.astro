@@ -1,5 +1,7 @@
 ---
+import { env } from "cloudflare:workers";
 import RegisterPasskey from "../../components/register-passkey.astro";
+import { isHosted } from "../../container";
 import { texts } from "../../i18n";
 import Panel from "../../layouts/panel.astro";
 
@@ -28,7 +30,7 @@ const t = texts(Astro.locals.language);
           <p class="error" data-error role="alert" />
         </form>
         <p>
-          <small>{t.recover.emergency}</small>
+          <small>{isHosted(env) ? t.recover.hostedEmergency : t.recover.emergency}</small>
         </p>
         <p><a href="/panel/ingresar">{t.common.back}</a></p>
       </>
