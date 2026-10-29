@@ -1,0 +1,49 @@
+# Hosted plan: on every published release, builds the store, attaches tiendita-bundle.json to the release and
+# tells the tutiendita hosting service, which offers the new version to the stores it hosts (each owner updates
+# from their panel). Stores in their own account don't use this file. In a fork without HOSTING_SYNC_TOKEN the
+# bundle is still attached and nobody is told.
+name: Hosted plan bundle
+
+on:
+  release:
+    types: [published]
+  # To run it again for a release that already exists (for example, one published before this workflow).
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (vX.Y.Z)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      HOSTING_SYNC_TOKEN: ${{ secrets.HOSTING_SYNC_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: node --test scripts/hosted-bundle.test.mjs
+      # The build prints a claim code in this public log: hosted stores never accept it (only their own,
+      # which arrives by email).
+      - run: npm run build
+      - run: node scripts/hosted-bundle.mjs tiendita-bundle.json "$TAG"
+      - run: gh release upload "$TAG" tiendita-bundle.json --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Tell the hosting service
+        if: env.HOSTING_SYNC_TOKEN != ''
+        run: |
+          curl --fail-with-body -sS -X POST https://hosting.tutiendita.ar/api/releases/sync \
+            -H "authorization: Bearer $HOSTING_SYNC_TOKEN" \
+            -H "content-type: application/json" \
+            -d "{\"tag\":\"$TAG\"}"
