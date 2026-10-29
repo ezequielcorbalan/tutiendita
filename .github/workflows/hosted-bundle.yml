@@ -42,8 +42,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
       - name: Tell the hosting service
         if: env.HOSTING_SYNC_TOKEN != ''
+        # Retries: right after the upload GitHub may not serve the file to the hosting service yet.
         run: |
-          curl --fail-with-body -sS -X POST https://hosting.tutiendita.ar/api/releases/sync \
+          curl --fail-with-body -sS --retry 4 --retry-delay 15 --retry-all-errors \
+            -X POST https://hosting.tutiendita.ar/api/releases/sync \
             -H "authorization: Bearer $HOSTING_SYNC_TOKEN" \
             -H "content-type: application/json" \
             -d "{\"tag\":\"$TAG\"}"
