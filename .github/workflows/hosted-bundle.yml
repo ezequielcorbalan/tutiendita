@@ -40,12 +40,19 @@ jobs:
       - run: gh release upload "$TAG" tiendita-bundle.json --clobber
         env:
           GH_TOKEN: ${{ github.token }}
+      # Sends the release's title and notes too (their [security] / [fix] markers set the kind): the hosting
+      # service never calls the GitHub API, whose anonymous limit runs out from Cloudflare's shared IPs.
+      # Retries: right after the upload GitHub may not serve the file yet. Pre-releases aren't offered.
       - name: Tell the hosting service
         if: env.HOSTING_SYNC_TOKEN != ''
-        # Retries: right after the upload GitHub may not serve the file to the hosting service yet.
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          release=$(gh release view "$TAG" --json tagName,name,body,isPrerelease)
+          if [ "$(jq -r .isPrerelease <<<"$release")" = "true" ]; then echo "Pre-release: not offered"; exit 0; fi
+          jq '{tag: .tagName, title: .name, notes: .body}' <<<"$release" > notice.json
           curl --fail-with-body -sS --retry 4 --retry-delay 15 --retry-all-errors \
             -X POST https://hosting.tutiendita.ar/api/releases/sync \
             -H "authorization: Bearer $HOSTING_SYNC_TOKEN" \
             -H "content-type: application/json" \
-            -d "{\"tag\":\"$TAG\"}"
+            --data-binary @notice.json
