@@ -32,7 +32,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - run: node --test scripts/hosted-bundle.test.mjs
+      # The whole suite first: if it fails, nothing is attached and the hosted stores are never offered it.
+      - run: npm test
+        env:
+          CI: "true"
+          WRANGLER_SEND_METRICS: "false"
       # The build prints a claim code in this public log: hosted stores never accept it (only their own,
       # which arrives by email).
       - run: npm run build

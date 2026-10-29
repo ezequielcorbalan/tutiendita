@@ -1,0 +1,17 @@
+{
+  // Only for the API tests (the Hono app directly, without the Astro build).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tiendita-test",
+  "compatibility_date": "2026-08-15",
+  "compatibility_flags": ["nodejs_compat"],
+  // The public/ assets (the sample products' photos), as in the Astro Worker.
+  "assets": { "directory": "./public", "binding": "ASSETS" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tiendita-test",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  "r2_buckets": [{ "binding": "IMAGENES", "bucket_name": "tiendita-imagenes-test" }]
+}

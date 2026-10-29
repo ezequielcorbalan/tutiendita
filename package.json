@@ -13,7 +13,8 @@
     "preview": "wrangler dev",
     "deploy": "node scripts/prepare-d1.mjs && npm run db:migrations:apply && wrangler deploy",
     "db:migrations:apply": "wrangler d1 migrations apply DB --remote",
-    "db:migrations:local": "wrangler d1 migrations apply DB --local"
+    "db:migrations:local": "wrangler d1 migrations apply DB --local",
+    "test": "node --test integrations/claim-code.test.mjs integrations/loopback.test.mjs scripts/hosted-bundle.test.mjs && node scripts/test-build.mjs && vitest run"
   },
   "dependencies": {
     "@astrojs/cloudflare": "14.3.4",
@@ -26,8 +27,10 @@
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "0.23.0",
     "@cloudflare/workers-types": "5.20261014.1",
     "typescript": "5.9.3",
+    "vitest": "4.1.11",
     "wrangler": "4.151.0"
   },
   "cloudflare": {
