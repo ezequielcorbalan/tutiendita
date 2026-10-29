@@ -1,0 +1,33 @@
+# The store's tests on every pull request and every push to main. With the "Tests" check required on main
+# (branch protection), nothing that breaks them gets merged, so no release (and no store update) carries it.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: "true"
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      # Node tests, a build with the test claim code, then Vitest (core, infra, api, pages, pages-hosted).
+      - run: npm test

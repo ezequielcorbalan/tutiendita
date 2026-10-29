@@ -1,0 +1,15 @@
+{
+  // Only for this package's tests: D1 and R2 bindings emulated by the Workers pool.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tiendita-infra-test",
+  "compatibility_date": "2026-08-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tiendita-test",
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+  "r2_buckets": [{ "binding": "IMAGENES", "bucket_name": "tiendita-imagenes-test" }]
+}

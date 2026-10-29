@@ -77,6 +77,7 @@ Este repo es una copia autocontenida de la tienda del monorepo de **tutiendita**
 npm ci                        # dependencias
 npm run dev                   # migraciones locales + Astro + wrangler en http://localhost:4321, tienda ya lista
 npm run build                 # build de producción (dist/)
+npm test                      # todos los tests (node --test, build de prueba y Vitest); el CI los corre en cada PR
 npm run deploy                # crea la D1 si falta + migraciones remotas + wrangler deploy (lo que corre Cloudflare)
 ```
 
